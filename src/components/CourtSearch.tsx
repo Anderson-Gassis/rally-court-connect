@@ -1,0 +1,210 @@
+
+import React, { useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import { Search, MapPin, Calendar as CalendarIcon, Filter } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const CourtSearch = () => {
+  const [location, setLocation] = useState("");
+  const [distance, setDistance] = useState([5]);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [filters, setFilters] = useState({
+    saibro: false,
+    rapida: false,
+    grama: false,
+    coberta: false,
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 max-w-5xl mx-auto -mt-8 relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        {/* Search Location */}
+        <div className="md:col-span-4 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <MapPin className="h-5 w-5 text-gray-400" />
+          </div>
+          <Input
+            placeholder="Onde você quer jogar?"
+            className="pl-10"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+
+        {/* Date Selector */}
+        <div className="md:col-span-3">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal border-gray-200"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? (
+                  date.toLocaleDateString()
+                ) : (
+                  <span className="text-gray-500">Selecione a data</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Time Selector */}
+        <div className="md:col-span-3">
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Horário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="morning">Manhã (6h - 12h)</SelectItem>
+              <SelectItem value="afternoon">Tarde (12h - 18h)</SelectItem>
+              <SelectItem value="evening">Noite (18h - 23h)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Search Button */}
+        <div className="md:col-span-2">
+          <Button className="w-full bg-tennis-blue hover:bg-tennis-blue-dark">
+            <Search className="h-4 w-4 mr-2" />
+            Buscar
+          </Button>
+        </div>
+      </div>
+
+      {/* Advanced Filters Button */}
+      <div className="mt-4 flex justify-between items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-tennis-blue-dark"
+          onClick={toggleFilters}
+        >
+          <Filter className="h-4 w-4 mr-1" />
+          Filtros {showFilters ? "▲" : "▼"}
+        </Button>
+
+        {showFilters && (
+          <div className="text-sm text-gray-500">
+            Distância: {distance} km
+          </div>
+        )}
+      </div>
+
+      {/* Advanced Filters */}
+      {showFilters && (
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Distance Slider */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">Distância máxima (km)</label>
+            <Slider
+              defaultValue={distance}
+              max={30}
+              step={1}
+              onValueChange={setDistance}
+              className="py-4"
+            />
+          </div>
+
+          {/* Court Types */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">Tipo de Quadra</label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="saibro"
+                  checked={filters.saibro}
+                  onCheckedChange={(checked) =>
+                    setFilters({ ...filters, saibro: !!checked })
+                  }
+                />
+                <label
+                  htmlFor="saibro"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Saibro
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rapida"
+                  checked={filters.rapida}
+                  onCheckedChange={(checked) =>
+                    setFilters({ ...filters, rapida: !!checked })
+                  }
+                />
+                <label
+                  htmlFor="rapida"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Rápida
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="grama"
+                  checked={filters.grama}
+                  onCheckedChange={(checked) =>
+                    setFilters({ ...filters, grama: !!checked })
+                  }
+                />
+                <label
+                  htmlFor="grama"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Grama
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="coberta"
+                  checked={filters.coberta}
+                  onCheckedChange={(checked) =>
+                    setFilters({ ...filters, coberta: !!checked })
+                  }
+                />
+                <label
+                  htmlFor="coberta"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Coberta
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CourtSearch;
