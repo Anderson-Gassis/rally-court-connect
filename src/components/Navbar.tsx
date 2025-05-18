@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Menu, X, Tennis } from "lucide-react";
+import { Menu, X, Activity } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,7 +17,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <Tennis className="h-6 w-6 text-tennis-blue" />
+            <Activity className="h-6 w-6 text-tennis-blue" />
             <Link to="/" className="font-semibold text-xl text-gray-900">
               CourtConnect
             </Link>

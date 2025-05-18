@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Tennis } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -11,7 +11,7 @@ const Footer = () => {
           {/* Company */}
           <div>
             <div className="flex items-center space-x-2 mb-5">
-              <Tennis className="h-6 w-6 text-tennis-blue" />
+              <Activity className="h-6 w-6 text-tennis-blue" />
               <span className="font-bold text-xl">CourtConnect</span>
             </div>
             <p className="text-gray-600 mb-4">

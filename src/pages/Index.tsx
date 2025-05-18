@@ -7,7 +7,7 @@ import CourtCard from '@/components/CourtCard';
 import MapView from '@/components/MapView';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Tennis, Clock, MapPin, Star } from 'lucide-react';
+import { Activity, Clock, MapPin, Star } from 'lucide-react';
 
 const Index = () => {
   // Mock data for courts
@@ -133,7 +133,7 @@ const Index = () => {
               {/* Step 3 */}
               <div className="flex flex-col items-center text-center">
                 <div className="bg-tennis-blue-light p-4 rounded-full mb-4">
-                  <Tennis className="h-8 w-8 text-tennis-blue" />
+                  <Activity className="h-8 w-8 text-tennis-blue" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Jogue</h3>
                 <p className="text-gray-600">
@@ -153,10 +153,15 @@ const Index = () => {
                   Junte-se aos milhares de jogadores que já fazem parte da nossa comunidade.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button className="bg-tennis-blue hover:bg-tennis-blue-dark text-white px-8 py-6">
+                  <Button 
+                    className="bg-tennis-blue hover:bg-tennis-blue-dark text-white px-8 py-6"
+                  >
                     Cadastre-se Grátis
                   </Button>
-                  <Button variant="outline" className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 px-8 py-6">
+                  <Button 
+                    variant="outline" 
+                    className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 px-8 py-6"
+                  >
                     Saiba Mais
                   </Button>
                 </div>
