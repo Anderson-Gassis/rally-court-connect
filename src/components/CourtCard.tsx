@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/badge";
 interface CourtCardProps {
   id: string;
   name: string;
-  type: string; // 'saibro', 'rápida', 'grama', etc.
+  type: string; // 'saibro', 'rápida', 'grama', 'areia', etc.
   image: string;
   location: string;
   distance: string; // e.g. '3.2km'
   rating: number;
   price: number; // price per hour
   available: boolean;
+  sportType: string; // 'tennis', 'beach-tennis', 'padel'
   features?: string[];
 }
 
@@ -28,14 +29,28 @@ const CourtCard = ({
   rating,
   price,
   available,
+  sportType,
   features = []
 }: CourtCardProps) => {
   
   const typeColor = {
+    // Tennis
     'saibro': 'bg-tennis-orange',
     'rápida': 'bg-tennis-blue',
     'grama': 'bg-tennis-green',
     'indoor': 'bg-tennis-blue-dark',
+    // Beach Tennis
+    'areia': 'bg-yellow-500',
+    'areia artificial': 'bg-yellow-400',
+    // Padel
+    'vidro': 'bg-sky-400',
+    'muro': 'bg-gray-500',
+  } as Record<string, string>;
+  
+  const sportIcon = {
+    'tennis': '🎾',
+    'beach-tennis': '🏖️',
+    'padel': '🏸',
   } as Record<string, string>;
   
   const typeClass = typeColor[type.toLowerCase()] || 'bg-gray-500';
@@ -53,6 +68,9 @@ const CourtCard = ({
         )}
         <div className={`absolute top-3 right-3 ${typeClass} text-white px-3 py-1 rounded-full text-xs font-medium`}>
           {type}
+        </div>
+        <div className="absolute bottom-3 left-3 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs font-medium">
+          {sportIcon[sportType]} {sportType === 'tennis' ? 'Tênis' : sportType === 'beach-tennis' ? 'Beach Tennis' : 'Padel'}
         </div>
       </div>
       
