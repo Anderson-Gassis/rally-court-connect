@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkAuth = async () => {
       try {
         // Mock authentication check
-        const storedUser = localStorage.getItem('courtconnect_user');
+        const storedUser = localStorage.getItem('kourtify_user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
 
       // Store user in local storage
-      localStorage.setItem('courtconnect_user', JSON.stringify(mockUser));
+      localStorage.setItem('kourtify_user', JSON.stringify(mockUser));
       setUser(mockUser);
       
     } catch (error) {
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
 
       // Store user in local storage
-      localStorage.setItem('courtconnect_user', JSON.stringify(mockUser));
+      localStorage.setItem('kourtify_user', JSON.stringify(mockUser));
       setUser(mockUser);
       
     } catch (error) {
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('courtconnect_user');
+    localStorage.removeItem('kourtify_user');
     setUser(null);
   };
 

@@ -12,7 +12,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-5">
               <Activity className="h-6 w-6 text-tennis-blue" />
-              <span className="font-bold text-xl">CourtConnect</span>
+              <span className="font-bold text-xl">Kourtify.com</span>
             </div>
             <p className="text-gray-600 mb-4">
               Conectando jogadores de tênis a quadras disponíveis em todo o Brasil.
@@ -96,7 +96,7 @@ const Footer = () => {
         
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-gray-500 text-center text-sm">
-            © {new Date().getFullYear()} CourtConnect. Todos os direitos reservados.
+            © {new Date().getFullYear()} Kourtify.com. Todos os direitos reservados.
           </p>
         </div>
       </div>

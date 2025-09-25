@@ -62,7 +62,7 @@ const Tournaments = () => {
     },
     {
       id: '4',
-      name: 'Copa CourtConnect de Iniciantes',
+      name: 'Copa Kourtify de Iniciantes',
       image: 'https://images.unsplash.com/photo-1614743758466-e569f4791116?q=80&w=500',
       location: 'Academia Ace, São Paulo',
       startDate: '20/05/2025',
@@ -72,7 +72,7 @@ const Tournaments = () => {
       status: 'upcoming',
       players: 16,
       prize: 'Premiação em produtos',
-      organizer: 'CourtConnect'
+      organizer: 'Kourtify.com'
     },
     {
       id: '5',

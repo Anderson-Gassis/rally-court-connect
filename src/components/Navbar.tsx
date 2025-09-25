@@ -24,7 +24,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             <Activity className="h-6 w-6 text-tennis-blue" />
             <Link to="/" className="font-semibold text-xl text-gray-900">
-              CourtConnect
+              Kourtify.com
             </Link>
           </div>
 
