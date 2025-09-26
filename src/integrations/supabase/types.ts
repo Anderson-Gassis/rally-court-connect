@@ -81,6 +81,7 @@ export type Database = {
           longitude: number | null
           name: string
           owner_id: string | null
+          partner_id: string | null
           price_per_hour: number
           rating: number | null
           sport_type: string
@@ -100,6 +101,7 @@ export type Database = {
           longitude?: number | null
           name: string
           owner_id?: string | null
+          partner_id?: string | null
           price_per_hour: number
           rating?: number | null
           sport_type: string
@@ -119,11 +121,81 @@ export type Database = {
           longitude?: number | null
           name?: string
           owner_id?: string | null
+          partner_id?: string | null
           price_per_hour?: number
           rating?: number | null
           sport_type?: string
           type?: string
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_dashboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "courts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_info"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      partner_info: {
+        Row: {
+          business_address: string | null
+          business_name: string | null
+          business_type: string | null
+          cnpj: string | null
+          commission_rate: number | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          payment_info: Json | null
+          updated_at: string
+          user_id: string
+          verified: boolean | null
+          website_url: string | null
+        }
+        Insert: {
+          business_address?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          cnpj?: string | null
+          commission_rate?: number | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          payment_info?: Json | null
+          updated_at?: string
+          user_id: string
+          verified?: boolean | null
+          website_url?: string | null
+        }
+        Update: {
+          business_address?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          cnpj?: string | null
+          commission_rate?: number | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          payment_info?: Json | null
+          updated_at?: string
+          user_id?: string
+          verified?: boolean | null
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -136,6 +208,7 @@ export type Database = {
           id: string
           location: string | null
           phone: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
           skill_level: string | null
           updated_at: string
           user_id: string
@@ -148,6 +221,7 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           skill_level?: string | null
           updated_at?: string
           user_id: string
@@ -160,6 +234,7 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           skill_level?: string | null
           updated_at?: string
           user_id?: string
@@ -254,13 +329,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      partner_dashboard: {
+        Row: {
+          active_courts: number | null
+          average_rating: number | null
+          business_name: string | null
+          confirmed_bookings: number | null
+          total_bookings: number | null
+          total_courts: number | null
+          total_revenue: number | null
+          user_id: string | null
+          verified: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "player" | "partner" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -387,6 +478,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["player", "partner", "admin"],
+    },
   },
 } as const
