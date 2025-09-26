@@ -8,63 +8,10 @@ import MapView from '@/components/MapView';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Activity, Clock, MapPin, Star } from 'lucide-react';
+import { useCourts } from '@/hooks/useCourts';
 
 const Index = () => {
-  // Mock data for courts
-  const courts = [
-    {
-      id: '1',
-      name: 'Clube Atlético Paulistano',
-      type: 'Saibro',
-      sportType: 'tennis' as const,
-      image: 'https://images.unsplash.com/photo-1569955914862-7d551e5516a1?q=80&w=500',
-      location: 'Jardins, São Paulo',
-      distance: '2.5km',
-      rating: 4.8,
-      price: 80,
-      available: true,
-      features: ['Iluminada', 'Vestiário', 'Estacionamento'],
-    },
-    {
-      id: '2',
-      name: 'Tennis Park',
-      type: 'Rápida',
-      sportType: 'tennis' as const,
-      image: 'https://images.unsplash.com/photo-1614743758466-e569f4791116?q=80&w=500',
-      location: 'Moema, São Paulo',
-      distance: '3.1km',
-      rating: 4.5,
-      price: 60,
-      available: false,
-      features: ['Cobertura', 'Arquibancada'],
-    },
-    {
-      id: '3',
-      name: 'Condomínio Green Park',
-      type: 'Saibro',
-      sportType: 'padel' as const,
-      image: 'https://images.unsplash.com/photo-1620742820748-87c09249a72a?q=80&w=500',
-      location: 'Pinheiros, São Paulo',
-      distance: '1.7km',
-      rating: 4.2,
-      price: 50,
-      available: true,
-      features: ['Iluminada', 'Coberta'],
-    },
-    {
-      id: '4',
-      name: 'Academia Ace',
-      type: 'Indoor',
-      sportType: 'beach-tennis' as const,
-      image: 'https://images.unsplash.com/photo-1576610616656-d3aa5d1f4534?q=80&w=500',
-      location: 'Vila Olímpia, São Paulo',
-      distance: '4.3km',
-      rating: 4.9,
-      price: 120,
-      available: true,
-      features: ['Ar-condicionado', 'Pro Shop', 'Restaurante'],
-    },
-  ];
+  const { data: courts = [], isLoading } = useCourts();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -88,9 +35,29 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {courts.map(court => (
-                <CourtCard key={court.id} {...court} />
-              ))}
+              {isLoading ? (
+                // Show skeleton loading state
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="bg-gray-200 animate-pulse rounded-lg h-80"></div>
+                ))
+              ) : (
+                courts.slice(0, 4).map(court => (
+                  <CourtCard 
+                    key={court.id} 
+                    id={court.id}
+                    name={court.name}
+                    type={court.type}
+                    image={court.image_url || 'https://images.unsplash.com/photo-1569955914862-7d551e5516a1?q=80&w=500'}
+                    location={court.location}
+                    distance={court.distance || 'N/A'}
+                    rating={court.rating}
+                    price={court.price_per_hour}
+                    available={court.available}
+                    sportType={court.sport_type}
+                    features={court.features}
+                  />
+                ))
+              )}
             </div>
           </section>
           

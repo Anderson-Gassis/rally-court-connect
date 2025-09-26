@@ -14,7 +14,244 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_date: string
+          court_id: string
+          created_at: string
+          end_time: string
+          id: string
+          payment_id: string | null
+          payment_status: string | null
+          start_time: string
+          status: string | null
+          total_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_date: string
+          court_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          start_time: string
+          status?: string | null
+          total_price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          court_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          start_time?: string
+          status?: string | null
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courts: {
+        Row: {
+          address: string | null
+          available: boolean | null
+          created_at: string
+          description: string | null
+          features: string[] | null
+          id: string
+          image_url: string | null
+          latitude: number | null
+          location: string
+          longitude: number | null
+          name: string
+          owner_id: string | null
+          price_per_hour: number
+          rating: number | null
+          sport_type: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          available?: boolean | null
+          created_at?: string
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          name: string
+          owner_id?: string | null
+          price_per_hour: number
+          rating?: number | null
+          sport_type: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          available?: boolean | null
+          created_at?: string
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          name?: string
+          owner_id?: string | null
+          price_per_hour?: number
+          rating?: number | null
+          sport_type?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          location: string | null
+          phone: string | null
+          skill_level: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          skill_level?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          skill_level?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tournament_registrations: {
+        Row: {
+          id: string
+          payment_status: string | null
+          registration_date: string
+          tournament_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          payment_status?: string | null
+          registration_date?: string
+          tournament_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          payment_status?: string | null
+          registration_date?: string
+          tournament_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_registrations_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string
+          entry_fee: number | null
+          id: string
+          location: string
+          max_participants: number | null
+          name: string
+          organizer_id: string | null
+          prize_pool: number | null
+          registration_deadline: string
+          sport_type: string
+          start_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date: string
+          entry_fee?: number | null
+          id?: string
+          location: string
+          max_participants?: number | null
+          name: string
+          organizer_id?: string | null
+          prize_pool?: number | null
+          registration_deadline: string
+          sport_type: string
+          start_date: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          entry_fee?: number | null
+          id?: string
+          location?: string
+          max_participants?: number | null
+          name?: string
+          organizer_id?: string | null
+          prize_pool?: number | null
+          registration_deadline?: string
+          sport_type?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
