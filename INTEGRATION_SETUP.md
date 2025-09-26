@@ -17,37 +17,35 @@ O Stripe já foi configurado com:
 
 ## 🔐 Google Authentication
 
-### 1. Configurar Google Cloud Console
+⚠️ **CONFIGURAÇÃO PENDENTE** - Siga o guia detalhado em [GOOGLE_AUTH_SETUP.md](./GOOGLE_AUTH_SETUP.md)
 
-1. Acesse o [Google Cloud Console](https://console.cloud.google.com/)
-2. Crie um novo projeto ou selecione um existente
-3. Vá para "APIs & Services" > "Credentials"
-4. Clique em "Create Credentials" > "OAuth Client ID"
-5. Configure:
-   - **Application type**: Web application
-   - **Name**: Kourtify Auth
-   - **Authorized JavaScript origins**: 
-     - `https://seu-dominio.com`
-     - `https://kourtify.lovable.app` (URL temporária)
-   - **Authorized redirect URIs**:
-     - `https://otiqpklbednbytyvaoah.supabase.co/auth/v1/callback`
+### ✅ Funcionalidade Implementada
+- Botão "Continuar com Google" adicionado ao sistema de login
+- Sistema de autenticação preparado para Google OAuth
+- Criação automática de perfis para novos usuários Google
 
-### 2. Configurar no Supabase
+### 🔄 Próximos Passos (OBRIGATÓRIOS):
+1. **[Google Cloud Console](https://console.cloud.google.com/)**:
+   - Criar projeto OAuth
+   - Configurar tela de consentimento
+   - Gerar Client ID e Client Secret
 
-1. Acesse seu [Dashboard do Supabase](https://supabase.com/dashboard)
-2. Vá para "Authentication" > "Providers"
-3. Ative o "Google" provider
-4. Cole o **Client ID** e **Client Secret** do Google
-5. Configure as URLs:
-   - **Site URL**: `https://seu-dominio.com`
-   - **Redirect URLs**: `https://seu-dominio.com/**`
+2. **[Supabase Dashboard](https://supabase.com/dashboard/project/otiqpklbednbytyvaoah/auth/providers)**:
+   - Ativar provider Google
+   - Inserir credenciais do Google
+   - Configurar URLs de redirecionamento
 
-### 3. Testar Integração
+### 📋 URLs Necessárias:
+**Para Google Console:**
+- JavaScript origins: `https://kourtify.lovable.app`
+- Redirect URI: `https://otiqpklbednbytyvaoah.supabase.co/auth/v1/callback`
 
-Após configurado, os usuários poderão:
-- Fazer login com Google
-- Registrar-se automaticamente
-- Acessar dashboards específicos por role
+**Para Supabase:**
+- Site URL: `https://kourtify.lovable.app`
+- Redirect URLs: `https://kourtify.lovable.app/**`
+
+### 📖 Guia Completo
+👉 **[Abra GOOGLE_AUTH_SETUP.md para instruções detalhadas](./GOOGLE_AUTH_SETUP.md)**
 
 ## 🌐 Domínio Personalizado
 
