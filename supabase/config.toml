@@ -1,1 +1,20 @@
 project_id = "otiqpklbednbytyvaoah"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[functions.create-booking-payment]
+verify_jwt = true
+
+[functions.create-tournament-payment]
+verify_jwt = true
+
+[functions.confirm-booking-payment]
+verify_jwt = false
+
+[functions.confirm-tournament-payment]
+verify_jwt = false
