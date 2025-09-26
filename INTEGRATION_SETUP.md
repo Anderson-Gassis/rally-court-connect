@@ -15,25 +15,14 @@ O Stripe já foi configurado com:
 3. Configure métodos de pagamento aceitos (cartão, PIX, etc.)
 4. Ative o modo produção quando estiver pronto
 
-## 🔐 Google Authentication
-
-⚠️ **CONFIGURAÇÃO PENDENTE** - Siga o guia detalhado em [GOOGLE_AUTH_SETUP.md](./GOOGLE_AUTH_SETUP.md)
+## ✅ Google Authentication (Configurado)
 
 ### ✅ Funcionalidade Implementada
 - Botão "Continuar com Google" adicionado ao sistema de login
 - Sistema de autenticação preparado para Google OAuth
 - Criação automática de perfis para novos usuários Google
-
-### 🔄 Próximos Passos (OBRIGATÓRIOS):
-1. **[Google Cloud Console](https://console.cloud.google.com/)**:
-   - Criar projeto OAuth
-   - Configurar tela de consentimento
-   - Gerar Client ID e Client Secret
-
-2. **[Supabase Dashboard](https://supabase.com/dashboard/project/otiqpklbednbytyvaoah/auth/providers)**:
-   - Ativar provider Google
-   - Inserir credenciais do Google
-   - Configurar URLs de redirecionamento
+- Google Cloud Console configurado
+- Supabase provider Google ativado e configurado
 
 ### 📋 URLs Necessárias:
 **Para Google Console:**
@@ -100,7 +89,7 @@ Valor: 185.158.133.1
 - ✅ Login/registro com email
 - ✅ Roles diferenciados (player/partner)
 - ✅ Dashboards específicos por role
-- 🔄 Google Auth (pendente configuração)
+- ✅ Google Auth configurado
 
 ### Database
 - ✅ Tabelas para courts, bookings, tournaments
@@ -116,5 +105,5 @@ Para dúvidas ou problemas:
 
 ---
 
-**Status Atual**: 80% completo
-**Próximo passo**: Configurar Google Auth e domínio personalizado
+**Status Atual**: 90% completo
+**Próximo passo opcional**: Configurar domínio personalizado
