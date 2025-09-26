@@ -72,11 +72,19 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem asChild>
-                    <Link to="/profile">Meu Perfil</Link>
+                    <Link to={user?.role === 'partner' ? '/partner/dashboard' : '/player/dashboard'}>
+                      {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-bookings">Minhas Reservas</Link>
-                  </DropdownMenuItem>
+                  {user?.role === 'partner' ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/add-court">Cadastrar Quadra</Link>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link to="/player/bookings">Minhas Reservas</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sair
@@ -125,10 +133,10 @@ const Navbar = () => {
               <div className="flex flex-col space-y-2 pt-2">
                 {isAuthenticated ? (
                   <>
-                    <Link to="/profile" onClick={toggleMenu}>
+                    <Link to={user?.role === 'partner' ? '/partner/dashboard' : '/player/dashboard'} onClick={toggleMenu}>
                       <Button variant="outline" className="w-full justify-start">
                         <User className="h-4 w-4 mr-2" />
-                        {user?.name}
+                        {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
                       </Button>
                     </Link>
                     <Button 

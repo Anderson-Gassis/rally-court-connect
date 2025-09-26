@@ -10,13 +10,14 @@ interface User {
   avatarUrl?: string;
   skillLevel?: string;
   location?: string;
+  role?: 'player' | 'partner' | 'admin';
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, role?: 'player' | 'partner', partnerData?: any) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -62,7 +63,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', supabaseUser.id)
+        .eq('user_id', supabaseUser.id)
         .single();
 
       setUser({
@@ -73,6 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         avatarUrl: profile?.avatar_url,
         skillLevel: profile?.skill_level,
         location: profile?.location,
+        role: profile?.role || 'player',
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -81,6 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: supabaseUser.id,
         email: supabaseUser.email!,
         name: supabaseUser.email!,
+        role: 'player',
       });
     }
   };
@@ -106,12 +109,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (email: string, password: string, name: string, role: 'player' | 'partner' = 'player', partnerData?: any) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
       });
 
       if (error) throw error;
@@ -121,13 +127,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
-            id: data.user.id,
+            user_id: data.user.id,
             email: data.user.email!,
             full_name: name,
+            role: role,
           });
 
         if (profileError) {
           console.error('Profile creation error:', profileError);
+        }
+
+        // If partner, create partner_info record
+        if (role === 'partner' && partnerData) {
+          const { error: partnerError } = await supabase
+            .from('partner_info')
+            .insert({
+              user_id: data.user.id,
+              business_name: partnerData.businessName,
+              contact_phone: partnerData.contactPhone,
+              business_type: partnerData.businessType,
+              description: partnerData.description,
+            });
+
+          if (partnerError) {
+            console.error('Partner info creation error:', partnerError);
+          }
         }
 
         await fetchUserProfile(data.user);
