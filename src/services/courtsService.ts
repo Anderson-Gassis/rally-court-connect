@@ -30,6 +30,37 @@ export interface CourtFilters {
 }
 
 export const courtsService = {
+  async createCourt(courtData: {
+    name: string;
+    type: string;
+    sport_type: string;
+    location: string;
+    address?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    price_per_hour: number;
+    image_url?: string;
+    description?: string;
+    features?: string[];
+    owner_id: string;
+  }): Promise<Court> {
+    const { data, error } = await supabase
+      .from('courts')
+      .insert({
+        ...courtData,
+        available: true,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating court:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
   async getCourts(filters?: CourtFilters): Promise<Court[]> {
     let query = supabase
       .from('courts')

@@ -55,6 +55,9 @@ const Navbar = () => {
             <Link to="/rankings" className={isActive("/rankings")}>Rankings</Link>
             <Link to="/tournaments" className={isActive("/tournaments")}>Torneios</Link>
             <Link to="/instructors" className={isActive("/instructors")}>Professores</Link>
+            {isAuthenticated && (
+              <Link to="/add-court" className={isActive("/add-court")}>Cadastrar Quadra</Link>
+            )}
           </div>
 
           {/* Auth Buttons - Desktop */}
@@ -116,6 +119,9 @@ const Navbar = () => {
               <Link to="/rankings" className="text-gray-600 hover:text-tennis-blue py-2" onClick={toggleMenu}>Rankings</Link>
               <Link to="/tournaments" className="text-gray-600 hover:text-tennis-blue py-2" onClick={toggleMenu}>Torneios</Link>
               <Link to="/instructors" className="text-gray-600 hover:text-tennis-blue py-2" onClick={toggleMenu}>Professores</Link>
+              {isAuthenticated && (
+                <Link to="/add-court" className="text-gray-600 hover:text-tennis-blue py-2" onClick={toggleMenu}>Cadastrar Quadra</Link>
+              )}
               <div className="flex flex-col space-y-2 pt-2">
                 {isAuthenticated ? (
                   <>

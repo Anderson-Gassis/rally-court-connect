@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import CourtSearch from '@/components/CourtSearch';
@@ -9,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Activity, Clock, MapPin, Star } from 'lucide-react';
 import { useCourts } from '@/hooks/useCourts';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useAuth } from '@/hooks/useAuth';
+import LoginModal from '@/components/LoginModal';
 
 const Index = () => {
   const { latitude, longitude } = useGeolocation();
@@ -16,6 +19,12 @@ const Index = () => {
     latitude,
     longitude,
   });
+  const { isAuthenticated } = useAuth();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const handleLoginClick = () => {
+    setIsLoginModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -34,7 +43,7 @@ const Index = () => {
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900">Quadras em Destaque</h2>
               <Button variant="outline" className="text-tennis-blue border-tennis-blue">
-                Ver Todas
+                <Link to="/courts">Ver Todas</Link>
               </Button>
             </div>
             
@@ -124,6 +133,60 @@ const Index = () => {
             </div>
           </section>
           
+          {/* Partner Section */}
+          <section className="mt-16 mb-16">
+            <div className="bg-gradient-to-r from-tennis-blue to-tennis-blue-dark rounded-xl p-8 md:p-12 text-white">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold mb-4">Tem uma quadra?</h2>
+                <p className="text-lg opacity-90 max-w-2xl mx-auto">
+                  Faça parte da maior rede de quadras do Brasil e conecte-se com milhares de jogadores. 
+                  Aumente sua visibilidade e gere mais receita com suas quadras.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div className="text-center">
+                  <div className="bg-white/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <MapPin className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Visibilidade</h3>
+                  <p className="opacity-90">
+                    Sua quadra será vista por milhares de jogadores ativos na plataforma
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="bg-white/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Activity className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Gestão Fácil</h3>
+                  <p className="opacity-90">
+                    Sistema completo para gerenciar reservas e horários automaticamente
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="bg-white/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Star className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Mais Receita</h3>
+                  <p className="opacity-90">
+                    Maximize a ocupação das suas quadras com reservas 24/7
+                  </p>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <Button 
+                  variant="outline" 
+                  className="bg-white text-tennis-blue border-white hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
+                >
+                  <Link to="/add-court">Cadastrar Minha Quadra Grátis</Link>
+                </Button>
+              </div>
+            </div>
+          </section>
+          
           {/* CTA Section */}
           <section className="bg-tennis-blue-light rounded-xl p-8 md:p-12 mb-20">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -136,6 +199,7 @@ const Index = () => {
                 <div className="flex flex-wrap gap-4">
                   <Button 
                     className="bg-tennis-blue hover:bg-tennis-blue-dark text-white px-8 py-6"
+                    onClick={handleLoginClick}
                   >
                     Cadastre-se Grátis
                   </Button>
@@ -143,7 +207,7 @@ const Index = () => {
                     variant="outline" 
                     className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 px-8 py-6"
                   >
-                    Saiba Mais
+                    <Link to="/add-court">Cadastrar Quadra</Link>
                   </Button>
                 </div>
               </div>
@@ -160,6 +224,11 @@ const Index = () => {
       </main>
       
       <Footer />
+      
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </div>
   );
 };
