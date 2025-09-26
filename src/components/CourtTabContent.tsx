@@ -5,25 +5,24 @@ import { GridIcon, MapIcon } from 'lucide-react';
 import CourtSearch from '@/components/CourtSearch';
 import CourtsList from '@/components/CourtsList';
 import MapView from '@/components/MapView';
+import { Court } from '@/services/courtsService';
 
 interface CourtTabContentProps {
-  courts: Array<{
-    id: string;
-    name: string;
-    type: string;
-    image: string;
-    location: string;
-    distance: string;
-    rating: number;
-    price: number;
-    available: boolean;
-    sportType: string;
-    features?: string[];
-  }>;
+  courts: Court[];
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
-const CourtTabContent = ({ courts }: CourtTabContentProps) => {
+const CourtTabContent = ({ courts, isLoading, error }: CourtTabContentProps) => {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500 text-lg">Erro ao carregar quadras: {error.message}</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -51,7 +50,13 @@ const CourtTabContent = ({ courts }: CourtTabContentProps) => {
       
       <div className="mt-8">
         {viewMode === 'grid' ? (
-          <CourtsList courts={courts} />
+          isLoading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">Carregando quadras...</p>
+            </div>
+          ) : (
+            <CourtsList courts={courts} />
+          )
         ) : (
           <div className="mt-4 h-[600px]">
             <MapView />

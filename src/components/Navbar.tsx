@@ -2,12 +2,32 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Activity } from "lucide-react";
+import { Menu, X, Activity, User, LogOut } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import LoginModal from './LoginModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const location = useLocation();
+  const { user, logout, isAuthenticated } = useAuth();
   
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
+  };
+
+  const handleLoginClick = () => {
+    setIsLoginModalOpen(true);
+    setIsMenuOpen(false);
+  };
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -39,12 +59,44 @@ const Navbar = () => {
 
           {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="outline" className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue hover:text-white">
-              Entrar
-            </Button>
-            <Button className="bg-tennis-blue hover:bg-tennis-blue-dark text-white">
-              Cadastrar
-            </Button>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>{user?.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">Meu Perfil</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-bookings">Minhas Reservas</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue hover:text-white"
+                  onClick={handleLoginClick}
+                >
+                  Entrar
+                </Button>
+                <Button 
+                  className="bg-tennis-blue hover:bg-tennis-blue-dark text-white"
+                  onClick={handleLoginClick}
+                >
+                  Cadastrar
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -65,17 +117,50 @@ const Navbar = () => {
               <Link to="/tournaments" className="text-gray-600 hover:text-tennis-blue py-2" onClick={toggleMenu}>Torneios</Link>
               <Link to="/instructors" className="text-gray-600 hover:text-tennis-blue py-2" onClick={toggleMenu}>Professores</Link>
               <div className="flex flex-col space-y-2 pt-2">
-                <Button variant="outline" className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue hover:text-white w-full">
-                  Entrar
-                </Button>
-                <Button className="bg-tennis-blue hover:bg-tennis-blue-dark text-white w-full">
-                  Cadastrar
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/profile" onClick={toggleMenu}>
+                      <Button variant="outline" className="w-full justify-start">
+                        <User className="h-4 w-4 mr-2" />
+                        {user?.name}
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start text-red-600 hover:text-red-700"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sair
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue hover:text-white w-full"
+                      onClick={handleLoginClick}
+                    >
+                      Entrar
+                    </Button>
+                    <Button 
+                      className="bg-tennis-blue hover:bg-tennis-blue-dark text-white w-full"
+                      onClick={handleLoginClick}
+                    >
+                      Cadastrar
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
+      
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </nav>
   );
 };

@@ -1,0 +1,114 @@
+import { supabase } from '@/lib/supabase';
+
+export interface Booking {
+  id: string;
+  court_id: string;
+  user_id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  payment_status: 'pending' | 'paid' | 'failed';
+  payment_id?: string;
+  created_at: string;
+}
+
+export interface CreateBookingData {
+  court_id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  total_price: number;
+}
+
+export const bookingsService = {
+  async createBooking(bookingData: CreateBookingData, userId: string): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert({
+        ...bookingData,
+        user_id: userId,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating booking:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  async getUserBookings(userId: string): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        courts (
+          name,
+          location,
+          image_url
+        )
+      `)
+      .eq('user_id', userId)
+      .order('booking_date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user bookings:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  async getCourtAvailability(courtId: string, date: string): Promise<{ start_time: string; end_time: string }[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('start_time, end_time')
+      .eq('court_id', courtId)
+      .eq('booking_date', date)
+      .in('status', ['pending', 'confirmed']);
+
+    if (error) {
+      console.error('Error fetching availability:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  async cancelBooking(bookingId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', bookingId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error cancelling booking:', error);
+      throw error;
+    }
+  },
+
+  async updatePaymentStatus(bookingId: string, paymentStatus: 'paid' | 'failed', paymentId?: string): Promise<void> {
+    const updateData: any = { payment_status: paymentStatus };
+    if (paymentId) {
+      updateData.payment_id = paymentId;
+    }
+    if (paymentStatus === 'paid') {
+      updateData.status = 'confirmed';
+    }
+
+    const { error } = await supabase
+      .from('bookings')
+      .update(updateData)
+      .eq('id', bookingId);
+
+    if (error) {
+      console.error('Error updating payment status:', error);
+      throw error;
+    }
+  }
+};
