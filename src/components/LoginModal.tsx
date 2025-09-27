@@ -14,12 +14,13 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
-  const { login, register, loginWithGoogle, resetPassword, loading } = useAuth();
+  const { login, register, loginWithGoogle, resetPassword, resendConfirmation, loading } = useAuth();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
   const [isPartnerSignupOpen, setIsPartnerSignupOpen] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [lastRegisteredEmail, setLastRegisteredEmail] = useState('');
 
   const handlePartnerSignupClick = () => {
     onClose();
@@ -45,9 +46,13 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     } catch (error: any) {
       console.error('Login error:', error);
       if (error.message?.includes('Invalid login credentials')) {
-        toast.error('Email ou senha incorretos. Verifique suas credenciais.');
+        toast.error('Email ou senha incorretos. Se você acabou de se cadastrar, verifique se confirmou seu email primeiro.', {
+          duration: 6000
+        });
       } else if (error.message?.includes('Email not confirmed')) {
-        toast.error('Confirme seu email antes de fazer login.');
+        toast.error('Você precisa confirmar seu email antes de fazer login. Verifique sua caixa de entrada.', {
+          duration: 6000
+        });
       } else {
         toast.error('Erro no login. Tente novamente.');
       }
@@ -58,13 +63,21 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     e.preventDefault();
     try {
       await register(registerData.email.toLowerCase().trim(), registerData.password, registerData.name);
-      toast.success('Conta criada com sucesso! Agora você pode fazer login.');
+      setLastRegisteredEmail(registerData.email.toLowerCase().trim());
+      toast.success('Conta criada com sucesso! Verifique seu email para confirmar a conta antes de fazer login.');
       onClose();
       setRegisterData({ name: '', email: '', password: '' });
     } catch (error: any) {
       console.error('Registration error:', error);
-      if (error.message?.includes('já está em uso')) {
-        toast.error('Este email já está em uso. Tente fazer login ou use outro email.');
+      if (error.message === 'CONFIRMATION_REQUIRED') {
+        setLastRegisteredEmail(registerData.email.toLowerCase().trim());
+        toast.success('Conta criada! Verifique seu email para confirmar a conta antes de fazer login.', {
+          duration: 6000
+        });
+        onClose();
+        setRegisterData({ name: '', email: '', password: '' });
+      } else if (error.message?.includes('já está em uso') || error.message?.includes('User already registered')) {
+        toast.error('Este email já está em uso. Você já tem uma conta! Tente fazer login.');
       } else if (error.message?.includes('Password should be at least')) {
         toast.error('A senha deve ter pelo menos 6 caracteres.');
       } else if (error.message?.includes('Unable to validate email address')) {
@@ -72,6 +85,22 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
       } else {
         toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
       }
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    const email = lastRegisteredEmail || loginData.email;
+    if (!email) {
+      toast.error('Digite um email primeiro.');
+      return;
+    }
+    
+    try {
+      await resendConfirmation(email.toLowerCase().trim());
+      toast.success('Email de confirmação reenviado! Verifique sua caixa de entrada.');
+    } catch (error: any) {
+      console.error('Resend confirmation error:', error);
+      toast.error('Erro ao reenviar confirmação. Tente novamente.');
     }
   };
 
@@ -156,7 +185,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                   {loading ? 'Entrando...' : 'Entrar'}
                 </Button>
                 
-                <div className="text-center">
+                <div className="text-center space-y-2">
                   <Button
                     type="button"
                     variant="link"
@@ -164,6 +193,14 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                     onClick={() => setShowForgotPassword(true)}
                   >
                     Esqueci minha senha
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm text-muted-foreground"
+                    onClick={handleResendConfirmation}
+                  >
+                    Não recebeu o email de confirmação?
                   </Button>
                 </div>
                 

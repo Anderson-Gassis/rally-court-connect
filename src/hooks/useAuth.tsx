@@ -20,6 +20,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, name: string, role?: 'player' | 'partner', partnerData?: any) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  resendConfirmation: (email: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -149,17 +150,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (email: string, password: string, name: string, role: 'player' | 'partner' = 'player', partnerData?: any) => {
     setLoading(true);
     try {
-      // Verificar se o email já existe
-      const { data: existingUsers } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('email', email.toLowerCase().trim())
-        .limit(1);
-
-      if (existingUsers && existingUsers.length > 0) {
-        throw new Error('Este email já está em uso. Tente fazer login ou use outro email.');
-      }
-
       const { data, error } = await supabase.auth.signUp({
         email: email.toLowerCase().trim(),
         password,
@@ -174,9 +164,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         if (error.message.includes('User already registered')) {
-          throw new Error('Este email já está em uso. Tente fazer login ou use outro email.');
+          throw new Error('Este email já está em uso. Você já tem uma conta! Tente fazer login.');
+        }
+        if (error.message.includes('Unable to validate email address')) {
+          throw new Error('Email inválido. Verifique o formato do email.');
         }
         throw error;
+      }
+
+      // Verificar se o usuário foi criado com sucesso
+      if (data.user && !data.user.email_confirmed_at) {
+        // Usuário criado mas precisa confirmar email
+        throw new Error('CONFIRMATION_REQUIRED');
       }
 
       // O trigger handle_new_user() criará automaticamente o profile
@@ -214,8 +213,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }, 500);
 
-        // Buscar o perfil criado
-        await fetchUserProfile(data.user);
+        // Se email já estiver confirmado (muito raro), buscar perfil
+        if (data.user.email_confirmed_at) {
+          await fetchUserProfile(data.user);
+        }
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -256,6 +257,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const resendConfirmation = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Resend confirmation error:', error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -274,6 +291,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loginWithGoogle,
         register,
         resetPassword,
+        resendConfirmation,
         logout,
         isAuthenticated: !!user,
       }}
