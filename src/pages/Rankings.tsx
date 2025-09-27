@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,13 +9,70 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Trophy, Star, Search } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import ChallengePlayerButton from '@/components/ChallengePlayerButton';
 
 const Rankings = () => {
   const [regionFilter, setRegionFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [players, setPlayers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Mock rankings data
+  useEffect(() => {
+    fetchPlayersRanking();
+  }, []);
+
+  const fetchPlayersRanking = async () => {
+    try {
+      // Fetch profiles with match history stats
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          match_history!match_history_player_id_fkey(result)
+        `)
+        .eq('role', 'player');
+
+      if (error) throw error;
+
+      // Calculate ranking stats
+      const playersWithStats = profiles.map((profile: any) => {
+        const matches = profile.match_history || [];
+        const totalMatches = matches.length;
+        const wins = matches.filter((m: any) => m.result === 'win').length;
+        const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
+        const points = wins * 10 + totalMatches * 2; // Simple scoring system
+
+        return {
+          id: profile.user_id,
+          name: profile.full_name || 'Jogador',
+          nickname: profile.full_name?.split(' ')[0] || 'Player',
+          image: profile.avatar_url,
+          level: profile.skill_level || 'Iniciante',
+          region: profile.location || 'São Paulo',
+          matches: totalMatches,
+          winRate,
+          points,
+        };
+      });
+
+      // Sort by points and add ranking
+      const rankedPlayers = playersWithStats
+        .sort((a, b) => b.points - a.points)
+        .map((player, index) => ({ ...player, rank: index + 1 }));
+
+      setPlayers(rankedPlayers);
+    } catch (error) {
+      console.error('Error fetching rankings:', error);
+      toast.error('Erro ao carregar rankings');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fallback mock data if no real data
   const players = [
     { 
       id: '1', 

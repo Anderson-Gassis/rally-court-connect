@@ -42,20 +42,57 @@ const BookingPaymentButton = ({
 
     setLoading(true);
     try {
+      // First create the booking record
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          court_id: courtId,
+          user_id: user.id,
+          booking_date: bookingDate,
+          start_time: startTime,
+          end_time: endTime,
+          total_price: totalHours * pricePerHour,
+          status: 'pending',
+          payment_status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      // Create Stripe payment session
       const { data, error } = await supabase.functions.invoke('create-booking-payment', {
         body: {
+          bookingId: booking.id,
           courtId,
           bookingDate,
           startTime,
           endTime,
-          totalHours
+          totalHours,
+          amount: Math.round(totalHours * pricePerHour * 100)
         }
       });
 
       if (error) throw error;
 
+      // Log the booking activity
+      await supabase.rpc('log_user_activity', {
+        activity_type_param: 'booking_created',
+        activity_data_param: {
+          court_id: courtId,
+          booking_date: bookingDate,
+          total_price: totalHours * pricePerHour
+        }
+      });
+
       // Redirect to Stripe Checkout
-      window.open(data.url, '_blank');
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        toast({
+          title: "Redirecionando",
+          description: "Você será redirecionado para o pagamento.",
+        });
+      }
     } catch (error) {
       console.error("Payment error:", error);
       toast({
