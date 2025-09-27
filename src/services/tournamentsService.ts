@@ -1,46 +1,16 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
-export interface Tournament {
-  id: string;
-  name: string;
-  image_url: string;
-  location: string;
-  start_date: string;
-  end_date: string;
-  registration_fee: number;
-  max_participants: number;
-  current_participants: number;
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
-  prize: string;
-  organizer: string;
-  description?: string;
-  sport_type: 'tennis' | 'padel' | 'beach-tennis';
-  created_at: string;
+type TournamentRow = Database['public']['Tables']['tournaments']['Row'];
+type TournamentRegistrationRow = Database['public']['Tables']['tournament_registrations']['Row'];
+
+export interface Tournament extends TournamentRow {}
+
+export interface TournamentRegistration extends TournamentRegistrationRow {
+  tournaments?: Partial<Tournament>;
 }
 
-export interface TournamentRegistration {
-  id: string;
-  tournament_id: string;
-  user_id: string;
-  registration_date: string;
-  payment_status: 'pending' | 'paid' | 'failed';
-  payment_id?: string;
-  created_at: string;
-}
-
-export interface CreateTournamentData {
-  name: string;
-  image_url: string;
-  location: string;
-  start_date: string;
-  end_date: string;
-  registration_fee: number;
-  max_participants: number;
-  prize: string;
-  organizer: string;
-  description?: string;
-  sport_type: 'tennis' | 'padel' | 'beach-tennis';
-}
+type CreateTournamentData = Database['public']['Tables']['tournaments']['Insert'];
 
 export const tournamentsService = {
   async getTournaments(filters?: { sport_type?: string; status?: string }): Promise<Tournament[]> {
@@ -60,11 +30,10 @@ export const tournamentsService = {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching tournaments:', error);
-      throw error;
+      throw new Error(`Failed to fetch tournaments: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []) as Tournament[];
   },
 
   async getTournamentById(id: string): Promise<Tournament | null> {
@@ -75,11 +44,13 @@ export const tournamentsService = {
       .single();
 
     if (error) {
-      console.error('Error fetching tournament:', error);
-      return null;
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      throw new Error(`Failed to fetch tournament: ${error.message}`);
     }
 
-    return data;
+    return data as Tournament;
   },
 
   async registerForTournament(tournamentId: string, userId: string): Promise<TournamentRegistration> {
@@ -87,18 +58,16 @@ export const tournamentsService = {
       .from('tournament_registrations')
       .insert({
         tournament_id: tournamentId,
-        user_id: userId,
-        registration_date: new Date().toISOString(),
+        user_id: userId
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Error registering for tournament:', error);
-      throw error;
+      throw new Error(`Failed to register for tournament: ${error.message}`);
     }
 
-    return data;
+    return data as TournamentRegistration;
   },
 
   async getUserTournamentRegistrations(userId: string): Promise<TournamentRegistration[]> {
@@ -106,23 +75,22 @@ export const tournamentsService = {
       .from('tournament_registrations')
       .select(`
         *,
-        tournaments (
+        tournaments:tournament_id (
           name,
           location,
           start_date,
-          image_url,
-          registration_fee
+          end_date,
+          entry_fee,
+          sport_type
         )
       `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
 
     if (error) {
-      console.error('Error fetching user tournament registrations:', error);
-      throw error;
+      throw new Error(`Failed to fetch user tournament registrations: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []) as TournamentRegistration[];
   },
 
   async updateTournamentPaymentStatus(
@@ -131,18 +99,14 @@ export const tournamentsService = {
     paymentId?: string
   ): Promise<void> {
     const updateData: any = { payment_status: paymentStatus };
-    if (paymentId) {
-      updateData.payment_id = paymentId;
-    }
-
+    
     const { error } = await supabase
       .from('tournament_registrations')
       .update(updateData)
       .eq('id', registrationId);
 
     if (error) {
-      console.error('Error updating tournament payment status:', error);
-      throw error;
+      throw new Error(`Failed to update tournament payment status: ${error.message}`);
     }
   },
 
@@ -154,11 +118,10 @@ export const tournamentsService = {
       .single();
 
     if (error) {
-      console.error('Error creating tournament:', error);
-      throw error;
+      throw new Error(`Failed to create tournament: ${error.message}`);
     }
 
-    return data;
+    return data as Tournament;
   },
 
   async isUserRegistered(tournamentId: string, userId: string): Promise<boolean> {
@@ -169,6 +132,10 @@ export const tournamentsService = {
       .eq('user_id', userId)
       .single();
 
-    return !error && !!data;
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to check tournament registration: ${error.message}`);
+    }
+
+    return !!data;
   }
 };

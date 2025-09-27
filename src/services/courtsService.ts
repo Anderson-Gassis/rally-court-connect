@@ -1,21 +1,10 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
-export interface Court {
-  id: string;
-  name: string;
-  type: string;
-  sport_type: 'tennis' | 'padel' | 'beach-tennis';
-  image_url: string;
-  location: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  rating: number;
-  price_per_hour: number;
-  available: boolean;
-  features: string[];
-  description?: string;
-  distance?: string;
+type CourtRow = Database['public']['Tables']['courts']['Row'];
+
+export interface Court extends CourtRow {
+  distance?: number;
 }
 
 export interface CourtFilters {
@@ -24,41 +13,25 @@ export interface CourtFilters {
   max_distance?: number;
   min_price?: number;
   max_price?: number;
-  features?: string[];
-  latitude?: number;
-  longitude?: number;
+  lat?: number;
+  lng?: number;
 }
 
+type CreateCourtData = Database['public']['Tables']['courts']['Insert'];
+
 export const courtsService = {
-  async createCourt(courtData: {
-    name: string;
-    type: string;
-    sport_type: string;
-    location: string;
-    address?: string;
-    latitude?: number | null;
-    longitude?: number | null;
-    price_per_hour: number;
-    image_url?: string;
-    description?: string;
-    features?: string[];
-    owner_id: string;
-  }): Promise<Court> {
+  async createCourt(courtData: CreateCourtData): Promise<Court> {
     const { data, error } = await supabase
       .from('courts')
-      .insert({
-        ...courtData,
-        available: true,
-      })
+      .insert(courtData)
       .select()
       .single();
 
     if (error) {
-      console.error('Error creating court:', error);
-      throw error;
+      throw new Error(`Failed to create court: ${error.message}`);
     }
 
-    return data;
+    return data as Court;
   },
 
   async getCourts(filters?: CourtFilters): Promise<Court[]> {
@@ -67,59 +40,52 @@ export const courtsService = {
       .select('*')
       .eq('available', true);
 
+    // Apply filters
     if (filters?.sport_type) {
       query = query.eq('sport_type', filters.sport_type);
     }
 
-    if (filters?.min_price) {
+    if (filters?.location) {
+      query = query.ilike('location', `%${filters.location}%`);
+    }
+
+    if (filters?.min_price !== undefined) {
       query = query.gte('price_per_hour', filters.min_price);
     }
 
-    if (filters?.max_price) {
+    if (filters?.max_price !== undefined) {
       query = query.lte('price_per_hour', filters.max_price);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching courts:', error);
-      throw error;
+      throw new Error(`Failed to fetch courts: ${error.message}`);
     }
 
-    // Calculate distances if user location is provided
-    const courtsWithDistance = data?.map(court => {
-      let distance = undefined;
-      
-      if (filters?.latitude && filters?.longitude) {
-        const dist = calculateDistance(
-          filters.latitude,
-          filters.longitude,
-          court.latitude,
-          court.longitude
+    let courts = (data || []) as Court[];
+
+    // Calculate distance if user coordinates are provided
+    if (filters?.lat && filters?.lng) {
+      courts = courts.map(court => {
+        if (court.latitude && court.longitude) {
+          court.distance = calculateDistance(filters.lat!, filters.lng!, court.latitude, court.longitude);
+        }
+        return court;
+      });
+
+      // Filter by max distance if specified
+      if (filters.max_distance) {
+        courts = courts.filter(court => 
+          !court.distance || court.distance <= filters.max_distance!
         );
-        distance = `${dist.toFixed(1)}km`;
       }
 
-      return {
-        ...court,
-        distance,
-      };
-    }) || [];
-
-    // Filter by distance if specified
-    if (filters?.max_distance && filters?.latitude && filters?.longitude) {
-      return courtsWithDistance.filter(court => {
-        const dist = calculateDistance(
-          filters.latitude!,
-          filters.longitude!,
-          court.latitude,
-          court.longitude
-        );
-        return dist <= filters.max_distance!;
-      });
+      // Sort by distance
+      courts.sort((a, b) => (a.distance || 0) - (b.distance || 0));
     }
 
-    return courtsWithDistance;
+    return courts;
   },
 
   async getCourtById(id: string): Promise<Court | null> {
@@ -130,11 +96,13 @@ export const courtsService = {
       .single();
 
     if (error) {
-      console.error('Error fetching court:', error);
-      return null;
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      throw new Error(`Failed to fetch court: ${error.message}`);
     }
 
-    return data;
+    return data as Court;
   },
 
   async searchCourts(searchTerm: string, filters?: CourtFilters): Promise<Court[]> {
@@ -143,34 +111,64 @@ export const courtsService = {
       .select('*')
       .eq('available', true);
 
-    if (searchTerm) {
-      query = query.or(`name.ilike.%${searchTerm}%, location.ilike.%${searchTerm}%`);
+    // Search in name, location, and description
+    if (searchTerm.trim()) {
+      query = query.or(`name.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
     }
 
+    // Apply additional filters
     if (filters?.sport_type) {
       query = query.eq('sport_type', filters.sport_type);
+    }
+
+    if (filters?.min_price !== undefined) {
+      query = query.gte('price_per_hour', filters.min_price);
+    }
+
+    if (filters?.max_price !== undefined) {
+      query = query.lte('price_per_hour', filters.max_price);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error searching courts:', error);
-      throw error;
+      throw new Error(`Failed to search courts: ${error.message}`);
     }
 
-    return data || [];
+    let courts = (data || []) as Court[];
+
+    // Calculate distance if user coordinates are provided
+    if (filters?.lat && filters?.lng) {
+      courts = courts.map(court => {
+        if (court.latitude && court.longitude) {
+          court.distance = calculateDistance(filters.lat!, filters.lng!, court.latitude, court.longitude);
+        }
+        return court;
+      });
+
+      // Filter by max distance if specified
+      if (filters.max_distance) {
+        courts = courts.filter(court => 
+          !court.distance || court.distance <= filters.max_distance!
+        );
+      }
+
+      // Sort by distance
+      courts.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+    }
+
+    return courts;
   }
 };
 
-// Haversine formula to calculate distance between two coordinates
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in kilometers
+// Helper function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Radius of the Earth in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  return R * c; // Distance in kilometers
 }

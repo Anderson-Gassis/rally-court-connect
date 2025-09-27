@@ -26,7 +26,7 @@ const CourtsList = ({ courts }: CourtsListProps) => {
           type={court.type}
           image={court.image_url}
           location={court.location}
-          distance={court.distance || ''}
+          distance={court.distance ? `${court.distance.toFixed(1)}km` : ''}
           rating={court.rating}
           price={court.price_per_hour}
           available={court.available}

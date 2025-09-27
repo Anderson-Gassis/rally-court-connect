@@ -17,8 +17,8 @@ import LoginModal from '@/components/LoginModal';
 const Index = () => {
   const { latitude, longitude } = useGeolocation();
   const { data: courts = [], isLoading } = useCourts({
-    latitude,
-    longitude,
+    lat: latitude,
+    lng: longitude,
   });
   const { isAuthenticated } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -71,7 +71,7 @@ const Index = () => {
                     sportType={court.sport_type as 'tennis' | 'padel' | 'beach-tennis'}
                     image={court.image_url || 'https://images.unsplash.com/photo-1569955914862-7d551e5516a1?q=80&w=500'}
                     location={court.location}
-                    distance={court.distance}
+                    distance={court.distance ? `${court.distance.toFixed(1)}km` : ''}
                     rating={court.rating}
                     price={court.price_per_hour}
                     available={court.available}

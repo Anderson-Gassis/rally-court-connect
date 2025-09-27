@@ -1,26 +1,17 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
-export interface Booking {
-  id: string;
-  court_id: string;
-  user_id: string;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  total_price: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  payment_status: 'pending' | 'paid' | 'failed';
-  payment_id?: string;
-  created_at: string;
+type BookingRow = Database['public']['Tables']['bookings']['Row'];
+
+export interface Booking extends BookingRow {
+  courts?: {
+    name: string;
+    location: string;
+    image_url: string;
+  };
 }
 
-export interface CreateBookingData {
-  court_id: string;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  total_price: number;
-}
+type CreateBookingData = Database['public']['Tables']['bookings']['Insert'];
 
 export const bookingsService = {
   async createBooking(bookingData: CreateBookingData, userId: string): Promise<Booking> {
