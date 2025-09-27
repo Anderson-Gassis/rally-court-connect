@@ -28,11 +28,12 @@ declare global {
 const MapView = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
-  const [apiKey, setApiKey] = useState('');
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [mapError, setMapError] = useState('');
   const { data: courts = [] } = useCourts();
   const { latitude, longitude, getCurrentLocation } = useGeolocation();
+  
+  // Get Google Maps API key from environment
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
   // Request location on component mount
   useEffect(() => {
@@ -48,7 +49,7 @@ const MapView = () => {
       }
 
       if (!apiKey) {
-        setShowApiKeyInput(true);
+        setMapError('Chave de API do Google Maps não configurada. Configure a GOOGLE_MAPS_API_KEY nos secrets.');
         return;
       }
 
@@ -142,21 +143,6 @@ const MapView = () => {
     }
   };
 
-  const handleApiKeySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (apiKey.trim()) {
-      setShowApiKeyInput(false);
-      localStorage.setItem('googleMapsApiKey', apiKey);
-    }
-  };
-
-  // Try to load API key from localStorage
-  useEffect(() => {
-    const savedKey = localStorage.getItem('googleMapsApiKey');
-    if (savedKey) {
-      setApiKey(savedKey);
-    }
-  }, []);
 
   return (
     <div className="border rounded-lg shadow overflow-hidden bg-background">
@@ -169,49 +155,15 @@ const MapView = () => {
       </div>
       
       <div className="relative h-96">
-        {showApiKeyInput && (
-          <div className="absolute inset-0 z-10 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6">
-            <form onSubmit={handleApiKeySubmit} className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full">
-              <div className="flex items-center mb-4">
-                <AlertCircle className="text-orange-500 mr-2" size={20} />
-                <h4 className="font-semibold text-foreground">Configurar Google Maps</h4>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Para usar os mapas, insira sua chave de API do Google Maps:
-              </p>
-              <input
-                type="text"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Cole sua Google Maps API Key aqui..."
-                className="w-full p-3 border rounded-lg mb-4 text-sm"
-                required
-              />
-              <button
-                type="submit"
-                className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Ativar Mapas
-              </button>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Siga o guia CONFIGURACAO_GOOGLE.md para obter sua chave
-              </p>
-            </form>
-          </div>
-        )}
-
         {mapError && (
           <div className="absolute inset-0 z-10 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6">
             <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full text-center">
               <AlertCircle className="text-red-500 mx-auto mb-4" size={48} />
               <h4 className="font-semibold text-foreground mb-2">Erro nos Mapas</h4>
               <p className="text-sm text-muted-foreground mb-4">{mapError}</p>
-              <button
-                onClick={() => setShowApiKeyInput(true)}
-                className="bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Reconfigurar API Key
-              </button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Verifique se a GOOGLE_MAPS_API_KEY está configurada corretamente nos secrets.
+              </p>
             </div>
           </div>
         )}
@@ -222,7 +174,7 @@ const MapView = () => {
           style={{ minHeight: '384px' }}
         />
         
-        {!map && !showApiKeyInput && !mapError && (
+        {!map && !mapError && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
             <div className="text-center">
               <MapPin size={48} className="text-primary mx-auto mb-4" />
