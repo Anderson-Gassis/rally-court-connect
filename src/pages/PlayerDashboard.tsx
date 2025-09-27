@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddMatchModal from '@/components/AddMatchModal';
 import { 
   Calendar, 
@@ -19,82 +20,126 @@ import {
   CheckCircle,
   XCircle,
   Plus,
-  Edit
+  Edit,
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface PlayerProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  skill_level?: string;
+  location?: string;
+  phone?: string;
+  bio?: string;
+  avatar_url?: string;
+  playing_time?: string;
+  dominant_hand?: string;
+  preferred_surface?: string;
+  favorite_courts?: string[];
+  date_of_birth?: string;
+}
+
+interface MatchHistory {
+  id: string;
+  opponent_name: string;
+  match_date: string;
+  result: string;
+  score?: string;
+  sport_type: string;
+  court_name?: string;
+  duration_minutes?: number;
+}
+
+interface Booking {
+  id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  total_price: number;
+  courts: {
+    name: string;
+    location: string;
+    sport_type: string;
+  };
+}
 
 const PlayerDashboard = () => {
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const [profile, setProfile] = useState<PlayerProfile | null>(null);
+  const [matchHistory, setMatchHistory] = useState<MatchHistory[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAddMatchModalOpen, setIsAddMatchModalOpen] = useState(false);
-  
-  // Mock data for demonstration - replace with real data from Supabase
-  const playerStats = {
-    totalBookings: 28,
-    completedGames: 24,
-    upcomingBookings: 2,
-    cancelledBookings: 2,
-    favoriteSpot: 'Tênis',
-    totalSpent: 2240,
-    averageRating: 4.8,
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+      return;
+    }
+
+    if (user?.role !== 'player') {
+      navigate('/');
+      toast.error('Acesso restrito a jogadores');
+      return;
+    }
+
+    fetchPlayerData();
+  }, [isAuthenticated, user, navigate]);
+
+  const fetchPlayerData = async () => {
+    if (!user) return;
+
+    try {
+      // Buscar perfil do jogador
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      setProfile(profileData);
+
+      // Buscar histórico de partidas
+      const { data: matchData, error: matchError } = await supabase
+        .from('match_history')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('match_date', { ascending: false })
+        .limit(10);
+
+      if (matchError) throw matchError;
+      setMatchHistory(matchData || []);
+
+      // Buscar reservas
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          courts!inner(name, location, sport_type)
+        `)
+        .eq('user_id', user.id)
+        .order('booking_date', { ascending: false })
+        .limit(10);
+
+      if (bookingError) throw bookingError;
+      setBookings(bookingData || []);
+
+    } catch (error) {
+      console.error('Error fetching player data:', error);
+      toast.error('Erro ao carregar dados do jogador');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const upcomingBookings = [
-    {
-      id: '1',
-      courtName: 'Clube Atlético Paulistano',
-      courtType: 'Saibro',
-      date: '2024-01-16',
-      time: '10:00-11:00',
-      price: 80,
-      status: 'confirmed',
-      location: 'Jardins, São Paulo'
-    },
-    {
-      id: '2',
-      courtName: 'Tennis Park',
-      courtType: 'Rápida',
-      date: '2024-01-18',
-      time: '14:00-15:00',
-      price: 60,
-      status: 'confirmed',
-      location: 'Moema, São Paulo'
-    }
-  ];
-
-  const recentGames = [
-    {
-      id: '1',
-      courtName: 'Arena Beach Sports',
-      courtType: 'Areia',
-      date: '2024-01-12',
-      time: '09:00-10:00',
-      price: 70,
-      status: 'completed',
-      rating: 5
-    },
-    {
-      id: '2',
-      courtName: 'Padel Center',
-      courtType: 'Vidro',
-      date: '2024-01-10',
-      time: '16:00-17:00',
-      price: 90,
-      status: 'completed',
-      rating: 4
-    },
-    {
-      id: '3',
-      courtName: 'Tennis Park',
-      courtType: 'Rápida',
-      date: '2024-01-08',
-      time: '11:00-12:00',
-      price: 60,
-      status: 'cancelled',
-      rating: null
-    }
-  ];
-
-  if (!isAuthenticated) {
+  if (!isAuthenticated || user?.role !== 'player') {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -103,11 +148,11 @@ const PlayerDashboard = () => {
             <CardHeader className="text-center">
               <CardTitle>Acesso Restrito</CardTitle>
               <CardDescription>
-                Você precisa estar logado para acessar sua área pessoal.
+                Você precisa estar logado como jogador para acessar esta área.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => window.location.href = '/'} className="w-full">
+              <Button onClick={() => navigate('/')} className="w-full">
                 Fazer Login
               </Button>
             </CardContent>
@@ -117,6 +162,29 @@ const PlayerDashboard = () => {
       </div>
     );
   }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Carregando...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const wins = matchHistory.filter(match => match.result === 'win').length;
+  const losses = matchHistory.filter(match => match.result === 'loss').length;
+  const winRate = matchHistory.length > 0 ? Math.round((wins / matchHistory.length) * 100) : 0;
+  const upcomingBookings = bookings.filter(booking => 
+    new Date(booking.booking_date) >= new Date() && booking.status === 'confirmed'
+  );
+  const totalSpent = bookings.reduce((sum, booking) => sum + booking.total_price, 0);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -172,9 +240,9 @@ const PlayerDashboard = () => {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{playerStats.completedGames}</div>
+                <div className="text-2xl font-bold">{matchHistory.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  de {playerStats.totalBookings} reservas
+                  de {bookings.length} reservas
                 </p>
               </CardContent>
             </Card>
@@ -185,7 +253,7 @@ const PlayerDashboard = () => {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{playerStats.upcomingBookings}</div>
+                <div className="text-2xl font-bold">{upcomingBookings.length}</div>
                 <p className="text-xs text-muted-foreground">
                   reservas confirmadas
                 </p>
@@ -198,9 +266,9 @@ const PlayerDashboard = () => {
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">R$ {playerStats.totalSpent.toLocaleString()}</div>
+                <div className="text-2xl font-bold">R$ {totalSpent.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  em {playerStats.totalBookings} reservas
+                  em {bookings.length} reservas
                 </p>
               </CardContent>
             </Card>
@@ -211,7 +279,7 @@ const PlayerDashboard = () => {
                 <Trophy className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{playerStats.favoriteSpot}</div>
+                <div className="text-2xl font-bold">Tênis</div>
                 <p className="text-xs text-muted-foreground">
                   esporte mais jogado
                 </p>
@@ -245,20 +313,20 @@ const PlayerDashboard = () => {
                         <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-semibold">{booking.courtName}</h3>
-                              {getStatusBadge(booking.status)}
-                            </div>
-                            <p className="text-sm text-gray-600 flex items-center mb-1">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {booking.location}
-                            </p>
-                            <p className="text-sm text-gray-500 flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {booking.date} • {booking.time} • {booking.courtType}
-                            </p>
+                            <h3 className="font-semibold">{booking.courts.name}</h3>
+                            {getStatusBadge(booking.status)}
                           </div>
-                          <div className="text-right">
-                            <p className="text-xl font-bold">R$ {booking.price}</p>
+                          <p className="text-sm text-gray-600 flex items-center mb-1">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {booking.courts.location}
+                          </p>
+                          <p className="text-sm text-gray-500 flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {booking.booking_date} • {booking.start_time}-{booking.end_time} • {booking.courts.sport_type}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold">R$ {booking.total_price}</p>
                             <div className="space-x-2 mt-2">
                               <Button variant="outline" size="sm">
                                 Detalhes
@@ -302,42 +370,20 @@ const PlayerDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {recentGames.map((game) => (
-                      <div key={game.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    {matchHistory.map((match) => (
+                      <div key={match.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold">{game.courtName}</h3>
-                            {getStatusBadge(game.status)}
+                            <h3 className="font-semibold">vs {match.opponent_name}</h3>
+                            {getStatusBadge(match.result === 'win' ? 'completed' : 'cancelled')}
                           </div>
                           <p className="text-sm text-gray-500 flex items-center">
                             <Clock className="h-3 w-3 mr-1" />
-                            {game.date} • {game.time} • {game.courtType}
+                            {match.match_date} • {match.sport_type}
                           </p>
-                          {game.rating && (
-                            <div className="flex items-center mt-1">
-                              <span className="text-sm text-gray-600 mr-1">Sua avaliação:</span>
-                              <div className="flex">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <Star
-                                    key={star}
-                                    className={`h-3 w-3 ${
-                                      star <= game.rating!
-                                        ? 'text-yellow-400 fill-current'
-                                        : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          )}
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold">R$ {game.price}</p>
-                          {game.status === 'completed' && !game.rating && (
-                            <Button variant="outline" size="sm" className="mt-2">
-                              Avaliar
-                            </Button>
-                          )}
+                          <p className="text-xl font-bold">{match.score || 'N/A'}</p>
                         </div>
                       </div>
                     ))}

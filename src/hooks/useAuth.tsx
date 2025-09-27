@@ -123,6 +123,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (error) throw error;
 
       if (data.user) {
+        // Registrar atividade de login
+        setTimeout(async () => {
+          try {
+            await supabase.rpc('log_user_activity', {
+              activity_type_param: 'login',
+              activity_data_param: { login_method: 'email' }
+            });
+          } catch (error) {
+            console.error('Error logging activity:', error);
+          }
+        }, 500);
+
         await fetchUserProfile(data.user);
       }
     } catch (error) {
@@ -188,6 +200,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             throw new Error('Erro ao criar informações do parceiro');
           }
         }
+
+        // Registrar atividade de registro
+        setTimeout(async () => {
+          try {
+            await supabase.rpc('log_user_activity', {
+              activity_type_param: 'register',
+              activity_data_param: { role, registration_method: 'email' }
+            });
+          } catch (error) {
+            console.error('Error logging activity:', error);
+          }
+        }, 500);
 
         // Buscar o perfil criado
         await fetchUserProfile(data.user);
