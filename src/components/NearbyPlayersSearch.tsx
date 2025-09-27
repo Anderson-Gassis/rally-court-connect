@@ -231,7 +231,10 @@ const NearbyPlayersSearch = () => {
                       Head to Head: <span className="font-medium text-green-600">{player.headToHead.wins}</span> - <span className="font-medium text-red-600">{player.headToHead.losses}</span>
                     </div>
                   </div>
-                  <ChallengePlayerButton playerId={player.id} />
+                  <ChallengePlayerButton 
+                    playerId={player.id} 
+                    playerName={player.name}
+                  />
                 </div>
               </CardContent>
             </Card>

@@ -67,6 +67,42 @@ export type Database = {
           },
         ]
       }
+      challenges: {
+        Row: {
+          challenge_type: string
+          challenged_id: string
+          challenger_id: string
+          created_at: string
+          id: string
+          message: string | null
+          preferred_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_type: string
+          challenged_id: string
+          challenger_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          preferred_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_type?: string
+          challenged_id?: string
+          challenger_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          preferred_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       courts: {
         Row: {
           address: string | null
