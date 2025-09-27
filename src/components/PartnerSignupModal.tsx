@@ -95,14 +95,14 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
 
     try {
       // Register as partner user
-      await register(formData.email, formData.password, formData.name, 'partner', {
+      await register(formData.email.toLowerCase().trim(), formData.password, formData.name, 'partner', {
         businessName: formData.businessName,
         contactPhone: formData.contactPhone,
         businessType: formData.businessType,
         description: formData.description,
       });
       
-      toast.success('Conta de parceiro criada com sucesso! Bem-vindo ao Kourtify!');
+      toast.success('Conta de parceiro criada com sucesso! Agora você pode fazer login.');
       onClose();
       setFormData({
         name: '',
@@ -114,9 +114,13 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
         description: '',
       });
       setCurrentStep(1);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Partner registration error:', error);
-      toast.error('Erro ao criar conta de parceiro. Tente novamente.');
+      if (error.message?.includes('já está em uso')) {
+        toast.error('Este email já está em uso. Tente fazer login ou use outro email.');
+      } else {
+        toast.error(error.message || 'Erro ao criar conta de parceiro. Tente novamente.');
+      }
     }
   };
 

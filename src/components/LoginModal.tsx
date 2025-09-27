@@ -36,24 +36,40 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(loginData.email, loginData.password);
+      await login(loginData.email.toLowerCase().trim(), loginData.password);
       toast.success('Login realizado com sucesso!');
       onClose();
       setLoginData({ email: '', password: '' });
-    } catch (error) {
-      toast.error('Erro no login. Verifique suas credenciais.');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.message?.includes('Invalid login credentials')) {
+        toast.error('Email ou senha incorretos. Verifique suas credenciais.');
+      } else if (error.message?.includes('Email not confirmed')) {
+        toast.error('Confirme seu email antes de fazer login.');
+      } else {
+        toast.error('Erro no login. Tente novamente.');
+      }
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(registerData.email, registerData.password, registerData.name);
-      toast.success('Conta criada com sucesso!');
+      await register(registerData.email.toLowerCase().trim(), registerData.password, registerData.name);
+      toast.success('Conta criada com sucesso! Agora você pode fazer login.');
       onClose();
       setRegisterData({ name: '', email: '', password: '' });
-    } catch (error) {
-      toast.error('Erro ao criar conta. Tente novamente.');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.message?.includes('já está em uso')) {
+        toast.error('Este email já está em uso. Tente fazer login ou use outro email.');
+      } else if (error.message?.includes('Password should be at least')) {
+        toast.error('A senha deve ter pelo menos 6 caracteres.');
+      } else if (error.message?.includes('Unable to validate email address')) {
+        toast.error('Email inválido. Verifique o formato do email.');
+      } else {
+        toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
+      }
     }
   };
 

@@ -21,17 +21,23 @@ type CreateCourtData = Database['public']['Tables']['courts']['Insert'];
 
 export const courtsService = {
   async createCourt(courtData: CreateCourtData): Promise<Court> {
-    const { data, error } = await supabase
-      .from('courts')
-      .insert(courtData)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('courts')
+        .insert(courtData)
+        .select()
+        .single();
 
-    if (error) {
-      throw new Error(`Failed to create court: ${error.message}`);
+      if (error) {
+        console.error('Supabase error creating court:', error);
+        throw new Error(`Erro ao criar quadra: ${error.message}`);
+      }
+
+      return data as Court;
+    } catch (error: any) {
+      console.error('Error in createCourt:', error);
+      throw error;
     }
-
-    return data as Court;
   },
 
   async getCourts(filters?: CourtFilters): Promise<Court[]> {

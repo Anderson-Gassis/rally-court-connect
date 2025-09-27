@@ -74,20 +74,37 @@ const AddCourt = () => {
     
     try {
       const courtData = {
-        ...formData,
+        name: formData.name,
+        type: formData.type,
+        sport_type: formData.sport_type,
+        location: formData.location,
+        address: formData.address || null,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
         price_per_hour: parseFloat(formData.price_per_hour),
+        image_url: formData.image_url || null,
+        description: formData.description || null,
+        features: formData.features,
         owner_id: user.id,
+        available: true,
       };
 
       await courtsService.createCourt(courtData);
       
       toast.success('Quadra cadastrada com sucesso!');
       navigate('/courts');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao cadastrar quadra:', error);
-      toast.error('Erro ao cadastrar quadra. Tente novamente.');
+      
+      if (error.message?.includes('new row violates row-level security')) {
+        toast.error('Erro de permissão. Verifique se você está logado corretamente.');
+      } else if (error.message?.includes('owner_id')) {
+        toast.error('Erro de identificação do usuário. Tente fazer login novamente.');
+      } else if (error.message?.includes('not-null constraint')) {
+        toast.error('Preencha todos os campos obrigatórios.');
+      } else {
+        toast.error(error.message || 'Erro ao cadastrar quadra. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }

@@ -61,22 +61,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', supabaseUser.id)
-        .single();
+      // Tentar buscar o perfil algumas vezes (para aguardar o trigger)
+      let profile = null;
+      let attempts = 0;
+      const maxAttempts = 3;
 
-      setUser({
-        id: supabaseUser.id,
-        email: supabaseUser.email!,
-        name: profile?.full_name || supabaseUser.email!,
-        fullName: profile?.full_name,
-        avatarUrl: profile?.avatar_url,
-        skillLevel: profile?.skill_level,
-        location: profile?.location,
-        role: profile?.role || 'player',
-      });
+      while (!profile && attempts < maxAttempts) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', supabaseUser.id)
+          .single();
+        
+        profile = data;
+        if (!profile && attempts < maxAttempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        attempts++;
+      }
+
+      if (profile) {
+        setUser({
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: profile.full_name || supabaseUser.email!,
+          fullName: profile.full_name,
+          avatarUrl: profile.avatar_url,
+          skillLevel: profile.skill_level,
+          location: profile.location,
+          role: profile.role || 'player',
+        });
+      } else {
+        // Se o perfil não foi encontrado, criar um básico
+        setUser({
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: supabaseUser.email!,
+          role: 'player',
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       // Create basic user object if profile fetch fails
@@ -113,32 +136,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (email: string, password: string, name: string, role: 'player' | 'partner' = 'player', partnerData?: any) => {
     setLoading(true);
     try {
+      // Verificar se o email já existe
+      const { data: existingUsers } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email.toLowerCase().trim())
+        .limit(1);
+
+      if (existingUsers && existingUsers.length > 0) {
+        throw new Error('Este email já está em uso. Tente fazer login ou use outro email.');
+      }
+
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.toLowerCase().trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: name,
+            role: role,
+          }
         },
       });
 
-      if (error) throw error;
-
-      // Create user profile
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: data.user.id,
-            email: data.user.email!,
-            full_name: name,
-            role: role,
-          });
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          throw new Error('Este email já está em uso. Tente fazer login ou use outro email.');
         }
+        throw error;
+      }
 
-        // If partner, create partner_info record
+      // O trigger handle_new_user() criará automaticamente o profile
+      if (data.user) {
+        // Aguardar um pouco para o trigger processar
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Se for partner, criar partner_info record
         if (role === 'partner' && partnerData) {
           const { error: partnerError } = await supabase
             .from('partner_info')
@@ -152,9 +185,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           if (partnerError) {
             console.error('Partner info creation error:', partnerError);
+            throw new Error('Erro ao criar informações do parceiro');
           }
         }
 
+        // Buscar o perfil criado
         await fetchUserProfile(data.user);
       }
     } catch (error) {
