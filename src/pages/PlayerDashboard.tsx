@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import AddMatchModal from '@/components/AddMatchModal';
 import { 
   Calendar, 
   Trophy, 
@@ -17,12 +18,14 @@ import {
   Target,
   CheckCircle,
   XCircle,
-  Plus
+  Plus,
+  Edit
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const PlayerDashboard = () => {
   const { user, isAuthenticated } = useAuth();
+  const [isAddMatchModalOpen, setIsAddMatchModalOpen] = useState(false);
   
   // Mock data for demonstration - replace with real data from Supabase
   const playerStats = {
@@ -144,12 +147,21 @@ const PlayerDashboard = () => {
                 Olá, {user?.name}! Gerencie suas reservas e acompanhe sua atividade.
               </p>
             </div>
-            <Button asChild className="bg-tennis-blue hover:bg-tennis-blue-dark">
-              <Link to="/courts">
+            <div className="flex gap-2">
+              <Button asChild className="bg-tennis-blue hover:bg-tennis-blue-dark">
+                <Link to="/courts">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Reserva
+                </Link>
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setIsAddMatchModalOpen(true)}
+              >
                 <Plus className="h-4 w-4 mr-2" />
-                Nova Reserva
-              </Link>
-            </Button>
+                Adicionar Partida
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -366,8 +378,12 @@ const PlayerDashboard = () => {
                       </div>
                     </div>
                     <div className="pt-4">
-                      <Button variant="outline">
-                        Editar Perfil
+                      <Button 
+                        variant="outline"
+                        onClick={() => window.open(`/players/${user?.id}`, '_blank')}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Ver/Editar Perfil Completo
                       </Button>
                     </div>
                   </div>
@@ -404,6 +420,11 @@ const PlayerDashboard = () => {
           </Tabs>
         </div>
       </main>
+      
+      <AddMatchModal 
+        isOpen={isAddMatchModalOpen}
+        onClose={() => setIsAddMatchModalOpen(false)}
+      />
       
       <Footer />
     </div>

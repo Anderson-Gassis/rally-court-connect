@@ -138,6 +138,69 @@ export type Database = {
           },
         ]
       }
+      match_history: {
+        Row: {
+          court_name: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          match_date: string
+          notes: string | null
+          opponent_id: string | null
+          opponent_name: string
+          player_id: string
+          result: string
+          score: string | null
+          sport_type: string
+          updated_at: string
+        }
+        Insert: {
+          court_name?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          match_date: string
+          notes?: string | null
+          opponent_id?: string | null
+          opponent_name: string
+          player_id: string
+          result: string
+          score?: string | null
+          sport_type: string
+          updated_at?: string
+        }
+        Update: {
+          court_name?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          match_date?: string
+          notes?: string | null
+          opponent_id?: string | null
+          opponent_name?: string
+          player_id?: string
+          result?: string
+          score?: string | null
+          sport_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_history_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       partner_info: {
         Row: {
           business_address: string | null
@@ -195,12 +258,18 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
+          date_of_birth: string | null
+          dominant_hand: string | null
           email: string | null
+          favorite_courts: string[] | null
           full_name: string | null
           id: string
           location: string | null
           phone: string | null
+          playing_time: string | null
+          preferred_surface: string | null
           role: Database["public"]["Enums"]["user_role"] | null
           skill_level: string | null
           updated_at: string
@@ -208,12 +277,18 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          dominant_hand?: string | null
           email?: string | null
+          favorite_courts?: string[] | null
           full_name?: string | null
           id?: string
           location?: string | null
           phone?: string | null
+          playing_time?: string | null
+          preferred_surface?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
           skill_level?: string | null
           updated_at?: string
@@ -221,12 +296,18 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          date_of_birth?: string | null
+          dominant_hand?: string | null
           email?: string | null
+          favorite_courts?: string[] | null
           full_name?: string | null
           id?: string
           location?: string | null
           phone?: string | null
+          playing_time?: string | null
+          preferred_surface?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
           skill_level?: string | null
           updated_at?: string
