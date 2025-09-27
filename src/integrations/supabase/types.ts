@@ -133,13 +133,6 @@ export type Database = {
             foreignKeyName: "courts_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
-            referencedRelation: "partner_dashboard"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "courts_partner_id_fkey"
-            columns: ["partner_id"]
-            isOneToOne: false
             referencedRelation: "partner_info"
             referencedColumns: ["user_id"]
           },
@@ -329,20 +322,7 @@ export type Database = {
       }
     }
     Views: {
-      partner_dashboard: {
-        Row: {
-          active_courts: number | null
-          average_rating: number | null
-          business_name: string | null
-          confirmed_bookings: number | null
-          total_bookings: number | null
-          total_courts: number | null
-          total_revenue: number | null
-          user_id: string | null
-          verified: boolean | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_user_role: {
