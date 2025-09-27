@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Building2, 
   Calendar, 
@@ -18,56 +19,163 @@ import {
   Eye,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useCourts } from '@/hooks/useCourts';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface PartnerProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  avatar_url?: string;
+}
+
+interface PartnerInfo {
+  business_name?: string;
+  business_type?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  description?: string;
+  website_url?: string;
+  business_address?: string;
+  verified: boolean;
+}
+
+interface Court {
+  id: string;
+  name: string;
+  sport_type: string;
+  type: string;
+  location: string;
+  price_per_hour: number;
+  available: boolean;
+  image_url?: string;
+  created_at: string;
+}
+
+interface Booking {
+  id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  total_price: number;
+  payment_status: string;
+  user_id: string;
+  court_id: string;
+  courts: {
+    name: string;
+  };
+  profiles: {
+    full_name: string;
+  };
+}
 
 const PartnerDashboard = () => {
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { data: courts = [], isLoading } = useCourts();
+  const [profile, setProfile] = useState<PartnerProfile | null>(null);
+  const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null);
+  const [courts, setCourts] = useState<Court[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for demonstration - replace with real data from Supabase
-  const dashboardStats = {
-    totalCourts: courts.length,
-    activeCourts: courts.filter(c => c.available).length,
-    totalBookings: 45,
-    confirmedBookings: 38,
-    totalRevenue: 12500,
-    averageRating: 4.6,
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+      return;
+    }
+
+    if (user?.role !== 'partner') {
+      navigate('/');
+      toast.error('Acesso restrito a parceiros');
+      return;
+    }
+
+    fetchPartnerData();
+  }, [isAuthenticated, user, navigate]);
+
+  const fetchPartnerData = async () => {
+    if (!user) return;
+
+    try {
+      // Buscar perfil do parceiro
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      setProfile(profileData);
+
+      // Buscar informações do parceiro
+      const { data: partnerData, error: partnerError } = await supabase
+        .from('partner_info')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (partnerError && partnerError.code !== 'PGRST116') throw partnerError;
+      setPartnerInfo(partnerData);
+
+      // Buscar quadras do parceiro
+      const { data: courtsData, error: courtsError } = await supabase
+        .from('courts')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (courtsError) throw courtsError;
+      setCourts(courtsData || []);
+
+      // Buscar reservas das quadras do parceiro
+      if (courtsData && courtsData.length > 0) {
+        const { data: bookingsData, error: bookingsError } = await supabase
+          .from('bookings')
+          .select(`
+            *,
+            courts!inner(name)
+          `)
+          .in('court_id', courtsData.map(court => court.id))
+          .order('booking_date', { ascending: false })
+          .limit(20);
+
+        if (bookingsError) throw bookingsError;
+        
+        // Buscar nomes dos usuários separadamente
+        const bookingsWithUsers = await Promise.all(
+          (bookingsData || []).map(async (booking) => {
+            const { data: userData } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('user_id', booking.user_id)
+              .single();
+            
+            return {
+              ...booking,
+              profiles: userData || { full_name: 'Usuário não encontrado' }
+            };
+          })
+        );
+        
+        setBookings(bookingsWithUsers);
+      }
+
+    } catch (error) {
+      console.error('Error fetching partner data:', error);
+      toast.error('Erro ao carregar dados do parceiro');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const recentBookings = [
-    {
-      id: '1',
-      courtName: 'Quadra Principal',
-      customerName: 'João Silva',
-      date: '2024-01-15',
-      time: '10:00-11:00',
-      price: 80,
-      status: 'confirmed'
-    },
-    {
-      id: '2',
-      courtName: 'Quadra Coberta',
-      customerName: 'Maria Santos',
-      date: '2024-01-15',
-      time: '14:00-15:00', 
-      price: 100,
-      status: 'pending'
-    },
-    {
-      id: '3',
-      courtName: 'Quadra Beach Tennis',
-      customerName: 'Pedro Costa',
-      date: '2024-01-16',
-      time: '09:00-10:00',
-      price: 60,
-      status: 'confirmed'
-    }
-  ];
-
-  if (!isAuthenticated) {
+  if (!isAuthenticated || user?.role !== 'partner') {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -80,7 +188,7 @@ const PartnerDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => window.location.href = '/'} className="w-full">
+              <Button onClick={() => navigate('/')} className="w-full">
                 Fazer Login
               </Button>
             </CardContent>
@@ -90,6 +198,26 @@ const PartnerDashboard = () => {
       </div>
     );
   }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Carregando...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const confirmedBookings = bookings.filter(booking => booking.status === 'confirmed');
+  const pendingBookings = bookings.filter(booking => booking.status === 'pending');
+  const totalRevenue = confirmedBookings.reduce((sum, booking) => sum + booking.total_price, 0);
+  const activeCourts = courts.filter(court => court.available).length;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -112,82 +240,96 @@ const PartnerDashboard = () => {
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Dashboard do Parceiro
-              </h1>
-              <p className="text-gray-600">
-                Bem-vindo de volta, {user?.name}! Gerencie suas quadras e acompanhe seu desempenho.
-              </p>
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={profile?.avatar_url} />
+                <AvatarFallback>
+                  {partnerInfo?.business_name?.charAt(0) || profile?.full_name?.charAt(0) || 'P'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {partnerInfo?.business_name || profile?.full_name || user?.name}
+                </h1>
+                <p className="text-gray-600">{profile?.email || user?.email}</p>
+                <div className="flex items-center space-x-4 mt-2">
+                  {partnerInfo?.verified ? (
+                    <Badge className="bg-green-500">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Verificado
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Pendente Verificação
+                    </Badge>
+                  )}
+                  {partnerInfo?.business_type && (
+                    <Badge variant="outline">{partnerInfo.business_type}</Badge>
+                  )}
+                </div>
+              </div>
             </div>
-            <Button asChild className="bg-tennis-blue hover:bg-tennis-blue-dark">
-              <Link to="/add-court">
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => navigate('/partner/profile')}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar Perfil
+              </Button>
+              <Button onClick={() => navigate('/add-court')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Quadra
-              </Link>
-            </Button>
+              </Button>
+            </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Estatísticas rápidas */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Quadras</CardTitle>
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.totalCourts}</div>
-                <p className="text-xs text-muted-foreground">
-                  {dashboardStats.activeCourts} ativas
-                </p>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Quadras Ativas</p>
+                    <p className="text-2xl font-bold">{activeCourts}</p>
+                  </div>
+                  <Building2 className="h-8 w-8 text-blue-600" />
+                </div>
               </CardContent>
             </Card>
-
+            
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Reservas Confirmadas</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.confirmedBookings}</div>
-                <p className="text-xs text-muted-foreground">
-                  de {dashboardStats.totalBookings} reservas
-                </p>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Reservas Confirmadas</p>
+                    <p className="text-2xl font-bold text-green-600">{confirmedBookings.length}</p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
               </CardContent>
             </Card>
-
+            
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">R$ {dashboardStats.totalRevenue.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">
-                  <TrendingUp className="h-3 w-3 inline mr-1" />
-                  +12% vs mês anterior
-                </p>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Pendentes</p>
+                    <p className="text-2xl font-bold text-orange-600">{pendingBookings.length}</p>
+                  </div>
+                  <Clock className="h-8 w-8 text-orange-600" />
+                </div>
               </CardContent>
             </Card>
-
+            
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
-                <Star className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.averageRating}</div>
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`h-3 w-3 ${
-                        star <= dashboardStats.averageRating
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Faturamento</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      R$ {totalRevenue.toFixed(2)}
+                    </p>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-green-600" />
                 </div>
               </CardContent>
             </Card>
@@ -216,17 +358,17 @@ const PartnerDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {recentBookings.map((booking) => (
+                      {bookings.slice(0, 5).map((booking) => (
                         <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
-                            <p className="font-medium">{booking.courtName}</p>
-                            <p className="text-sm text-gray-600">{booking.customerName}</p>
+                            <p className="font-medium">{booking.courts.name}</p>
+                            <p className="text-sm text-gray-600">{booking.profiles.full_name}</p>
                             <p className="text-xs text-gray-500">
-                              {booking.date} • {booking.time}
+                              {booking.booking_date} • {booking.start_time}-{booking.end_time}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">R$ {booking.price}</p>
+                            <p className="font-semibold">R$ {booking.total_price.toFixed(2)}</p>
                             {getStatusBadge(booking.status)}
                           </div>
                         </div>
@@ -290,7 +432,7 @@ const PartnerDashboard = () => {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {isLoading ? (
+                  {loading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="animate-pulse flex space-x-4 p-4 border rounded-lg">
@@ -329,10 +471,6 @@ const PartnerDashboard = () => {
                               <Badge variant={court.available ? "default" : "secondary"} className="text-xs">
                                 {court.available ? 'Ativa' : 'Inativa'}
                               </Badge>
-                              <div className="flex items-center">
-                                <Star className="h-3 w-3 text-yellow-400 fill-current mr-1" />
-                                <span className="text-sm">{court.rating}</span>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -369,20 +507,20 @@ const PartnerDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {recentBookings.map((booking) => (
+                    {bookings.map((booking) => (
                       <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold">{booking.courtName}</h3>
+                            <h3 className="font-semibold">{booking.courts.name}</h3>
                             {getStatusBadge(booking.status)}
                           </div>
-                          <p className="text-gray-600">{booking.customerName}</p>
+                          <p className="text-gray-600">{booking.profiles.full_name}</p>
                           <p className="text-sm text-gray-500">
-                            {booking.date} • {booking.time}
+                            {booking.booking_date} • {booking.start_time}-{booking.end_time}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold">R$ {booking.price}</p>
+                          <p className="text-xl font-bold">R$ {booking.total_price.toFixed(2)}</p>
                         </div>
                       </div>
                     ))}

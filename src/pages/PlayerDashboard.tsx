@@ -400,7 +400,7 @@ const PlayerDashboard = () => {
                     Meu Perfil
                   </CardTitle>
                   <CardDescription>
-                    Gerencie suas informações pessoais
+                    Informações pessoais e configurações
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -408,28 +408,42 @@ const PlayerDashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-gray-700">Nome</label>
-                        <p className="text-gray-900">{user?.name}</p>
+                        <p className="text-gray-900">{profile?.full_name || user?.name}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700">Email</label>
-                        <p className="text-gray-900">{user?.email}</p>
+                        <p className="text-gray-900">{profile?.email || user?.email}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700">Nível de Habilidade</label>
-                        <p className="text-gray-900">{user?.skillLevel || 'Não informado'}</p>
+                        <p className="text-gray-900">{profile?.skill_level || 'Não informado'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-700">Localização</label>
-                        <p className="text-gray-900">{user?.location || 'Não informada'}</p>
+                        <p className="text-gray-900">{profile?.location || 'Não informada'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Telefone</label>
+                        <p className="text-gray-900">{profile?.phone || 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Mão Dominante</label>
+                        <p className="text-gray-900">{profile?.dominant_hand || 'Não informado'}</p>
                       </div>
                     </div>
+                    {profile?.bio && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Biografia</label>
+                        <p className="text-gray-900 mt-1">{profile.bio}</p>
+                      </div>
+                    )}
                     <div className="pt-4">
                       <Button 
                         variant="outline"
-                        onClick={() => window.open(`/players/${user?.id}`, '_blank')}
+                        onClick={() => navigate('/player/profile')}
                       >
                         <Edit className="h-4 w-4 mr-2" />
-                        Ver/Editar Perfil Completo
+                        Editar Perfil Completo
                       </Button>
                     </div>
                   </div>
@@ -440,24 +454,49 @@ const PlayerDashboard = () => {
             <TabsContent value="favorites" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Quadras Favoritas</CardTitle>
+                  <CardTitle>Estatísticas e Ranking</CardTitle>
                   <CardDescription>
-                    Suas quadras preferidas para acesso rápido
+                    Seu desempenho e posição no ranking
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <Trophy className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                        <p className="text-2xl font-bold text-green-600">{wins}</p>
+                        <p className="text-sm text-gray-600">Vitórias</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                        <p className="text-2xl font-bold text-red-600">{losses}</p>
+                        <p className="text-sm text-gray-600">Derrotas</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                        <p className="text-2xl font-bold text-blue-600">{winRate}%</p>
+                        <p className="text-sm text-gray-600">Taxa de Vitórias</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <div className="text-center py-4">
                     <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Nenhuma quadra favorita ainda
+                      Sistema de Ranking
                     </h3>
                     <p className="text-gray-600 mb-6">
-                      Favorite quadras durante a navegação para acesso rápido aqui.
+                      Continue jogando para subir no ranking quando o sistema estiver disponível.
                     </p>
-                    <Button asChild variant="outline">
-                      <Link to="/courts">
-                        Explorar Quadras
-                      </Link>
+                    <Button onClick={() => setIsAddMatchModalOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Registrar Nova Partida
                     </Button>
                   </div>
                 </CardContent>
