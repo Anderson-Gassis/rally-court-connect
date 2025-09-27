@@ -14,10 +14,12 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
-  const { login, register, loginWithGoogle, loading } = useAuth();
+  const { login, register, loginWithGoogle, resetPassword, loading } = useAuth();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
   const [isPartnerSignupOpen, setIsPartnerSignupOpen] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   const handlePartnerSignupClick = () => {
     onClose();
@@ -73,19 +75,60 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await resetPassword(resetEmail.toLowerCase().trim());
+      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      toast.error('Erro ao enviar email de recuperação. Tente novamente.');
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Acesse sua conta</DialogTitle>
+            <DialogTitle>
+              {showForgotPassword ? 'Recuperar senha' : 'Acesse sua conta'}
+            </DialogTitle>
           </DialogHeader>
           
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="register">Criar conta</TabsTrigger>
-            </TabsList>
+          {showForgotPassword ? (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="Digite seu email para recuperar a senha"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Enviando...' : 'Enviar email de recuperação'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowForgotPassword(false)}
+              >
+                Voltar ao login
+              </Button>
+            </form>
+          ) : (
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Entrar</TabsTrigger>
+                <TabsTrigger value="register">Criar conta</TabsTrigger>
+              </TabsList>
             
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
@@ -112,6 +155,17 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Entrando...' : 'Entrar'}
                 </Button>
+                
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm text-muted-foreground"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    Esqueci minha senha
+                  </Button>
+                </div>
                 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
@@ -225,7 +279,8 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                 </p>
               </form>
             </TabsContent>
-          </Tabs>
+            </Tabs>
+          )}
         </DialogContent>
       </Dialog>
       

@@ -19,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, name: string, role?: 'player' | 'partner', partnerData?: any) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -243,6 +244,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -260,6 +273,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         loginWithGoogle,
         register,
+        resetPassword,
         logout,
         isAuthenticated: !!user,
       }}

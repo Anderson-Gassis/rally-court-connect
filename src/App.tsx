@@ -12,6 +12,7 @@ import PartnerDashboard from "./pages/PartnerDashboard";
 import PlayerDashboard from "./pages/PlayerDashboard";
 import PlayerProfile from "./pages/PlayerProfile";
 import PartnerProfile from "./pages/PartnerProfile";
+import ResetPassword from "./pages/ResetPassword";
 import Rankings from "./pages/Rankings";
 import Tournaments from "./pages/Tournaments";
 import Instructors from "./pages/Instructors";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/player/profile" element={<PlayerProfile />} />
             <Route path="/players/:id" element={<PlayerProfile />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/rankings" element={<Rankings />} />
             <Route path="/tournaments" element={<Tournaments />} />
             <Route path="/instructors" element={<Instructors />} />
