@@ -6,6 +6,7 @@ import CourtSearch from '@/components/CourtSearch';
 import CourtCard from '@/components/CourtCard';
 import MapView from '@/components/MapView';
 import Footer from '@/components/Footer';
+import Analytics from '@/components/Analytics';
 import { Button } from '@/components/ui/button';
 import { Activity, Clock, MapPin, Star } from 'lucide-react';
 import { useCourts } from '@/hooks/useCourts';
@@ -28,6 +29,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Analytics />
       <Navbar />
       
       <main>
