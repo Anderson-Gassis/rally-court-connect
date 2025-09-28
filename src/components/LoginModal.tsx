@@ -47,8 +47,8 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     try {
       await login(loginData.email.toLowerCase().trim(), loginData.password);
       toast.success('Login realizado com sucesso!');
-      onClose();
       setLoginData({ email: '', password: '' });
+      onClose();
     } catch (error: any) {
       console.error('Login error:', error);
       

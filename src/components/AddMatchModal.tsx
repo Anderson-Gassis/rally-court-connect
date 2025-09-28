@@ -31,27 +31,46 @@ const AddMatchModal: React.FC<AddMatchModalProps> = ({ isOpen, onClose, onMatchA
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      toast.error('Usuário não autenticado');
+      return;
+    }
+
+    // Validações básicas
+    if (!formData.opponent_name.trim()) {
+      toast.error('Nome do oponente é obrigatório');
+      return;
+    }
+    if (!formData.match_date) {
+      toast.error('Data da partida é obrigatória');
+      return;
+    }
+    if (!formData.result) {
+      toast.error('Resultado da partida é obrigatório');
+      return;
+    }
+    if (!formData.sport_type) {
+      toast.error('Modalidade é obrigatória');
+      return;
+    }
 
     setLoading(true);
     try {
       const matchData: Omit<MatchHistory, 'id'> = {
         player_id: user.id,
-        opponent_name: formData.opponent_name,
+        opponent_name: formData.opponent_name.trim(),
         match_date: formData.match_date,
         result: formData.result as 'vitoria' | 'derrota',
-        score: formData.score || undefined,
+        score: formData.score.trim() || undefined,
         sport_type: formData.sport_type,
-        court_name: formData.court_name || undefined,
+        court_name: formData.court_name.trim() || undefined,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : undefined,
-        notes: formData.notes || undefined,
+        notes: formData.notes.trim() || undefined,
       };
 
       await matchHistoryService.addMatch(matchData);
       
       toast.success('Partida adicionada com sucesso!');
-      onClose();
-      if (onMatchAdded) onMatchAdded();
       
       // Reset form
       setFormData({
@@ -64,9 +83,13 @@ const AddMatchModal: React.FC<AddMatchModalProps> = ({ isOpen, onClose, onMatchA
         duration_minutes: '',
         notes: '',
       });
-    } catch (error) {
+      
+      onClose();
+      if (onMatchAdded) onMatchAdded();
+    } catch (error: any) {
       console.error('Error adding match:', error);
-      toast.error('Erro ao adicionar partida');
+      const errorMessage = error?.message || 'Erro ao adicionar partida';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

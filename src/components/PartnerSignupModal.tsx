@@ -90,20 +90,22 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
     e.preventDefault();
     
     if (!validateForm(2)) {
+      toast.error('Por favor, corrija os erros do formulário');
       return;
     }
 
     try {
       // Register as partner user
-      await register(formData.email.toLowerCase().trim(), formData.password, formData.name, 'partner', {
-        businessName: formData.businessName,
-        contactPhone: formData.contactPhone,
-        businessType: formData.businessType,
-        description: formData.description,
+      await register(formData.email.toLowerCase().trim(), formData.password, formData.name.trim(), 'partner', {
+        businessName: formData.businessName.trim(),
+        contactPhone: formData.contactPhone.trim(),
+        businessType: formData.businessType.trim(),
+        description: formData.description.trim() || undefined,
       });
       
-      toast.success('Conta de parceiro criada com sucesso! Agora você pode fazer login.');
-      onClose();
+      toast.success('Conta de parceiro criada com sucesso! Verifique seu email para confirmar a conta antes de fazer login.');
+      
+      // Reset form and close modal
       setFormData({
         name: '',
         email: '',
@@ -114,12 +116,21 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
         description: '',
       });
       setCurrentStep(1);
+      setErrors({});
+      onClose();
     } catch (error: any) {
       console.error('Partner registration error:', error);
-      if (error.message?.includes('já está em uso')) {
-        toast.error('Este email já está em uso. Tente fazer login ou use outro email.');
+      
+      const errorMessage = error.message || error.toString();
+      
+      if (errorMessage.includes('já está em uso') || errorMessage.includes('User already registered') || errorMessage.includes('already exists')) {
+        toast.error('Este email já está em uso. Você já tem uma conta! Tente fazer login em vez de criar nova conta.');
+      } else if (errorMessage.includes('Invalid email')) {
+        toast.error('Email inválido. Verifique o formato do email.');
+      } else if (errorMessage.includes('Password should be at least')) {
+        toast.error('A senha deve ter pelo menos 6 caracteres.');
       } else {
-        toast.error(error.message || 'Erro ao criar conta de parceiro. Tente novamente.');
+        toast.error(errorMessage || 'Erro ao criar conta de parceiro. Tente novamente.');
       }
     }
   };
