@@ -182,6 +182,7 @@ const Index = () => {
                 <Button 
                   variant="outline" 
                   className="bg-white text-tennis-blue border-white hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
+                  asChild
                 >
                   <Link to="/add-court">Cadastrar Minha Quadra Grátis</Link>
                 </Button>
@@ -208,8 +209,9 @@ const Index = () => {
                   <Button 
                     variant="outline" 
                     className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 px-8 py-6"
+                    asChild
                   >
-                    <Link to="/add-court">Cadastrar Quadra</Link>
+                    <Link to="/players">Encontrar Jogadores</Link>
                   </Button>
                 </div>
               </div>
