@@ -9,9 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Upload, DollarSign } from 'lucide-react';
+import { MapPin, Upload, DollarSign, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { courtsService } from '@/services/courtsService';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const AddCourt = () => {
@@ -24,14 +25,20 @@ const AddCourt = () => {
     type: '',
     sport_type: '',
     location: '',
+    cep: '',
     address: '',
-    latitude: '',
-    longitude: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    state: '',
     price_per_hour: '',
+    image_file: null as File | null,
     image_url: '',
     description: '',
     features: [] as string[],
   });
+
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const availableFeatures = [
     'Iluminada',
@@ -62,6 +69,83 @@ const AddCourt = () => {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!file) return null;
+    
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('court-images')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: publicUrl } = supabase.storage
+        .from('court-images')
+        .getPublicUrl(fileName);
+
+      return publicUrl.publicUrl;
+    } catch (error: any) {
+      toast.error('Erro ao fazer upload da imagem: ' + error.message);
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, image_file: file }));
+      const imageUrl = await handleImageUpload(file);
+      if (imageUrl) {
+        setFormData(prev => ({ ...prev, image_url: imageUrl }));
+      }
+    }
+  };
+
+  const searchCEP = async (cep: string) => {
+    const cleanCEP = cep.replace(/\D/g, '');
+    if (cleanCEP.length !== 8) return;
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+      const data = await response.json();
+      
+      if (data.erro) {
+        toast.error('CEP não encontrado');
+        return;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        address: data.logradouro || '',
+        neighborhood: data.bairro || '',
+        city: data.localidade || '',
+        state: data.uf || '',
+        location: `${data.bairro}, ${data.localidade}` || prev.location
+      }));
+      
+      toast.success('Endereço encontrado!');
+    } catch (error) {
+      toast.error('Erro ao buscar CEP');
+    }
+  };
+
+  const handleCEPChange = (value: string) => {
+    const cleanValue = value.replace(/\D/g, '');
+    const maskedValue = cleanValue.replace(/(\d{5})(\d{3})/, '$1-$2');
+    
+    setFormData(prev => ({ ...prev, cep: maskedValue }));
+    
+    if (cleanValue.length === 8) {
+      searchCEP(cleanValue);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -73,14 +157,22 @@ const AddCourt = () => {
     setLoading(true);
     
     try {
+      const fullAddress = [
+        formData.address,
+        formData.number,
+        formData.neighborhood,  
+        formData.city,
+        formData.state
+      ].filter(Boolean).join(', ');
+
       const courtData = {
         name: formData.name,
         type: formData.type,
         sport_type: formData.sport_type,
         location: formData.location,
-        address: formData.address || null,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        address: fullAddress || null,
+        latitude: null,
+        longitude: null,
         price_per_hour: parseFloat(formData.price_per_hour),
         image_url: formData.image_url || null,
         description: formData.description || null,
@@ -232,67 +324,112 @@ const AddCourt = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="location">Bairro/Cidade *</Label>
+                        <Label htmlFor="cep" className="flex items-center gap-1">
+                          <Search className="h-4 w-4" />
+                          CEP *
+                        </Label>
                         <Input
-                          id="location"
-                          value={formData.location}
-                          onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                          placeholder="Ex: Jardins, São Paulo"
+                          id="cep"
+                          value={formData.cep}
+                          onChange={(e) => handleCEPChange(e.target.value)}
+                          placeholder="Ex: 01234-567"
+                          maxLength={9}
                           required
                         />
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="address">Endereço Completo</Label>
+                        <Label htmlFor="address">Rua/Logradouro *</Label>
                         <Input
                           id="address"
                           value={formData.address}
                           onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                          placeholder="Ex: Rua das Flores, 123"
+                          placeholder="Ex: Rua das Flores"
+                          required
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="latitude">Latitude (opcional)</Label>
+                        <Label htmlFor="number">Número *</Label>
                         <Input
-                          id="latitude"
-                          type="number"
-                          step="any"
-                          value={formData.latitude}
-                          onChange={(e) => setFormData(prev => ({ ...prev, latitude: e.target.value }))}
-                          placeholder="Ex: -23.5629"
+                          id="number"
+                          value={formData.number}
+                          onChange={(e) => setFormData(prev => ({ ...prev, number: e.target.value }))}
+                          placeholder="Ex: 123"
+                          required
                         />
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="longitude">Longitude (opcional)</Label>
+                        <Label htmlFor="neighborhood">Bairro *</Label>
                         <Input
-                          id="longitude"
-                          type="number"
-                          step="any"
-                          value={formData.longitude}
-                          onChange={(e) => setFormData(prev => ({ ...prev, longitude: e.target.value }))}
-                          placeholder="Ex: -46.6544"
+                          id="neighborhood"
+                          value={formData.neighborhood}
+                          onChange={(e) => setFormData(prev => ({ ...prev, neighborhood: e.target.value }))}
+                          placeholder="Ex: Jardins"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="location">Cidade/Estado *</Label>
+                        <Input
+                          id="location"
+                          value={formData.location}
+                          onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                          placeholder="Ex: São Paulo, SP"
+                          required
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Image */}
-                  <div className="space-y-2">
-                    <Label htmlFor="image_url" className="flex items-center gap-1">
-                      <Upload className="h-4 w-4" />
-                      URL da Imagem
-                    </Label>
-                    <Input
-                      id="image_url"
-                      type="url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                      placeholder="Ex: https://exemplo.com/imagem-quadra.jpg"
-                    />
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Imagem da Quadra</h3>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="image_file" className="flex items-center gap-1">
+                        <Upload className="h-4 w-4" />
+                        Carregar Imagem do Dispositivo
+                      </Label>
+                      <Input
+                        id="image_file"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        disabled={uploadingImage}
+                      />
+                      {uploadingImage && <p className="text-sm text-gray-500">Fazendo upload da imagem...</p>}
+                    </div>
+
+                    <div className="text-center text-gray-500">ou</div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="image_url">URL da Imagem</Label>
+                      <Input
+                        id="image_url"
+                        type="url"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+                        placeholder="Ex: https://exemplo.com/imagem-quadra.jpg"
+                      />
+                    </div>
+
+                    {formData.image_url && (
+                      <div className="mt-4">
+                        <img 
+                          src={formData.image_url} 
+                          alt="Preview da quadra" 
+                          className="w-full h-48 object-cover rounded-lg border"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Description */}
