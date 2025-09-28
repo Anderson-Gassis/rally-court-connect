@@ -103,20 +103,46 @@ const PlayerProfile = () => {
   };
 
   const handleSaveProfile = async () => {
+    if (!user?.id) {
+      toast.error('Usuário não identificado');
+      return;
+    }
+
     try {
+      setIsEditing(false); // Otimisticamente sair do modo edição
+      
       const { error } = await supabase
         .from('profiles')
         .update(editData)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating profile:', error);
+        setIsEditing(true); // Voltar ao modo edição em caso de erro
+        
+        if (error.code === 'PGRST301') {
+          toast.error('Você não tem permissão para atualizar este perfil');
+        } else if (error.code === 'PGRST116') {
+          toast.error('Perfil não encontrado');
+        } else {
+          toast.error(`Erro ao atualizar perfil: ${error.message}`);
+        }
+        return;
+      }
 
+      // Atualizar estado local apenas se a operação foi bem-sucedida
       setProfile(prev => ({ ...prev, ...editData } as PlayerProfile));
-      setIsEditing(false);
       toast.success('Perfil atualizado com sucesso!');
+      
+      // Buscar perfil atualizado para garantir sincronização
+      setTimeout(() => {
+        fetchPlayerProfile();
+      }, 1000);
+      
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Erro ao atualizar perfil');
+      setIsEditing(true); // Voltar ao modo edição
+      toast.error('Erro inesperado ao atualizar perfil');
     }
   };
 

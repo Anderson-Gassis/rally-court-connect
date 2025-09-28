@@ -131,7 +131,10 @@ const PartnerProfile = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user?.id) {
+      toast.error('Usuário não identificado');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -139,54 +142,79 @@ const PartnerProfile = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          full_name: editData.full_name,
-          phone: editData.phone
+          full_name: editData.full_name.trim(),
+          phone: editData.phone.trim()
         })
         .eq('user_id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        if (profileError.code === 'PGRST301') {
+          toast.error('Você não tem permissão para atualizar este perfil');
+        } else {
+          toast.error(`Erro ao atualizar perfil pessoal: ${profileError.message}`);
+        }
+        return;
+      }
 
       // Atualizar ou inserir informações do parceiro
       const { error: partnerError } = await supabase
         .from('partner_info')
         .upsert({
           user_id: user.id,
-          business_name: editData.business_name,
-          business_type: editData.business_type,
-          contact_phone: editData.contact_phone,
-          contact_email: editData.contact_email,
-          description: editData.description,
-          website_url: editData.website_url,
-          business_address: editData.business_address,
-          cnpj: editData.cnpj
+          business_name: editData.business_name.trim(),
+          business_type: editData.business_type.trim(),
+          contact_phone: editData.contact_phone.trim(),
+          contact_email: editData.contact_email.trim(),
+          description: editData.description.trim(),
+          website_url: editData.website_url.trim(),
+          business_address: editData.business_address.trim(),
+          cnpj: editData.cnpj.trim()
+        }, { 
+          onConflict: 'user_id',
+          ignoreDuplicates: false 
         });
 
-      if (partnerError) throw partnerError;
+      if (partnerError) {
+        console.error('Partner info update error:', partnerError);
+        if (partnerError.code === 'PGRST301') {
+          toast.error('Você não tem permissão para atualizar informações de parceiro');
+        } else {
+          toast.error(`Erro ao atualizar informações do negócio: ${partnerError.message}`);
+        }
+        return;
+      }
 
-      // Atualizar estado local
+      // Atualizar estado local apenas se tudo foi bem-sucedido
       setProfile(prev => ({
         ...prev!,
-        full_name: editData.full_name,
-        phone: editData.phone
+        full_name: editData.full_name.trim(),
+        phone: editData.phone.trim()
       }));
 
       setPartnerInfo(prev => ({
         ...prev!,
-        business_name: editData.business_name,
-        business_type: editData.business_type,
-        contact_phone: editData.contact_phone,
-        contact_email: editData.contact_email,
-        description: editData.description,
-        website_url: editData.website_url,
-        business_address: editData.business_address,
-        cnpj: editData.cnpj
+        business_name: editData.business_name.trim(),
+        business_type: editData.business_type.trim(),
+        contact_phone: editData.contact_phone.trim(),
+        contact_email: editData.contact_email.trim(),
+        description: editData.description.trim(),
+        website_url: editData.website_url.trim(),
+        business_address: editData.business_address.trim(),
+        cnpj: editData.cnpj.trim()
       }));
 
       setIsEditing(false);
       toast.success('Perfil atualizado com sucesso!');
+      
+      // Recarregar dados para garantir sincronização
+      setTimeout(() => {
+        fetchPartnerProfile();
+      }, 1000);
+      
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Erro ao atualizar perfil');
+      toast.error('Erro inesperado ao atualizar perfil');
     } finally {
       setSaving(false);
     }

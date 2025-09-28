@@ -117,14 +117,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Limpar qualquer sessão anterior
+      await supabase.auth.signOut({ scope: 'local' });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.toLowerCase().trim(),
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Melhor tratamento de erros específicos
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Email ou senha incorretos. Verifique suas credenciais.');
+        }
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Email não confirmado. Verifique sua caixa de entrada e confirme seu email.');
+        }
+        if (error.message.includes('Too many requests')) {
+          throw new Error('Muitas tentativas de login. Aguarde alguns minutos e tente novamente.');
+        }
+        throw error;
+      }
 
-      if (data.user) {
+      if (data.user && data.session) {
         // Registrar atividade de login
         setTimeout(async () => {
           try {
@@ -275,10 +290,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      setLoading(true);
+      // Limpar estado primeiro
       setUser(null);
+      
+      // Fazer logout no Supabase
+      await supabase.auth.signOut({ scope: 'local' });
+      
+      // Limpar qualquer cache de sessão
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.clear();
+      
+      // Recarregar a página para limpar completamente o estado
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
+      // Em caso de erro, forçar limpeza
+      setUser(null);
+      localStorage.clear();
+      window.location.href = '/';
+    } finally {
+      setLoading(false);
     }
   };
 
