@@ -38,6 +38,12 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!loginData.email.trim() || !loginData.password.trim()) {
+      toast.error('Por favor, preencha email e senha');
+      return;
+    }
+    
     try {
       await login(loginData.email.toLowerCase().trim(), loginData.password);
       toast.success('Login realizado com sucesso!');
@@ -45,30 +51,63 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
       setLoginData({ email: '', password: '' });
     } catch (error: any) {
       console.error('Login error:', error);
-      if (error.message?.includes('Invalid login credentials')) {
-        toast.error('Email ou senha incorretos. Se você acabou de se cadastrar, verifique se confirmou seu email primeiro.', {
+      
+      const errorMessage = error.message || error.toString();
+      
+      if (errorMessage.includes('Invalid login credentials') || errorMessage.includes('Email ou senha incorretos')) {
+        toast.error('Email ou senha incorretos. Verifique suas credenciais e tente novamente.', {
           duration: 6000
         });
-      } else if (error.message?.includes('Email not confirmed')) {
-        toast.error('Você precisa confirmar seu email antes de fazer login. Verifique sua caixa de entrada.', {
+      } else if (errorMessage.includes('Email not confirmed') || errorMessage.includes('não confirmado')) {
+        toast.error('Email não confirmado. Verifique sua caixa de entrada e confirme seu email primeiro.', {
+          duration: 6000
+        });
+      } else if (errorMessage.includes('Too many requests') || errorMessage.includes('Muitas tentativas')) {
+        toast.error('Muitas tentativas de login. Aguarde alguns minutos e tente novamente.', {
+          duration: 8000
+        });
+      } else if (errorMessage.includes('User not found')) {
+        toast.error('Usuário não encontrado. Verifique o email ou crie uma nova conta.', {
           duration: 6000
         });
       } else {
-        toast.error('Erro no login. Tente novamente.');
+        toast.error('Erro no login. Tente novamente ou entre em contato com o suporte.', {
+          duration: 5000
+        });
       }
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!registerData.name.trim() || !registerData.email.trim() || !registerData.password.trim()) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+    
+    if (registerData.password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerData.email.trim())) {
+      toast.error('Por favor, digite um email válido');
+      return;
+    }
+    
     try {
-      await register(registerData.email.toLowerCase().trim(), registerData.password, registerData.name);
+      await register(registerData.email.toLowerCase().trim(), registerData.password, registerData.name.trim());
       setLastRegisteredEmail(registerData.email.toLowerCase().trim());
       toast.success('Conta criada com sucesso! Verifique seu email para confirmar a conta antes de fazer login.');
       onClose();
       setRegisterData({ name: '', email: '', password: '' });
     } catch (error: any) {
       console.error('Registration error:', error);
+      
+      const errorMessage = error.message || error.toString();
+      
       if (error.message === 'CONFIRMATION_REQUIRED') {
         setLastRegisteredEmail(registerData.email.toLowerCase().trim());
         toast.success('Conta criada! Verifique seu email para confirmar a conta antes de fazer login.', {
@@ -76,14 +115,18 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
         });
         onClose();
         setRegisterData({ name: '', email: '', password: '' });
-      } else if (error.message?.includes('já está em uso') || error.message?.includes('User already registered')) {
-        toast.error('Este email já está em uso. Você já tem uma conta! Tente fazer login.');
-      } else if (error.message?.includes('Password should be at least')) {
+      } else if (errorMessage.includes('já está em uso') || errorMessage.includes('User already registered') || errorMessage.includes('already exists')) {
+        toast.error('Este email já está em uso. Você já tem uma conta! Tente fazer login em vez de criar nova conta.', {
+          duration: 6000
+        });
+      } else if (errorMessage.includes('Password should be at least')) {
         toast.error('A senha deve ter pelo menos 6 caracteres.');
-      } else if (error.message?.includes('Unable to validate email address')) {
+      } else if (errorMessage.includes('Unable to validate email address') || errorMessage.includes('Invalid email')) {
         toast.error('Email inválido. Verifique o formato do email.');
+      } else if (errorMessage.includes('Signup is disabled')) {
+        toast.error('Cadastro temporariamente desabilitado. Tente novamente mais tarde.');
       } else {
-        toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
+        toast.error(errorMessage || 'Erro ao criar conta. Tente novamente.');
       }
     }
   };
