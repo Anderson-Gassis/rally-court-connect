@@ -184,7 +184,7 @@ const Index = () => {
                   className="bg-white text-tennis-blue border-white hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
                   asChild
                 >
-                  <Link to="/add-court">Cadastrar Minha Quadra Grátis</Link>
+                  <Link to="/players">Encontrar Jogadores</Link>
                 </Button>
               </div>
             </div>

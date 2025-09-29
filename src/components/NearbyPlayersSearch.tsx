@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MapPin, Search, Trophy, Users, Target, Clock, Zap } from 'lucide-react';
-import { playersService, Player, PlayerFilters } from '@/services/playersService';
+import { usePlayers } from '@/hooks/usePlayers';
+import { Player, PlayerFilters } from '@/services/playersService';
 import ChallengePlayerModal from '@/components/ChallengePlayerModal';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,43 +16,26 @@ const NearbyPlayersSearch = () => {
   const [distance, setDistance] = useState([10]);
   const [sportType, setSportType] = useState('');
   const [skillLevel, setSkillLevel] = useState('');
-  const [searchResults, setSearchResults] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { user, isAuthenticated } = useAuth();
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    // Buscar jogadores automaticamente ao carregar
-    handleSearch();
-  }, []);
+  // Create filters object
+  const filters: PlayerFilters = {
+    distance: distance[0],
+    ...(sportType && { sport_type: sportType }),
+    ...(skillLevel && { skill_level: skillLevel })
+  };
 
-  const handleSearch = async () => {
+  // Use the players hook - only enabled if user is authenticated
+  const { data: searchResults = [], isLoading: loading, refetch } = usePlayers(isAuthenticated ? filters : undefined);
+
+  const handleSearch = () => {
     if (!isAuthenticated) {
       toast.error('Você precisa estar logado para buscar jogadores');
       return;
     }
-
-    setLoading(true);
-    try {
-      const filters: PlayerFilters = {
-        distance: distance[0],
-        ...(sportType && { sport_type: sportType }),
-        ...(skillLevel && { skill_level: skillLevel })
-      };
-
-      const players = await playersService.getNearbyPlayers(filters);
-      setSearchResults(players);
-      
-      if (players.length === 0) {
-        toast.info('Nenhum jogador encontrado com os filtros selecionados');
-      }
-    } catch (error) {
-      console.error('Error searching players:', error);
-      toast.error('Erro ao buscar jogadores. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
+    refetch();
   };
 
   const handleChallengePlayer = (player: Player) => {
