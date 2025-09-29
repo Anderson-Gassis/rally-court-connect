@@ -1,11 +1,8 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Star } from 'lucide-react';
-
 const HeroSection = () => {
-  return (
-    <section className="relative bg-gradient-to-r from-tennis-blue-light to-white py-16 overflow-hidden">
+  return <section className="relative bg-gradient-to-r from-tennis-blue-light to-white py-16 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Hero Content */}
@@ -19,17 +16,10 @@ const HeroSection = () => {
             </p>
             
             <div className="flex flex-wrap gap-3 mt-4">
-              <Button 
-                className="bg-tennis-blue hover:bg-tennis-blue-dark text-white py-6 px-8 text-lg"
-              >
+              <Button className="bg-tennis-blue hover:bg-tennis-blue-dark text-white py-6 px-8 text-lg">
                 Encontrar Quadras
               </Button>
-              <Button 
-                variant="outline" 
-                className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 py-6 px-8 text-lg"
-              >
-                Registrar Quadra
-              </Button>
+              <Button variant="outline" className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 py-6 px-8 text-lg">Encontrar jogadores</Button>
             </div>
             
             <div className="flex flex-wrap gap-4 md:gap-6 pt-4">
@@ -51,11 +41,7 @@ const HeroSection = () => {
           {/* Hero Image */}
           <div className="hidden lg:flex justify-center relative">
             <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-xl">
-              <img
-                src="https://images.unsplash.com/photo-1569955914862-7d551e5516a1?q=80&w=1000"
-                alt="Tennis Court"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              <img src="https://images.unsplash.com/photo-1569955914862-7d551e5516a1?q=80&w=1000" alt="Tennis Court" className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black bg-opacity-20"></div>
               
               {/* Floating Cards */}
@@ -82,8 +68,6 @@ const HeroSection = () => {
       <div className="absolute -bottom-16 -right-16 h-32 w-32 rounded-full bg-tennis-green opacity-10"></div>
       <div className="absolute top-12 -left-8 h-16 w-16 rounded-full bg-tennis-blue opacity-10"></div>
       <div className="absolute -top-12 right-32 h-24 w-24 rounded-full bg-tennis-orange opacity-10"></div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
