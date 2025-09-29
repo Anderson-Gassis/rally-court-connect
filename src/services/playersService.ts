@@ -27,6 +27,14 @@ export interface PlayerFilters {
 export const playersService = {
   async getNearbyPlayers(filters?: PlayerFilters): Promise<Player[]> {
     try {
+      // Get current user once at the beginning
+      const { data: auth, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.warn('Auth error in getNearbyPlayers:', authError);
+        // Continue without filtering current user if auth fails
+      }
+
       let query = supabase
         .from('profiles')
         .select(`
@@ -44,8 +52,7 @@ export const playersService = {
         .eq('role', 'player');
 
       // Exclude current user if authenticated
-      const { data: auth } = await supabase.auth.getUser();
-      if (auth.user?.id) {
+      if (auth?.user?.id) {
         query = query.neq('user_id', auth.user.id);
       }
 
@@ -55,7 +62,10 @@ export const playersService = {
 
       const { data: players, error } = await query.limit(20);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error in getNearbyPlayers:', error);
+        throw error;
+      }
 
       // Para agora, retornamos os jogadores sem cálculo de distância
       // Mais tarde podemos implementar geolocalização
@@ -65,12 +75,20 @@ export const playersService = {
       })) || [];
     } catch (error) {
       console.error('Error fetching nearby players:', error);
-      return [];
+      throw error; // Re-throw to let react-query handle the error
     }
   },
 
   async searchPlayers(searchTerm: string, filters?: PlayerFilters): Promise<Player[]> {
     try {
+      // Get current user once at the beginning
+      const { data: auth, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.warn('Auth error in searchPlayers:', authError);
+        // Continue without filtering current user if auth fails
+      }
+
       let query = supabase
         .from('profiles')
         .select(`
@@ -88,8 +106,7 @@ export const playersService = {
         .eq('role', 'player');
 
       // Exclude current user if authenticated
-      const { data: auth } = await supabase.auth.getUser();
-      if (auth.user?.id) {
+      if (auth?.user?.id) {
         query = query.neq('user_id', auth.user.id);
       }
 
@@ -103,7 +120,10 @@ export const playersService = {
 
       const { data: players, error } = await query.limit(20);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error in searchPlayers:', error);
+        throw error;
+      }
 
       return players?.map(player => ({
         ...player,
@@ -111,7 +131,7 @@ export const playersService = {
       })) || [];
     } catch (error) {
       console.error('Error searching players:', error);
-      return [];
+      throw error; // Re-throw to let react-query handle the error
     }
   }
 };

@@ -63,23 +63,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      // Tentar buscar o perfil algumas vezes (para aguardar o trigger)
-      let profile = null;
-      let attempts = 0;
-      const maxAttempts = 3;
-
-      while (!profile && attempts < maxAttempts) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', supabaseUser.id)
-          .single();
-        
-        profile = data;
-        if (!profile && attempts < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-        attempts++;
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', supabaseUser.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, which is expected for new users
+        console.error('Error fetching profile:', error);
       }
 
       if (profile) {

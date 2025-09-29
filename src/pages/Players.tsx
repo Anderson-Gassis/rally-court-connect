@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import NearbyPlayersSearch from '@/components/NearbyPlayersSearch';
+import PlayersSearchContainer from '@/components/PlayersSearchContainer';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
@@ -27,7 +28,9 @@ const Players = () => {
             </p>
           </div>
 
-          <NearbyPlayersSearch />
+          <ErrorBoundary>
+            <PlayersSearchContainer />
+          </ErrorBoundary>
         </div>
       </main>
       

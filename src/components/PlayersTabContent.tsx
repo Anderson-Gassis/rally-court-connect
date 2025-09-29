@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Trophy, MapPin, Clock } from 'lucide-react';
-import NearbyPlayersSearch from '@/components/NearbyPlayersSearch';
+import PlayersSearchContainer from '@/components/PlayersSearchContainer';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const PlayersTabContent = () => {
   return (
@@ -81,7 +81,9 @@ const PlayersTabContent = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        <NearbyPlayersSearch />
+          <ErrorBoundary>
+            <PlayersSearchContainer />
+          </ErrorBoundary>
       </div>
     </div>
   );

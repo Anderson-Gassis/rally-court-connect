@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
@@ -6,52 +6,62 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MapPin, Search, Trophy, Users, Target, Clock, Zap } from 'lucide-react';
-import { usePlayers } from '@/hooks/usePlayers';
-import { Player, PlayerFilters } from '@/services/playersService';
+import { Player, playersService } from '@/services/playersService';
 import ChallengePlayerModal from '@/components/ChallengePlayerModal';
 import SafeLoading from '@/components/SafeLoading';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
-const NearbyPlayersSearch = () => {
+const PlayersSearchContainer = () => {
   const [distance, setDistance] = useState([10]);
   const [sportType, setSportType] = useState('');
   const [skillLevel, setSkillLevel] = useState('');
-  const { user, isAuthenticated } = useAuth();
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
+  
+  const { user, isAuthenticated } = useAuth();
 
-  // Create filters object
-  const filters: PlayerFilters = {
-    distance: distance[0],
-    ...(sportType && { sport_type: sportType }),
-    ...(skillLevel && { skill_level: skillLevel })
-  };
-
-  // Use the players hook - only enabled if user is authenticated
-  const { data: searchResults = [], isLoading: loading, refetch, error } = usePlayers(filters, isAuthenticated);
-
-  const handleSearch = () => {
+  const searchPlayers = useCallback(async () => {
     if (!isAuthenticated) {
       toast.error('Você precisa estar logado para buscar jogadores');
       return;
     }
-    
-    if (error) {
-      console.log('Clearing previous error and retrying...');
-    }
-    
-    refetch();
-  };
 
-  const handleChallengePlayer = (player: Player) => {
+    console.log('Starting player search...', { distance: distance[0], sportType, skillLevel });
+    setLoading(true);
+    setError(null);
+
+    try {
+      const filters = {
+        distance: distance[0],
+        ...(sportType && { sport_type: sportType }),
+        ...(skillLevel && { skill_level: skillLevel })
+      };
+
+      console.log('Calling playersService with filters:', filters);
+      const results = await playersService.getNearbyPlayers(filters);
+      console.log('Players search results:', results);
+      setPlayers(results);
+    } catch (err) {
+      console.error('Error fetching players:', err);
+      setError('Erro ao buscar jogadores. Tente novamente.');
+      setPlayers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [distance, sportType, skillLevel, isAuthenticated]);
+
+  const handleChallengePlayer = useCallback((player: Player) => {
     if (!isAuthenticated) {
       toast.error('Você precisa estar logado para desafiar jogadores');
       return;
     }
     setSelectedPlayer(player);
     setIsChallengeModalOpen(true);
-  };
+  }, [isAuthenticated]);
 
   const getSkillLevelColor = (level?: string) => {
     switch (level?.toLowerCase()) {
@@ -65,6 +75,13 @@ const NearbyPlayersSearch = () => {
   const getPlayerInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   };
+
+  // Auto search on mount if authenticated
+  useEffect(() => {
+    if (isAuthenticated && players.length === 0 && !loading) {
+      searchPlayers();
+    }
+  }, [isAuthenticated, searchPlayers, players.length, loading]);
 
   if (!isAuthenticated) {
     return (
@@ -119,9 +136,9 @@ const NearbyPlayersSearch = () => {
           </div>
 
           <Button 
-            onClick={handleSearch}
+            onClick={searchPlayers}
             disabled={loading}
-            className="bg-tennis-blue hover:bg-tennis-blue-dark text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Search className="h-4 w-4 mr-2" />
             {loading ? 'Buscando...' : 'Buscar'}
@@ -134,7 +151,7 @@ const NearbyPlayersSearch = () => {
             <label className="text-sm font-medium text-gray-700">
               Distância máxima
             </label>
-            <span className="text-sm text-tennis-blue font-medium">
+            <span className="text-sm text-blue-600 font-medium">
               {distance[0]} km
             </span>
           </div>
@@ -156,11 +173,9 @@ const NearbyPlayersSearch = () => {
                 <h3 className="text-lg font-semibold text-red-800 mb-2">
                   Erro ao carregar jogadores
                 </h3>
-                <p className="text-red-600 mb-4">
-                  Ocorreu um problema ao buscar os jogadores. Tente novamente.
-                </p>
+                <p className="text-red-600 mb-4">{error}</p>
                 <Button 
-                  onClick={handleSearch}
+                  onClick={searchPlayers}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   Tentar novamente
@@ -169,21 +184,21 @@ const NearbyPlayersSearch = () => {
             </div>
           ) : loading ? (
             <SafeLoading message="Buscando jogadores..." />
-          ) : searchResults.length > 0 ? (
+          ) : players.length > 0 ? (
             <>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {searchResults.length} jogador{searchResults.length !== 1 ? 'es' : ''} encontrado{searchResults.length !== 1 ? 's' : ''}
+                {players.length} jogador{players.length !== 1 ? 'es' : ''} encontrado{players.length !== 1 ? 's' : ''}
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {searchResults.map((player) => (
+                {players.map((player) => (
                   <Card key={player.id} className="hover:shadow-lg transition-shadow duration-200">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-4">
                           <Avatar className="h-16 w-16">
                             <AvatarImage src={player.avatar_url} />
-                            <AvatarFallback className="bg-tennis-blue text-white text-lg font-semibold">
+                            <AvatarFallback className="bg-blue-600 text-white text-lg font-semibold">
                               {getPlayerInitials(player.full_name)}
                             </AvatarFallback>
                           </Avatar>
@@ -195,7 +210,7 @@ const NearbyPlayersSearch = () => {
                               <MapPin className="h-4 w-4 mr-1" />
                               {player.location || 'Localização não informada'}
                               {player.distance && (
-                                <span className="ml-2 text-tennis-blue font-medium">
+                                <span className="ml-2 text-blue-600 font-medium">
                                   • {player.distance.toFixed(1)}km
                                 </span>
                               )}
@@ -242,7 +257,7 @@ const NearbyPlayersSearch = () => {
 
                       <Button 
                         onClick={() => handleChallengePlayer(player)}
-                        className="w-full bg-tennis-blue hover:bg-tennis-blue-dark text-white"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         <Trophy className="h-4 w-4 mr-2" />
                         Convidar para Jogar
@@ -262,9 +277,9 @@ const NearbyPlayersSearch = () => {
                 Tente ajustar os filtros ou aumentar a distância de busca.
               </p>
               <Button 
-                onClick={handleSearch}
+                onClick={searchPlayers}
                 variant="outline"
-                className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
               >
                 Tentar novamente
               </Button>
@@ -286,4 +301,4 @@ const NearbyPlayersSearch = () => {
   );
 };
 
-export default NearbyPlayersSearch;
+export default PlayersSearchContainer;
