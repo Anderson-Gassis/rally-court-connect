@@ -4,7 +4,7 @@ export interface Player {
   id: string;
   user_id: string;
   full_name: string;
-  email: string;
+  email?: string;
   avatar_url?: string;
   skill_level?: string;
   location?: string;
@@ -33,15 +33,13 @@ export const playersService = {
           id,
           user_id,
           full_name,
-          email,
           avatar_url,
           skill_level,
           location,
           bio,
           preferred_surface,
           playing_time,
-          dominant_hand,
-          phone
+          dominant_hand
         `)
         .eq('role', 'player')
         .neq('user_id', (await supabase.auth.getUser()).data.user?.id || '');
@@ -74,15 +72,13 @@ export const playersService = {
           id,
           user_id,
           full_name,
-          email,
           avatar_url,
           skill_level,
           location,
           bio,
           preferred_surface,
           playing_time,
-          dominant_hand,
-          phone
+          dominant_hand
         `)
         .eq('role', 'player')
         .neq('user_id', (await supabase.auth.getUser()).data.user?.id || '');
