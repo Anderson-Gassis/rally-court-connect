@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, Navigation, AlertCircle } from 'lucide-react';
 import { useCourts } from '@/hooks/useCourts';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GoogleMaps {
   Map: new (element: HTMLElement, options: any) => any;
@@ -32,8 +33,31 @@ const MapView = () => {
   const { data: courts = [] } = useCourts();
   const { latitude, longitude, getCurrentLocation } = useGeolocation();
   
-  // Get Google Maps API key from environment
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  // Get Google Maps API key from secrets
+  const [apiKey, setApiKey] = useState('');
+
+  // Fetch API key from Supabase edge function
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-maps-config');
+        
+        if (error) throw error;
+        
+        if (data?.hasKey && data?.apiKey) {
+          setApiKey(data.apiKey);
+          setMapError('');
+        } else {
+          setMapError('Chave de API do Google Maps não configurada. Configure a GOOGLE_MAPS_API_KEY nos secrets.');
+        }
+      } catch (error) {
+        console.error('Error fetching API key:', error);
+        setMapError('Erro ao carregar configuração do Google Maps.');
+      }
+    };
+    
+    fetchApiKey();
+  }, []);
 
   // Request location on component mount
   useEffect(() => {
