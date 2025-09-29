@@ -79,8 +79,7 @@ const AddCourt = () => {
       
       const { data, error } = await supabase.storage
         .from('court-images')
-        .upload(fileName, file);
-
+        .upload(fileName, file, { cacheControl: '3600', upsert: true, contentType: file.type });
       if (error) throw error;
 
       const { data: publicUrl } = supabase.storage

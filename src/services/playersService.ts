@@ -41,8 +41,13 @@ export const playersService = {
           playing_time,
           dominant_hand
         `)
-        .eq('role', 'player')
-        .neq('user_id', (await supabase.auth.getUser()).data.user?.id || '');
+        .eq('role', 'player');
+
+      // Exclude current user if authenticated
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user?.id) {
+        query = query.neq('user_id', auth.user.id);
+      }
 
       if (filters?.skill_level) {
         query = query.eq('skill_level', filters.skill_level);
@@ -80,8 +85,13 @@ export const playersService = {
           playing_time,
           dominant_hand
         `)
-        .eq('role', 'player')
-        .neq('user_id', (await supabase.auth.getUser()).data.user?.id || '');
+        .eq('role', 'player');
+
+      // Exclude current user if authenticated
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user?.id) {
+        query = query.neq('user_id', auth.user.id);
+      }
 
       if (searchTerm) {
         query = query.or(`full_name.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
