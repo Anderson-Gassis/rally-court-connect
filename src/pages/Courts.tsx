@@ -5,7 +5,6 @@ import Footer from '@/components/Footer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import CourtTabContent from '@/components/CourtTabContent';
 import PlayersTabContent from '@/components/PlayersTabContent';
-import { useCourts } from '@/hooks/useCourts';
 import { 
   NavigationMenu,
   NavigationMenuContent,
@@ -22,9 +21,6 @@ import { Link } from 'react-router-dom';
 const Courts = () => {
   // State for the booking process step
   const [activeStep, setActiveStep] = useState<number>(1);
-  
-  // Fetch courts from Supabase
-  const { data: courts = [], isLoading, error } = useCourts();
   
   // Steps for the booking process
   const bookingSteps = [
@@ -101,7 +97,7 @@ const Courts = () => {
             </TabsList>
             
             <TabsContent value="courts">
-              <CourtTabContent courts={courts} isLoading={isLoading} error={error} />
+              <CourtTabContent />
             </TabsContent>
             
             <TabsContent value="players">

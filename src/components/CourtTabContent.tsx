@@ -5,16 +5,16 @@ import { GridIcon, MapIcon } from 'lucide-react';
 import CourtSearch from '@/components/CourtSearch';
 import CourtsList from '@/components/CourtsList';
 import MapView from '@/components/MapView';
-import { Court } from '@/services/courtsService';
+import { useCourtSearch } from '@/hooks/useCourts';
 
-interface CourtTabContentProps {
-  courts: Court[];
-  isLoading?: boolean;
-  error?: Error | null;
-}
-
-const CourtTabContent = ({ courts, isLoading, error }: CourtTabContentProps) => {
+const CourtTabContent = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const { courts, isLoading, error, setSearchTerm, setFilters } = useCourtSearch();
+
+  const handleSearch = (location: string, filters: any) => {
+    setSearchTerm(location);
+    setFilters(filters);
+  };
 
   if (error) {
     return (
@@ -46,7 +46,7 @@ const CourtTabContent = ({ courts, isLoading, error }: CourtTabContentProps) => 
         </div>
       </div>
       
-      <CourtSearch />
+      <CourtSearch onSearch={handleSearch} />
       
       <div className="mt-8">
         {viewMode === 'grid' ? (

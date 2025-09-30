@@ -18,8 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CourtFilters } from '@/services/courtsService';
 
-const CourtSearch = () => {
+interface CourtSearchProps {
+  onSearch?: (location: string, filters: CourtFilters) => void;
+}
+
+const CourtSearch = ({ onSearch }: CourtSearchProps) => {
   const [location, setLocation] = useState("");
   const [distance, setDistance] = useState([5]);
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -34,6 +39,15 @@ const CourtSearch = () => {
 
   const toggleFilters = () => {
     setShowFilters(!showFilters);
+  };
+
+  const handleSearch = () => {
+    const searchFilters: CourtFilters = {
+      location: location || undefined,
+      sport_type: sportType !== "all" ? sportType : undefined,
+      max_distance: distance[0],
+    };
+    onSearch?.(location, searchFilters);
   };
 
   return (
@@ -110,7 +124,10 @@ const CourtSearch = () => {
 
         {/* Search Button */}
         <div className="md:col-span-2">
-          <Button className="w-full bg-tennis-blue hover:bg-tennis-blue-dark">
+          <Button 
+            className="w-full bg-tennis-blue hover:bg-tennis-blue-dark"
+            onClick={handleSearch}
+          >
             <Search className="h-4 w-4 mr-2" />
             Buscar
           </Button>
