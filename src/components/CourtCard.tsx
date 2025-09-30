@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin, Star, Clock } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import BookingModal from "./BookingModal";
 
 interface CourtCardProps {
   id: string;
@@ -32,6 +33,7 @@ const CourtCard = ({
   sportType,
   features = []
 }: CourtCardProps) => {
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
   
   const typeColor = {
     // Tennis
@@ -106,10 +108,21 @@ const CourtCard = ({
           <Clock className="h-4 w-4 text-gray-500 mr-1" />
           <span className="text-tennis-blue-dark font-semibold">R${price}/hora</span>
         </div>
-        <Button className="bg-tennis-blue hover:bg-tennis-blue-dark text-white">
+        <Button 
+          className="bg-tennis-blue hover:bg-tennis-blue-dark text-white"
+          onClick={() => setBookingModalOpen(true)}
+        >
           Reservar
         </Button>
       </CardFooter>
+
+      <BookingModal
+        open={bookingModalOpen}
+        onOpenChange={setBookingModalOpen}
+        courtId={id}
+        courtName={name}
+        pricePerHour={price}
+      />
     </Card>
   );
 };
