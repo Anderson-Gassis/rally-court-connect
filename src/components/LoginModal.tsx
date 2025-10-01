@@ -165,7 +165,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle>
               {showForgotPassword ? 'Recuperar senha' : 'Acesse sua conta'}
