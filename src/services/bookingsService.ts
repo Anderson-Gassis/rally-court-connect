@@ -70,7 +70,37 @@ export const bookingsService = {
     return data || [];
   },
 
-  async cancelBooking(bookingId: string, userId: string): Promise<void> {
+  async cancelBooking(bookingId: string, userId: string): Promise<{ canCancel: boolean; reason?: string }> {
+    // First, fetch the booking to check the date and time
+    const { data: booking, error: fetchError } = await supabase
+      .from('bookings')
+      .select('booking_date, start_time, status')
+      .eq('id', bookingId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError || !booking) {
+      console.error('Error fetching booking:', fetchError);
+      throw new Error('Reserva não encontrada');
+    }
+
+    if (booking.status === 'cancelled') {
+      throw new Error('Esta reserva já foi cancelada');
+    }
+
+    // Check if booking is at least 24 hours away
+    const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
+    const now = new Date();
+    const hoursUntilBooking = (bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursUntilBooking < 24) {
+      return {
+        canCancel: false,
+        reason: 'Cancelamentos devem ser feitos com pelo menos 24 horas de antecedência.'
+      };
+    }
+
+    // Proceed with cancellation
     const { error } = await supabase
       .from('bookings')
       .update({ status: 'cancelled' })
@@ -81,6 +111,8 @@ export const bookingsService = {
       console.error('Error cancelling booking:', error);
       throw error;
     }
+
+    return { canCancel: true };
   },
 
   async updatePaymentStatus(bookingId: string, paymentStatus: 'paid' | 'failed', paymentId?: string): Promise<void> {

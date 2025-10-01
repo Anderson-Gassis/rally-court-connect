@@ -8,6 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddMatchModal from '@/components/AddMatchModal';
+import { BookingDetailsModal } from '@/components/BookingDetailsModal';
+import { bookingsService } from '@/services/bookingsService';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   Calendar, 
   Trophy, 
@@ -76,6 +88,11 @@ const PlayerDashboard = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddMatchModalOpen, setIsAddMatchModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -185,6 +202,44 @@ const PlayerDashboard = () => {
     new Date(booking.booking_date) >= new Date() && booking.status === 'confirmed'
   );
   const totalSpent = bookings.reduce((sum, booking) => sum + booking.total_price, 0);
+
+  const handleViewDetails = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCancelClick = (booking: Booking) => {
+    setBookingToCancel(booking);
+    setIsCancelDialogOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!bookingToCancel || !user) return;
+
+    setIsCancelling(true);
+    try {
+      const result = await bookingsService.cancelBooking(bookingToCancel.id, user.id);
+      
+      if (!result.canCancel) {
+        toast.error(result.reason || 'Não foi possível cancelar a reserva');
+        setIsCancelDialogOpen(false);
+        setBookingToCancel(null);
+        return;
+      }
+
+      toast.success('Reserva cancelada com sucesso!');
+      setIsCancelDialogOpen(false);
+      setBookingToCancel(null);
+      
+      // Refresh bookings
+      await fetchPlayerData();
+    } catch (error: any) {
+      console.error('Error cancelling booking:', error);
+      toast.error(error.message || 'Erro ao cancelar reserva');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -328,10 +383,19 @@ const PlayerDashboard = () => {
                         <div className="text-right">
                           <p className="text-xl font-bold">R$ {booking.total_price}</p>
                             <div className="space-x-2 mt-2">
-                              <Button variant="outline" size="sm">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleViewDetails(booking)}
+                              >
                                 Detalhes
                               </Button>
-                              <Button variant="destructive" size="sm">
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => handleCancelClick(booking)}
+                                disabled={booking.status === 'cancelled'}
+                              >
                                 Cancelar
                               </Button>
                             </div>
@@ -510,6 +574,40 @@ const PlayerDashboard = () => {
         isOpen={isAddMatchModalOpen}
         onClose={() => setIsAddMatchModalOpen(false)}
       />
+
+      <BookingDetailsModal
+        booking={selectedBooking}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+      />
+
+      <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Reserva</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar esta reserva?
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-900">
+                  <strong>Política de cancelamento:</strong> Cancelamentos com menos de 24 horas de antecedência não são reembolsáveis.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>
+              Voltar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmCancel}
+              disabled={isCancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isCancelling ? 'Cancelando...' : 'Confirmar Cancelamento'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <Footer />
     </div>
