@@ -73,22 +73,28 @@ const Navbar = () => {
                       <span>{user?.name}</span>
                     </Button>
                   </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem asChild>
-                    <Link to={user?.role === 'partner' ? '/partner/dashboard' : '/player/dashboard'}>
-                      {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
-                    </Link>
-                  </DropdownMenuItem>
-                  {user?.role === 'partner' ? (
+                  <DropdownMenuContent>
                     <DropdownMenuItem asChild>
-                      <Link to="/add-court">Cadastrar Quadra</Link>
+                      <Link to={user?.role === 'partner' ? '/partner/dashboard' : user?.role === 'instructor' ? '/instructor/dashboard' : '/player/dashboard'}>
+                        {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
+                      </Link>
                     </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem asChild>
-                      <Link to="/player/bookings">Minhas Reservas</Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    {user?.role === 'partner' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/add-court">Cadastrar Quadra</Link>
+                      </DropdownMenuItem>
+                    )}
+                    {user?.role === 'instructor' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/instructor/dashboard">Minhas Reservas</Link>
+                      </DropdownMenuItem>
+                    )}
+                    {(!user?.role || user?.role === 'player') && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/player/bookings">Minhas Reservas</Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sair
                   </DropdownMenuItem>
@@ -137,12 +143,26 @@ const Navbar = () => {
               <div className="flex flex-col space-y-2 pt-2">
                 {isAuthenticated ? (
                   <>
-                    <Link to={user?.role === 'partner' ? '/partner/dashboard' : '/player/dashboard'} onClick={toggleMenu}>
+                    <Link to={user?.role === 'partner' ? '/partner/dashboard' : user?.role === 'instructor' ? '/instructor/dashboard' : '/player/dashboard'} onClick={toggleMenu}>
                       <Button variant="outline" className="w-full justify-start">
                         <User className="h-4 w-4 mr-2" />
                         {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
                       </Button>
                     </Link>
+                    {user?.role === 'instructor' && (
+                      <Link to="/instructor/dashboard" onClick={toggleMenu}>
+                        <Button variant="outline" className="w-full justify-start">
+                          Minhas Reservas
+                        </Button>
+                      </Link>
+                    )}
+                    {(!user?.role || user?.role === 'player') && (
+                      <Link to="/player/bookings" onClick={toggleMenu}>
+                        <Button variant="outline" className="w-full justify-start">
+                          Minhas Reservas
+                        </Button>
+                      </Link>
+                    )}
                     <Button 
                       variant="outline" 
                       className="w-full justify-start text-red-600 hover:text-red-700"
