@@ -56,16 +56,16 @@ const AddMatchModal: React.FC<AddMatchModalProps> = ({ isOpen, onClose, onMatchA
 
     setLoading(true);
     try {
-      const matchData: Omit<MatchHistory, 'id'> = {
+      const matchData: Omit<MatchHistory, 'id' | 'created_at' | 'updated_at'> = {
         player_id: user.id,
         opponent_name: formData.opponent_name.trim(),
         match_date: formData.match_date,
         result: formData.result as 'vitoria' | 'derrota',
-        score: formData.score.trim() || undefined,
+        score: formData.score.trim() || null,
         sport_type: formData.sport_type,
-        court_name: formData.court_name.trim() || undefined,
-        duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : undefined,
-        notes: formData.notes.trim() || undefined,
+        court_name: formData.court_name.trim() || null,
+        duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
+        notes: formData.notes.trim() || null,
       };
 
       await matchHistoryService.addMatch(matchData);
