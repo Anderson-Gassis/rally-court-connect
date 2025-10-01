@@ -135,7 +135,7 @@ const CourtSearch = ({ onSearch }: CourtSearchProps) => {
       </div>
 
       {/* Advanced Filters Button */}
-      <div className="mt-4 flex justify-between items-center">
+      <div className="mt-4">
         <Button
           variant="ghost"
           size="sm"
@@ -146,7 +146,7 @@ const CourtSearch = ({ onSearch }: CourtSearchProps) => {
           Filtros {showFilters ? "▲" : "▼"}
         </Button>
 
-        <div className="text-sm font-medium text-gray-700">
+        <div className="mt-2 text-sm font-medium text-gray-700">
           Distância: {distance} km
         </div>
       </div>
