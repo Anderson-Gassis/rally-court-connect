@@ -425,6 +425,45 @@ export type Database = {
         }
         Relationships: []
       }
+      match_comments: {
+        Row: {
+          comment: string
+          created_at: string | null
+          id: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string | null
+          id?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string | null
+          id?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_comments_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_brackets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       match_history: {
         Row: {
           court_name: string | null
@@ -584,6 +623,104 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_search: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          location: string | null
+          preferred_date: string | null
+          skill_level: string | null
+          sport_type: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          preferred_date?: string | null
+          skill_level?: string | null
+          sport_type: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          preferred_date?: string | null
+          skill_level?: string | null
+          sport_type?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_search_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      player_achievements: {
+        Row: {
+          achievement_name: string
+          achievement_type: string
+          description: string | null
+          earned_at: string | null
+          icon: string | null
+          id: string
+          tournament_id: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_name: string
+          achievement_type: string
+          description?: string | null
+          earned_at?: string | null
+          icon?: string | null
+          id?: string
+          tournament_id?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_name?: string
+          achievement_type?: string
+          description?: string | null
+          earned_at?: string | null
+          icon?: string | null
+          id?: string
+          tournament_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_achievements_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -599,6 +736,8 @@ export type Database = {
           phone: string | null
           playing_time: string | null
           preferred_surface: string | null
+          ranking_points: number | null
+          ranking_position: number | null
           role: Database["public"]["Enums"]["user_role"] | null
           skill_level: string | null
           updated_at: string
@@ -618,6 +757,8 @@ export type Database = {
           phone?: string | null
           playing_time?: string | null
           preferred_surface?: string | null
+          ranking_points?: number | null
+          ranking_position?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           skill_level?: string | null
           updated_at?: string
@@ -637,6 +778,8 @@ export type Database = {
           phone?: string | null
           playing_time?: string | null
           preferred_surface?: string | null
+          ranking_points?: number | null
+          ranking_position?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           skill_level?: string | null
           updated_at?: string
@@ -691,35 +834,137 @@ export type Database = {
           },
         ]
       }
+      tournament_brackets: {
+        Row: {
+          created_at: string | null
+          id: string
+          match_number: number
+          player1_id: string | null
+          player1_score: string | null
+          player2_id: string | null
+          player2_score: string | null
+          round: string
+          scheduled_time: string | null
+          status: string | null
+          tournament_id: string
+          updated_at: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          match_number: number
+          player1_id?: string | null
+          player1_score?: string | null
+          player2_id?: string | null
+          player2_score?: string | null
+          round: string
+          scheduled_time?: string | null
+          status?: string | null
+          tournament_id: string
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          match_number?: number
+          player1_id?: string | null
+          player1_score?: string | null
+          player2_id?: string | null
+          player2_score?: string | null
+          round?: string
+          scheduled_time?: string | null
+          status?: string | null
+          tournament_id?: string
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_brackets_player1_id_fkey"
+            columns: ["player1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tournament_brackets_player2_id_fkey"
+            columns: ["player2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tournament_brackets_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_brackets_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       tournament_registrations: {
         Row: {
+          category: string | null
           id: string
+          modality: string | null
           organizer_amount: number | null
+          partner_user_id: string | null
           payment_status: string | null
           platform_fee: number | null
           registration_date: string
+          seed_position: number | null
           tournament_id: string
           user_id: string
+          validated: boolean | null
+          validation_notes: string | null
         }
         Insert: {
+          category?: string | null
           id?: string
+          modality?: string | null
           organizer_amount?: number | null
+          partner_user_id?: string | null
           payment_status?: string | null
           platform_fee?: number | null
           registration_date?: string
+          seed_position?: number | null
           tournament_id: string
           user_id: string
+          validated?: boolean | null
+          validation_notes?: string | null
         }
         Update: {
+          category?: string | null
           id?: string
+          modality?: string | null
           organizer_amount?: number | null
+          partner_user_id?: string | null
           payment_status?: string | null
           platform_fee?: number | null
           registration_date?: string
+          seed_position?: number | null
           tournament_id?: string
           user_id?: string
+          validated?: boolean | null
+          validation_notes?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tournament_registrations_partner_user_id_fkey"
+            columns: ["partner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "tournament_registrations_tournament_id_fkey"
             columns: ["tournament_id"]
@@ -731,6 +976,8 @@ export type Database = {
       }
       tournaments: {
         Row: {
+          bracket_generated: boolean | null
+          categories: string[] | null
           created_at: string
           description: string | null
           end_date: string
@@ -738,16 +985,22 @@ export type Database = {
           id: string
           location: string
           max_participants: number | null
+          modalities: string[] | null
           name: string
           organizer_id: string | null
+          points_distribution: Json | null
           prize_pool: number | null
           registration_deadline: string
+          registration_start_date: string | null
+          regulation: string | null
           sport_type: string
           start_date: string
           status: string | null
           updated_at: string
         }
         Insert: {
+          bracket_generated?: boolean | null
+          categories?: string[] | null
           created_at?: string
           description?: string | null
           end_date: string
@@ -755,16 +1008,22 @@ export type Database = {
           id?: string
           location: string
           max_participants?: number | null
+          modalities?: string[] | null
           name: string
           organizer_id?: string | null
+          points_distribution?: Json | null
           prize_pool?: number | null
           registration_deadline: string
+          registration_start_date?: string | null
+          regulation?: string | null
           sport_type: string
           start_date: string
           status?: string | null
           updated_at?: string
         }
         Update: {
+          bracket_generated?: boolean | null
+          categories?: string[] | null
           created_at?: string
           description?: string | null
           end_date?: string
@@ -772,10 +1031,14 @@ export type Database = {
           id?: string
           location?: string
           max_participants?: number | null
+          modalities?: string[] | null
           name?: string
           organizer_id?: string | null
+          points_distribution?: Json | null
           prize_pool?: number | null
           registration_deadline?: string
+          registration_start_date?: string | null
+          regulation?: string | null
           sport_type?: string
           start_date?: string
           status?: string | null
