@@ -170,18 +170,38 @@ export const challengesService = {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      // Buscar challenges do usuário
+      const { data: challenges, error: challengesError } = await supabase
         .from('challenges')
-        .select(`
-          *,
-          challenger_profile:profiles!challenges_challenger_id_fkey(id, user_id, full_name, avatar_url),
-          challenged_profile:profiles!challenges_challenged_id_fkey(id, user_id, full_name, avatar_url)
-        `)
+        .select('*')
         .or(`challenger_id.eq.${user.user.id},challenged_id.eq.${user.user.id}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (challengesError) throw challengesError;
+      if (!challenges || challenges.length === 0) return [];
+
+      // Buscar perfis dos challengers e challenged
+      const challengerIds = [...new Set(challenges.map(c => c.challenger_id))];
+      const challengedIds = [...new Set(challenges.map(c => c.challenged_id))];
+      const allUserIds = [...new Set([...challengerIds, ...challengedIds])];
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name, avatar_url')
+        .in('user_id', allUserIds);
+
+      if (profilesError) throw profilesError;
+
+      // Map profiles to challenges
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      const challengesWithProfiles = challenges.map(challenge => ({
+        ...challenge,
+        challenger_profile: profileMap.get(challenge.challenger_id),
+        challenged_profile: profileMap.get(challenge.challenged_id)
+      }));
+
+      return challengesWithProfiles;
     } catch (error) {
       console.error('Error fetching challenges with profiles:', error);
       return [];

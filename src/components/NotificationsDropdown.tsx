@@ -12,9 +12,13 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const NotificationsDropdown = () => {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -26,6 +30,31 @@ const NotificationsDropdown = () => {
         return '🏅';
       default:
         return '📬';
+    }
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    // Marcar como lida
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+
+    // Navegar para a área correspondente
+    if (notification.type === 'challenge') {
+      // Redirecionar para a dashboard do usuário na aba de jogos
+      if (user?.role === 'player') {
+        navigate('/player-dashboard');
+      } else if (user?.role === 'partner') {
+        navigate('/partner-dashboard');
+      } else if (user?.role === 'instructor') {
+        navigate('/instructor-dashboard');
+      }
+    } else if (notification.type === 'tournament') {
+      navigate('/tournaments');
+    } else if (notification.type === 'match_result') {
+      if (user?.role === 'player') {
+        navigate('/player-dashboard');
+      }
     }
   };
 
@@ -77,6 +106,7 @@ const NotificationsDropdown = () => {
                 className={`p-3 border-b hover:bg-accent cursor-pointer ${
                   !notification.read ? 'bg-accent/50' : ''
                 }`}
+                onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex items-start gap-3">
                   <div className="text-2xl flex-shrink-0">
