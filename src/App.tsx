@@ -17,6 +17,9 @@ import InstructorProfile from "./pages/InstructorProfile";
 import ResetPassword from "./pages/ResetPassword";
 import Rankings from "./pages/Rankings";
 import Tournaments from "./pages/Tournaments";
+import CreateTournament from "./pages/CreateTournament";
+import TournamentDetails from "./pages/TournamentDetails";
+import FindPartner from "./pages/FindPartner";
 import Instructors from "./pages/Instructors";
 import BookingSuccess from "./pages/BookingSuccess";
 import TournamentSuccess from "./pages/TournamentSuccess";
@@ -48,6 +51,9 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/rankings" element={<Rankings />} />
             <Route path="/tournaments" element={<Tournaments />} />
+            <Route path="/tournaments/create" element={<CreateTournament />} />
+            <Route path="/tournaments/:id" element={<TournamentDetails />} />
+            <Route path="/find-partner" element={<FindPartner />} />
             <Route path="/instructors" element={<Instructors />} />
             <Route path="/booking-success" element={<BookingSuccess />} />
             <Route path="/tournament-success" element={<TournamentSuccess />} />

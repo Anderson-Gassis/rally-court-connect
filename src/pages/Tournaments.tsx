@@ -84,10 +84,12 @@ const Tournaments = () => {
               <Trophy className="h-8 w-8 text-tennis-blue" />
             </div>
             
-            <Button className="bg-tennis-blue hover:bg-tennis-blue-dark">
-              <Plus className="mr-2 h-4 w-4" />
-              Criar Torneio
-            </Button>
+            <Link to="/tournaments/create">
+              <Button className="bg-tennis-blue hover:bg-tennis-blue-dark">
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Torneio
+              </Button>
+            </Link>
           </div>
           
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -145,12 +147,13 @@ const Tournaments = () => {
                   </div>
                 ) : (
                   upcomingTournaments.map((tournament) => (
-                    <Card key={tournament.id} className="overflow-hidden h-full hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <Badge className="w-fit bg-tennis-blue mb-2">{tournament.sport_type}</Badge>
-                        <CardTitle>{tournament.name}</CardTitle>
-                        <CardDescription>{tournament.location}</CardDescription>
-                      </CardHeader>
+                    <Link to={`/tournaments/${tournament.id}`} key={tournament.id}>
+                      <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow cursor-pointer">
+                        <CardHeader>
+                          <Badge className="w-fit bg-tennis-blue mb-2">{tournament.sport_type}</Badge>
+                          <CardTitle>{tournament.name}</CardTitle>
+                          <CardDescription>{tournament.location}</CardDescription>
+                        </CardHeader>
                       <CardContent>
                         <div className="space-y-2 text-sm">
                           <div className="flex items-center">
@@ -177,7 +180,8 @@ const Tournaments = () => {
                           entryFee={tournament.entry_fee}
                         />
                       </CardFooter>
-                    </Card>
+                      </Card>
+                    </Link>
                   ))
                 )}
               </div>

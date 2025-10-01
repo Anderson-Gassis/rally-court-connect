@@ -55,6 +55,7 @@ const Navbar = () => {
             <Link to="/courts" className={isActive("/courts")}>Quadras</Link>
             <Link to="/rankings" className={isActive("/rankings")}>Rankings</Link>
             <Link to="/tournaments" className={isActive("/tournaments")}>Torneios</Link>
+            <Link to="/find-partner" className={isActive("/find-partner")}>Encontrar Parceiro</Link>
             <Link to="/instructors" className={isActive("/instructors")}>Professores</Link>
             {isAuthenticated && (
               <Link to="/add-court" className={isActive("/add-court")}>Cadastrar Quadra</Link>
