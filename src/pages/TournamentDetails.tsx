@@ -70,7 +70,7 @@ const TournamentDetails = () => {
       const hasEnoughPlayers = (regsData?.length || 0) >= 4;
       const isFull = (regsData?.length || 0) >= (tournamentData.max_participants || 0);
       const deadlinePassed = new Date(tournamentData.registration_deadline) < new Date();
-      const closedManually = tournamentData.registration_closed === true;
+      const closedManually = (tournamentData as any).registration_closed === true;
       
       setRegistrationsClosed(closedManually || deadlinePassed || isFull);
       setCanGenerateBracket(
@@ -196,14 +196,20 @@ const TournamentDetails = () => {
                     <Users className="h-4 w-4 mr-1" />
                     {registrations.length} / {tournament.max_participants} inscritos
                   </div>
+                  {registrationsClosed && (
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                      Inscrições Encerradas
+                    </Badge>
+                  )}
                 </div>
               </div>
               
-              {!isRegistered && tournament.status === 'upcoming' && (
+              {!isRegistered && tournament.status === 'upcoming' && !registrationsClosed && (
                 <TournamentPaymentButton
                   tournamentId={tournament.id}
                   tournamentName={tournament.name}
                   entryFee={tournament.entry_fee}
+                  disabled={registrationsClosed}
                 />
               )}
               
@@ -216,11 +222,14 @@ const TournamentDetails = () => {
           </div>
 
           <Tabs defaultValue="info" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className={`grid w-full ${tournament.organizer_id === user?.id ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="info">Informações</TabsTrigger>
               <TabsTrigger value="registrations">Inscritos</TabsTrigger>
               <TabsTrigger value="bracket">Chaves</TabsTrigger>
               <TabsTrigger value="regulation">Regulamento</TabsTrigger>
+              {tournament.organizer_id === user?.id && (
+                <TabsTrigger value="management">Gestão</TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="info" className="space-y-6">
@@ -416,7 +425,7 @@ const TournamentDetails = () => {
                                 try {
                                   const { error } = await supabase
                                     .from('tournaments')
-                                    .update({ registration_closed: true })
+                                    .update({ registration_closed: true } as any)
                                     .eq('id', id);
                                   
                                   if (error) throw error;

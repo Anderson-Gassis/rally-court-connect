@@ -990,6 +990,7 @@ export type Database = {
           organizer_id: string | null
           points_distribution: Json | null
           prize_pool: number | null
+          registration_closed: boolean | null
           registration_deadline: string
           registration_start_date: string | null
           regulation: string | null
@@ -1013,6 +1014,7 @@ export type Database = {
           organizer_id?: string | null
           points_distribution?: Json | null
           prize_pool?: number | null
+          registration_closed?: boolean | null
           registration_deadline: string
           registration_start_date?: string | null
           regulation?: string | null
@@ -1036,6 +1038,7 @@ export type Database = {
           organizer_id?: string | null
           points_distribution?: Json | null
           prize_pool?: number | null
+          registration_closed?: boolean | null
           registration_deadline?: string
           registration_start_date?: string | null
           regulation?: string | null
