@@ -14,11 +14,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { courtsService } from '@/services/courtsService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import AdPlanSelector from '@/components/AdPlanSelector';
 
 const AddCourt = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('free');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -164,7 +166,7 @@ const AddCourt = () => {
         formData.state
       ].filter(Boolean).join(', ');
 
-      const courtData = {
+      const courtData: any = {
         name: formData.name,
         type: formData.type,
         sport_type: formData.sport_type,
@@ -178,12 +180,35 @@ const AddCourt = () => {
         features: formData.features,
         owner_id: user.id,
         available: true,
+        ad_plan: selectedPlan,
+        payment_status: selectedPlan === 'free' ? 'completed' : 'pending',
       };
 
-      await courtsService.createCourt(courtData);
+      const newCourt = await courtsService.createCourt(courtData);
       
-      toast.success('Quadra cadastrada com sucesso!');
-      navigate('/courts');
+      // Se plano pago, redirecionar para pagamento
+      if (selectedPlan !== 'free' && newCourt) {
+        const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
+          'create-ad-payment',
+          {
+            body: {
+              adType: 'court',
+              adId: newCourt.id,
+              planName: selectedPlan,
+              baseAmount: parseFloat(formData.price_per_hour),
+            },
+          }
+        );
+
+        if (paymentError) throw paymentError;
+
+        toast.success('Quadra cadastrada! Redirecionando para pagamento...');
+        window.open(paymentData.url, '_blank');
+        navigate('/courts');
+      } else {
+        toast.success('Quadra cadastrada com sucesso!');
+        navigate('/courts');
+      }
     } catch (error: any) {
       console.error('Erro ao cadastrar quadra:', error);
       
@@ -257,6 +282,14 @@ const AddCourt = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Seletor de Plano */}
+                  <AdPlanSelector
+                    selectedPlan={selectedPlan}
+                    onSelectPlan={setSelectedPlan}
+                    adType="court"
+                    baseAmount={parseFloat(formData.price_per_hour) || 0}
+                  />
+
                   {/* Basic Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">

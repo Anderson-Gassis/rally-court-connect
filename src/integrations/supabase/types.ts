@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_payments: {
+        Row: {
+          ad_id: string
+          ad_type: string
+          amount: number
+          created_at: string | null
+          id: string
+          payment_id: string | null
+          payment_status: string | null
+          plan_name: string
+          stripe_session_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ad_id: string
+          ad_type: string
+          amount: number
+          created_at?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          plan_name: string
+          stripe_session_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ad_id?: string
+          ad_type?: string
+          amount?: number
+          created_at?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          plan_name?: string
+          stripe_session_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ad_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          id: string
+          name: string
+          visibility_priority: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          id?: string
+          name: string
+          visibility_priority?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          id?: string
+          name?: string
+          visibility_priority?: number
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -242,6 +311,8 @@ export type Database = {
       }
       courts: {
         Row: {
+          ad_payment_id: string | null
+          ad_plan: string | null
           address: string | null
           available: boolean | null
           created_at: string
@@ -257,6 +328,7 @@ export type Database = {
           name: string
           owner_id: string | null
           partner_id: string | null
+          payment_status: string | null
           price_per_hour: number
           rating: number | null
           sport_type: string
@@ -264,6 +336,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ad_payment_id?: string | null
+          ad_plan?: string | null
           address?: string | null
           available?: boolean | null
           created_at?: string
@@ -279,6 +353,7 @@ export type Database = {
           name: string
           owner_id?: string | null
           partner_id?: string | null
+          payment_status?: string | null
           price_per_hour: number
           rating?: number | null
           sport_type: string
@@ -286,6 +361,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ad_payment_id?: string | null
+          ad_plan?: string | null
           address?: string | null
           available?: boolean | null
           created_at?: string
@@ -301,6 +378,7 @@ export type Database = {
           name?: string
           owner_id?: string | null
           partner_id?: string | null
+          payment_status?: string | null
           price_per_hour?: number
           rating?: number | null
           sport_type?: string
@@ -376,6 +454,8 @@ export type Database = {
       }
       instructor_info: {
         Row: {
+          ad_payment_id: string | null
+          ad_plan: string | null
           availability: Json | null
           bio: string | null
           certifications: string[] | null
@@ -384,6 +464,7 @@ export type Database = {
           hourly_rate: number
           id: string
           location: string | null
+          payment_status: string | null
           specialization: string[] | null
           trial_class_available: boolean | null
           trial_class_price: number | null
@@ -392,6 +473,8 @@ export type Database = {
           verified: boolean | null
         }
         Insert: {
+          ad_payment_id?: string | null
+          ad_plan?: string | null
           availability?: Json | null
           bio?: string | null
           certifications?: string[] | null
@@ -400,6 +483,7 @@ export type Database = {
           hourly_rate?: number
           id?: string
           location?: string | null
+          payment_status?: string | null
           specialization?: string[] | null
           trial_class_available?: boolean | null
           trial_class_price?: number | null
@@ -408,6 +492,8 @@ export type Database = {
           verified?: boolean | null
         }
         Update: {
+          ad_payment_id?: string | null
+          ad_plan?: string | null
           availability?: Json | null
           bio?: string | null
           certifications?: string[] | null
@@ -416,6 +502,7 @@ export type Database = {
           hourly_rate?: number
           id?: string
           location?: string | null
+          payment_status?: string | null
           specialization?: string[] | null
           trial_class_available?: boolean | null
           trial_class_price?: number | null
@@ -625,10 +712,14 @@ export type Database = {
       }
       partner_search: {
         Row: {
+          ad_plan: string | null
           created_at: string | null
           description: string | null
           id: string
+          image_url: string | null
           location: string | null
+          payment_id: string | null
+          payment_status: string | null
           preferred_date: string | null
           skill_level: string | null
           sport_type: string
@@ -638,10 +729,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ad_plan?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
           location?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
           preferred_date?: string | null
           skill_level?: string | null
           sport_type: string
@@ -651,10 +746,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ad_plan?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
           location?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
           preferred_date?: string | null
           skill_level?: string | null
           sport_type?: string

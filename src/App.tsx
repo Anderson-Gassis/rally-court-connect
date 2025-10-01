@@ -23,6 +23,7 @@ import FindPartner from "./pages/FindPartner";
 import Instructors from "./pages/Instructors";
 import BookingSuccess from "./pages/BookingSuccess";
 import TournamentSuccess from "./pages/TournamentSuccess";
+import AdPaymentSuccess from "./pages/AdPaymentSuccess";
 import Players from "./pages/Players";
 import NotFound from "./pages/NotFound";
 
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/instructors" element={<Instructors />} />
             <Route path="/booking-success" element={<BookingSuccess />} />
             <Route path="/tournament-success" element={<TournamentSuccess />} />
+            <Route path="/success" element={<AdPaymentSuccess />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
