@@ -146,11 +146,9 @@ const CourtSearch = ({ onSearch }: CourtSearchProps) => {
           Filtros {showFilters ? "▲" : "▼"}
         </Button>
 
-        {showFilters && (
-          <div className="text-sm text-gray-500">
-            Distância: {distance} km
-          </div>
-        )}
+        <div className="text-sm font-medium text-gray-700">
+          Distância: {distance} km
+        </div>
       </div>
 
       {/* Advanced Filters */}
