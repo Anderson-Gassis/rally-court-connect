@@ -11,6 +11,18 @@ export interface Challenge {
   status: 'pending' | 'accepted' | 'declined' | 'completed';
   created_at: string;
   updated_at: string;
+  challenger_profile?: {
+    id: string;
+    user_id: string;
+    full_name: string;
+    avatar_url?: string;
+  };
+  challenged_profile?: {
+    id: string;
+    user_id: string;
+    full_name: string;
+    avatar_url?: string;
+  };
 }
 
 export const challengesService = {
@@ -89,14 +101,161 @@ export const challengesService = {
 
   async updateChallengeStatus(challengeId: string, status: 'accepted' | 'declined'): Promise<void> {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
       const { error } = await supabase
         .from('challenges')
         .update({ status })
         .eq('id', challengeId);
 
       if (error) throw error;
+
+      // Get challenge details for notification
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('*, challenger_id, challenged_id')
+        .eq('id', challengeId)
+        .single();
+
+      if (!challenge) return;
+
+      // Get user profile
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.user.id)
+        .single();
+
+      const userName = userProfile?.full_name || 'Um jogador';
+
+      // Send notification to challenger
+      if (status === 'accepted') {
+        await notificationsService.createNotification({
+          user_id: challenge.challenger_id,
+          type: 'challenge',
+          title: 'Convite Aceito!',
+          message: `${userName} aceitou seu convite para jogar!`,
+          data: {
+            challenge_id: challengeId,
+            action: 'accepted'
+          }
+        });
+      } else if (status === 'declined') {
+        await notificationsService.createNotification({
+          user_id: challenge.challenger_id,
+          type: 'challenge',
+          title: 'Convite Recusado',
+          message: `${userName} recusou seu convite para jogar.`,
+          data: {
+            challenge_id: challengeId,
+            action: 'declined'
+          }
+        });
+      }
     } catch (error) {
       console.error('Error updating challenge status:', error);
+      throw error;
+    }
+  },
+
+  async getChallengesWithProfiles(): Promise<any[]> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('challenges')
+        .select(`
+          *,
+          challenger_profile:profiles!challenges_challenger_id_fkey(id, user_id, full_name, avatar_url),
+          challenged_profile:profiles!challenges_challenged_id_fkey(id, user_id, full_name, avatar_url)
+        `)
+        .or(`challenger_id.eq.${user.user.id},challenged_id.eq.${user.user.id}`)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching challenges with profiles:', error);
+      return [];
+    }
+  },
+
+  async reportResult(challengeId: string, result: 'win' | 'loss', score: string, notes?: string): Promise<void> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      // Get challenge details
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('*, challenger_id, challenged_id')
+        .eq('id', challengeId)
+        .single();
+
+      if (!challenge) throw new Error('Challenge not found');
+
+      // Determine opponent
+      const isChallenger = challenge.challenger_id === user.user.id;
+      const opponentId = isChallenger ? challenge.challenged_id : challenge.challenger_id;
+
+      // Get opponent profile
+      const { data: opponentProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', opponentId)
+        .single();
+
+      const opponentName = opponentProfile?.full_name || 'Oponente';
+
+      // Create match history entry
+      const { error: matchError } = await supabase
+        .from('match_history')
+        .insert({
+          player_id: user.user.id,
+          opponent_id: opponentId,
+          opponent_name: opponentName,
+          match_date: challenge.preferred_date,
+          result,
+          score,
+          sport_type: challenge.challenge_type,
+          notes
+        });
+
+      if (matchError) throw matchError;
+
+      // Update challenge status to completed
+      const { error: updateError } = await supabase
+        .from('challenges')
+        .update({ status: 'completed' })
+        .eq('id', challengeId);
+
+      if (updateError) throw updateError;
+
+      // Get user profile
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.user.id)
+        .single();
+
+      const userName = userProfile?.full_name || 'Um jogador';
+
+      // Send notification to opponent
+      await notificationsService.createNotification({
+        user_id: opponentId,
+        type: 'match_result',
+        title: 'Resultado Reportado',
+        message: `${userName} reportou o resultado da partida: ${score}`,
+        data: {
+          challenge_id: challengeId,
+          result: result === 'win' ? 'loss' : 'win', // Opposite for opponent
+          score
+        }
+      });
+    } catch (error) {
+      console.error('Error reporting result:', error);
       throw error;
     }
   }

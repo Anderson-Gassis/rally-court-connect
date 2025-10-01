@@ -9,7 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AddMatchModal from '@/components/AddMatchModal';
 import { BookingDetailsModal } from '@/components/BookingDetailsModal';
+import { ChallengesCard } from '@/components/ChallengesCard';
+import { ReportResultModal } from '@/components/ReportResultModal';
 import { bookingsService } from '@/services/bookingsService';
+import { challengesService } from '@/services/challengesService';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -93,6 +96,13 @@ const PlayerDashboard = () => {
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [challengesLoading, setChallengesLoading] = useState(true);
+  const [reportResultModal, setReportResultModal] = useState<{ isOpen: boolean; challengeId: string; opponentName: string }>({
+    isOpen: false,
+    challengeId: '',
+    opponentName: ''
+  });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -147,6 +157,12 @@ const PlayerDashboard = () => {
 
       if (bookingError) throw bookingError;
       setBookings(bookingData || []);
+
+      // Buscar desafios
+      setChallengesLoading(true);
+      const challengesData = await challengesService.getChallengesWithProfiles();
+      setChallenges(challengesData || []);
+      setChallengesLoading(false);
 
     } catch (error) {
       console.error('Error fetching player data:', error);
@@ -239,6 +255,56 @@ const PlayerDashboard = () => {
     } finally {
       setIsCancelling(false);
     }
+  };
+
+  const handleAcceptChallenge = async (challengeId: string) => {
+    try {
+      await challengesService.updateChallengeStatus(challengeId, 'accepted');
+      toast.success('Convite aceito!');
+      await fetchPlayerData();
+    } catch (error) {
+      toast.error('Erro ao aceitar convite');
+    }
+  };
+
+  const handleDeclineChallenge = async (challengeId: string) => {
+    try {
+      await challengesService.updateChallengeStatus(challengeId, 'declined');
+      toast.success('Convite recusado');
+      await fetchPlayerData();
+    } catch (error) {
+      toast.error('Erro ao recusar convite');
+    }
+  };
+
+  const handleOpenReportResult = (challengeId: string) => {
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (!challenge) return;
+
+    const isChallenger = challenge.challenger_id === user?.id;
+    const opponentProfile = isChallenger ? challenge.challenged_profile : challenge.challenger_profile;
+    
+    setReportResultModal({
+      isOpen: true,
+      challengeId,
+      opponentName: opponentProfile?.full_name || 'Oponente'
+    });
+  };
+
+  const handleReportResult = async (resultData: {
+    challengeId: string;
+    result: 'win' | 'loss';
+    score: string;
+    notes?: string;
+  }) => {
+    await challengesService.reportResult(
+      resultData.challengeId,
+      resultData.result,
+      resultData.score,
+      resultData.notes
+    );
+    await fetchPlayerData();
+    setReportResultModal({ isOpen: false, challengeId: '', opponentName: '' });
   };
 
   const getStatusBadge = (status: string) => {
@@ -342,15 +408,27 @@ const PlayerDashboard = () => {
             </Card>
           </div>
 
-          <Tabs defaultValue="upcoming" className="space-y-6">
+          <Tabs defaultValue="games" className="space-y-6">
             <TabsList>
-              <TabsTrigger value="upcoming">Próximos Jogos</TabsTrigger>
+              <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
+              <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
               <TabsTrigger value="history">Histórico</TabsTrigger>
               <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
               <TabsTrigger value="favorites">Favoritos</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="upcoming" className="space-y-6">
+            <TabsContent value="games" className="space-y-6">
+              <ChallengesCard
+                challenges={challenges}
+                currentUserId={user?.id || ''}
+                onAccept={handleAcceptChallenge}
+                onDecline={handleDeclineChallenge}
+                onReportResult={handleOpenReportResult}
+                loading={challengesLoading}
+              />
+            </TabsContent>
+
+            <TabsContent value="bookings" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -573,12 +651,24 @@ const PlayerDashboard = () => {
       <AddMatchModal 
         isOpen={isAddMatchModalOpen}
         onClose={() => setIsAddMatchModalOpen(false)}
+        onMatchAdded={() => {
+          setIsAddMatchModalOpen(false);
+          fetchPlayerData();
+        }}
       />
 
       <BookingDetailsModal
         booking={selectedBooking}
         open={isDetailsModalOpen}
         onOpenChange={setIsDetailsModalOpen}
+      />
+
+      <ReportResultModal
+        isOpen={reportResultModal.isOpen}
+        onClose={() => setReportResultModal({ isOpen: false, challengeId: '', opponentName: '' })}
+        challengeId={reportResultModal.challengeId}
+        opponentName={reportResultModal.opponentName}
+        onSubmit={handleReportResult}
       />
 
       <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
