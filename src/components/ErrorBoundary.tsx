@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
@@ -59,10 +60,10 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => window.location.href = '/'}
+                asChild
                 className="w-full"
               >
-                Voltar ao início
+                <Link to="/">Voltar ao início</Link>
               </Button>
             </div>
             {this.state.error && process.env.NODE_ENV === 'development' && (
