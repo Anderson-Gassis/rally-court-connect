@@ -249,7 +249,9 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          location: string | null
           payment_info: Json | null
+          specialization: string | null
           updated_at: string
           user_id: string
           verified: boolean | null
@@ -266,7 +268,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
           payment_info?: Json | null
+          specialization?: string | null
           updated_at?: string
           user_id: string
           verified?: boolean | null
@@ -283,7 +287,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location?: string | null
           payment_info?: Json | null
+          specialization?: string | null
           updated_at?: string
           user_id?: string
           verified?: boolean | null

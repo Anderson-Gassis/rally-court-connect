@@ -192,15 +192,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // Se for partner, criar partner_info record
         if (role === 'partner' && partnerData) {
+          const partnerInfoData: any = {
+            user_id: data.user.id,
+            business_name: partnerData.businessName,
+            contact_phone: partnerData.contactPhone,
+            business_type: partnerData.businessType,
+            description: partnerData.description,
+          };
+
+          // Adicionar campos específicos para professores
+          if (partnerData.specialization) {
+            partnerInfoData.specialization = partnerData.specialization;
+          }
+          if (partnerData.location) {
+            partnerInfoData.location = partnerData.location;
+          }
+
           const { error: partnerError } = await supabase
             .from('partner_info')
-            .insert({
-              user_id: data.user.id,
-              business_name: partnerData.businessName,
-              contact_phone: partnerData.contactPhone,
-              business_type: partnerData.businessType,
-              description: partnerData.description,
-            });
+            .insert(partnerInfoData);
 
           if (partnerError) {
             console.error('Partner info creation error:', partnerError);

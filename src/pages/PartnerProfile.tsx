@@ -45,6 +45,8 @@ interface PartnerInfo {
   business_address?: string;
   verified: boolean;
   cnpj?: string;
+  specialization?: string;
+  location?: string;
 }
 
 const PartnerProfile = () => {
@@ -66,7 +68,9 @@ const PartnerProfile = () => {
     description: '',
     website_url: '',
     business_address: '',
-    cnpj: ''
+    cnpj: '',
+    specialization: '',
+    location: ''
   });
 
   useEffect(() => {
@@ -119,7 +123,9 @@ const PartnerProfile = () => {
         description: partnerData?.description || '',
         website_url: partnerData?.website_url || '',
         business_address: partnerData?.business_address || '',
-        cnpj: partnerData?.cnpj || ''
+        cnpj: partnerData?.cnpj || '',
+        specialization: partnerData?.specialization || '',
+        location: partnerData?.location || ''
       });
 
     } catch (error) {
@@ -158,19 +164,29 @@ const PartnerProfile = () => {
       }
 
       // Atualizar ou inserir informações do parceiro
+      const partnerUpdateData: any = {
+        user_id: user.id,
+        business_name: editData.business_name.trim(),
+        business_type: editData.business_type.trim(),
+        contact_phone: editData.contact_phone.trim(),
+        contact_email: editData.contact_email.trim(),
+        description: editData.description.trim(),
+        website_url: editData.website_url.trim(),
+        business_address: editData.business_address.trim(),
+        cnpj: editData.cnpj.trim(),
+      };
+
+      // Adicionar campos de professor se fornecidos
+      if (editData.specialization) {
+        partnerUpdateData.specialization = editData.specialization.trim();
+      }
+      if (editData.location) {
+        partnerUpdateData.location = editData.location.trim();
+      }
+
       const { error: partnerError } = await supabase
         .from('partner_info')
-        .upsert({
-          user_id: user.id,
-          business_name: editData.business_name.trim(),
-          business_type: editData.business_type.trim(),
-          contact_phone: editData.contact_phone.trim(),
-          contact_email: editData.contact_email.trim(),
-          description: editData.description.trim(),
-          website_url: editData.website_url.trim(),
-          business_address: editData.business_address.trim(),
-          cnpj: editData.cnpj.trim()
-        }, { 
+        .upsert(partnerUpdateData, { 
           onConflict: 'user_id',
           ignoreDuplicates: false 
         });
@@ -201,7 +217,9 @@ const PartnerProfile = () => {
         description: editData.description.trim(),
         website_url: editData.website_url.trim(),
         business_address: editData.business_address.trim(),
-        cnpj: editData.cnpj.trim()
+        cnpj: editData.cnpj.trim(),
+        specialization: editData.specialization.trim(),
+        location: editData.location.trim()
       }));
 
       setIsEditing(false);
@@ -558,6 +576,39 @@ const PartnerProfile = () => {
                         </p>
                       )}
                     </div>
+
+                    {/* Campos específicos para Professores */}
+                    {(partnerInfo?.business_type === 'Professor' || editData.business_type === 'Professor') && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="specialization">Especialização</Label>
+                          {isEditing ? (
+                            <Input
+                              id="specialization"
+                              value={editData.specialization}
+                              onChange={(e) => setEditData(prev => ({ ...prev, specialization: e.target.value }))}
+                              placeholder="Ex: Iniciantes, Avançado, Infantil, Alto Rendimento"
+                            />
+                          ) : (
+                            <p className="text-gray-900 py-2">{partnerInfo?.specialization || 'Não informado'}</p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="location">Local de Atendimento</Label>
+                          {isEditing ? (
+                            <Input
+                              id="location"
+                              value={editData.location}
+                              onChange={(e) => setEditData(prev => ({ ...prev, location: e.target.value }))}
+                              placeholder="Ex: São Paulo - Zona Sul, Rio de Janeiro - Barra"
+                            />
+                          ) : (
+                            <p className="text-gray-900 py-2">{partnerInfo?.location || 'Não informado'}</p>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -570,7 +621,7 @@ const PartnerProfile = () => {
                       ) : (
                         <AlertCircle className="h-5 w-5 text-orange-600" />
                       )}
-                      Status da Verificação
+                      Status da Verificação de Parceiro
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -578,20 +629,42 @@ const PartnerProfile = () => {
                       <div className="flex items-center p-4 bg-green-50 rounded-lg">
                         <CheckCircle className="h-6 w-6 text-green-600 mr-3" />
                         <div>
-                          <p className="font-medium text-green-900">Conta Verificada</p>
+                          <p className="font-medium text-green-900">Parceiro Verificado</p>
                           <p className="text-sm text-green-700">
-                            Sua conta foi verificada com sucesso. Você pode receber reservas normalmente.
+                            Sua conta foi verificada e aprovada pela equipe Kourtify. Você pode adicionar quadras e receber reservas normalmente.
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center p-4 bg-orange-50 rounded-lg">
-                        <AlertCircle className="h-6 w-6 text-orange-600 mr-3" />
-                        <div>
-                          <p className="font-medium text-orange-900">Verificação Pendente</p>
-                          <p className="text-sm text-orange-700">
-                            Nossa equipe está analisando suas informações. Você será notificado quando a verificação for concluída.
+                      <div className="space-y-3">
+                        <div className="flex items-start p-4 bg-blue-50 rounded-lg">
+                          <AlertCircle className="h-6 w-6 text-blue-600 mr-3 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-blue-900">Análise em Andamento</p>
+                            <p className="text-sm text-blue-700 mt-1">
+                              Seu cadastro foi recebido com sucesso e está em análise pela nossa equipe. 
+                              Este processo normalmente leva até 24 horas.
+                            </p>
+                            <p className="text-sm text-blue-700 mt-2">
+                              <strong>Importante:</strong> A verificação de parceiro é diferente da confirmação de email. 
+                              Mesmo com o email confirmado, precisamos aprovar manualmente cada novo parceiro 
+                              para garantir a qualidade da plataforma.
+                            </p>
+                            <p className="text-sm text-blue-700 mt-2">
+                              Você será notificado por email quando a análise for concluída.
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-700">
+                            <strong>O que você pode fazer enquanto aguarda:</strong>
                           </p>
+                          <ul className="text-sm text-gray-600 mt-2 space-y-1 ml-4 list-disc">
+                            <li>Complete todas as informações do seu perfil</li>
+                            <li>Prepare as fotos e descrições das suas quadras</li>
+                            <li>Verifique seus dados de contato</li>
+                          </ul>
                         </div>
                       </div>
                     )}
