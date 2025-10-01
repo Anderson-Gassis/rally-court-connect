@@ -32,6 +32,35 @@ const TournamentDetails = () => {
     }
   }, [id, user]);
 
+  // Auto-refresh when payments are confirmed
+  useEffect(() => {
+    if (!id) return;
+
+    // Subscribe to realtime updates for tournament registrations
+    const channel = supabase
+      .channel('tournament-registrations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tournament_registrations',
+          filter: `tournament_id=eq.${id}`
+        },
+        (payload) => {
+          console.log('Registration updated:', payload);
+          // Refresh tournament details when a registration changes
+          fetchTournamentDetails();
+          toast.success('Nova inscrição confirmada!');
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
   const fetchTournamentDetails = async () => {
     try {
       // Fetch tournament
@@ -44,35 +73,50 @@ const TournamentDetails = () => {
       if (tournamentError) throw tournamentError;
       setTournament(tournamentData);
 
-      // Fetch registrations
+      // Fetch registrations with payment_status = 'paid'
       const { data: regsData, error: regsError } = await supabase
         .from('tournament_registrations')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            ranking_points,
-            skill_level
-          )
-        `)
+        .select('*')
         .eq('tournament_id', id)
         .eq('payment_status', 'paid');
 
       if (regsError) throw regsError;
-      setRegistrations(regsData || []);
+
+      // Fetch profiles for registered users
+      if (regsData && regsData.length > 0) {
+        const userIds = regsData.map((reg: any) => reg.user_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, ranking_points, skill_level')
+          .in('user_id', userIds);
+
+        if (!profilesError && profilesData) {
+          // Merge profiles data with registrations
+          const mergedData = regsData.map((reg: any) => ({
+            ...reg,
+            profiles: profilesData.find((p: any) => p.user_id === reg.user_id)
+          }));
+          setRegistrations(mergedData);
+        } else {
+          setRegistrations(regsData || []);
+        }
+      } else {
+        setRegistrations([]);
+      }
 
       // Check if user is registered
-      if (user) {
-        const userReg = regsData?.find((reg: any) => reg.user_id === user.id);
+      if (user && regsData) {
+        const userReg = regsData.find((reg: any) => reg.user_id === user.id);
         setIsRegistered(!!userReg);
       }
 
       // Check if can generate bracket
       const isOrganizer = tournamentData.organizer_id === user?.id;
-      const hasEnoughPlayers = (regsData?.length || 0) >= 4;
-      const isFull = (regsData?.length || 0) >= (tournamentData.max_participants || 0);
+      const paidRegistrations = regsData?.length || 0;
+      const hasEnoughPlayers = paidRegistrations >= 4;
+      const isFull = paidRegistrations >= (tournamentData.max_participants || 0);
       const deadlinePassed = new Date(tournamentData.registration_deadline) < new Date();
-      const closedManually = (tournamentData as any).registration_closed === true;
+      const closedManually = tournamentData.registration_closed === true;
       
       setRegistrationsClosed(closedManually || deadlinePassed || isFull);
       setCanGenerateBracket(
@@ -86,16 +130,32 @@ const TournamentDetails = () => {
       if (tournamentData.bracket_generated) {
         const { data: matchesData, error: matchesError } = await supabase
           .from('tournament_brackets')
-          .select(`
-            *,
-            player1:profiles!tournament_brackets_player1_id_fkey(full_name),
-            player2:profiles!tournament_brackets_player2_id_fkey(full_name)
-          `)
+          .select('*')
           .eq('tournament_id', id)
           .order('match_number');
 
-        if (!matchesError) {
-          setBracketMatches(matchesData || []);
+        if (!matchesError && matchesData) {
+          // Fetch player profiles for matches
+          const playerIds = [
+            ...matchesData.map((m: any) => m.player1_id),
+            ...matchesData.map((m: any) => m.player2_id)
+          ].filter(Boolean);
+
+          if (playerIds.length > 0) {
+            const { data: playersData } = await supabase
+              .from('profiles')
+              .select('user_id, full_name')
+              .in('user_id', playerIds);
+
+            const matchesWithPlayers = matchesData.map((match: any) => ({
+              ...match,
+              player1: playersData?.find((p: any) => p.user_id === match.player1_id),
+              player2: playersData?.find((p: any) => p.user_id === match.player2_id)
+            }));
+            setBracketMatches(matchesWithPlayers);
+          } else {
+            setBracketMatches(matchesData);
+          }
         }
       }
 
@@ -104,6 +164,23 @@ const TournamentDetails = () => {
       toast.error('Erro ao carregar torneio');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const closeRegistrations = async () => {
+    try {
+      const { error } = await supabase
+        .from('tournaments')
+        .update({ registration_closed: true })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Inscrições encerradas com sucesso!');
+      fetchTournamentDetails();
+    } catch (error: any) {
+      console.error('Error closing registrations:', error);
+      toast.error('Erro ao encerrar inscrições');
     }
   };
 
@@ -419,12 +496,34 @@ const TournamentDetails = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
+                      {/* Ações Rápidas */}
+                      {!tournament.registration_closed && !registrationsClosed && (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-yellow-900 mb-1">Inscrições Abertas</h3>
+                              <p className="text-sm text-yellow-800">
+                                {registrations.length} jogador(es) inscrito(s). 
+                                Encerre as inscrições para gerar as chaves.
+                              </p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              onClick={closeRegistrations}
+                              className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white"
+                            >
+                              Encerrar Inscrições
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Status do Torneio */}
                       <div>
                         <h3 className="font-semibold mb-4">Status do Torneio</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="p-4 bg-blue-50 rounded-lg">
-                            <p className="text-sm text-gray-600">Total de Inscritos</p>
+                            <p className="text-sm text-gray-600">Inscritos Confirmados</p>
                             <p className="text-2xl font-bold text-blue-600">{registrations.length}</p>
                             <p className="text-xs text-gray-500 mt-1">de {tournament.max_participants} vagas</p>
                           </div>
