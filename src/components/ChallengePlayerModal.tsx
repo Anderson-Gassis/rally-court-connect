@@ -35,7 +35,7 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
         challenged_id: playerId,
         challenge_type: challengeType,
         preferred_date: preferredDate,
-        message: message || `Olá ${playerName}! Gostaria de jogar uma partida de ${challengeType} com você.`
+        message: message || `Olá ${playerName}! Gostaria de jogar uma partida com você.`
       });
 
       toast.success(`Convite enviado para ${playerName}!`);
@@ -68,15 +68,16 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="challengeType">Modalidade *</Label>
+            <Label htmlFor="challengeType">Tipo de Partida *</Label>
             <Select value={challengeType} onValueChange={setChallengeType}>
               <SelectTrigger>
-                <SelectValue placeholder="Escolha a modalidade" />
+                <SelectValue placeholder="Escolha o tipo de partida" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="tennis">🎾 Tênis</SelectItem>
-                <SelectItem value="padel">🏸 Padel</SelectItem>
-                <SelectItem value="beach-tennis">🏐 Beach Tennis</SelectItem>
+                <SelectItem value="friendly">🎾 Amistoso</SelectItem>
+                <SelectItem value="singles">👤 Individual (Singles)</SelectItem>
+                <SelectItem value="doubles">👥 Duplas (Doubles)</SelectItem>
+                <SelectItem value="ranking">🏆 Partida Rankeada</SelectItem>
               </SelectContent>
             </Select>
           </div>
