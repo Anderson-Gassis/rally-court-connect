@@ -21,3 +21,6 @@ verify_jwt = false
 
 [functions.send-booking-reminders]
 verify_jwt = false
+
+[functions.send-challenge-reminders]
+verify_jwt = false
