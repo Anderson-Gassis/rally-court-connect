@@ -22,6 +22,7 @@ const TournamentDetails = () => {
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [isRegistered, setIsRegistered] = useState(false);
   const [canGenerateBracket, setCanGenerateBracket] = useState(false);
+  const [registrationsClosed, setRegistrationsClosed] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -67,8 +68,17 @@ const TournamentDetails = () => {
       // Check if can generate bracket
       const isOrganizer = tournamentData.organizer_id === user?.id;
       const hasEnoughPlayers = (regsData?.length || 0) >= 4;
+      const isFull = (regsData?.length || 0) >= (tournamentData.max_participants || 0);
       const deadlinePassed = new Date(tournamentData.registration_deadline) < new Date();
-      setCanGenerateBracket(isOrganizer && hasEnoughPlayers && deadlinePassed && !tournamentData.bracket_generated);
+      const closedManually = tournamentData.registration_closed === true;
+      
+      setRegistrationsClosed(closedManually || deadlinePassed || isFull);
+      setCanGenerateBracket(
+        isOrganizer && 
+        hasEnoughPlayers && 
+        (deadlinePassed || closedManually || isFull) && 
+        !tournamentData.bracket_generated
+      );
 
     } catch (error: any) {
       console.error('Error fetching tournament:', error);
@@ -400,6 +410,29 @@ const TournamentDetails = () => {
                       <div>
                         <h3 className="font-semibold mb-4">Ações</h3>
                         <div className="space-y-3">
+                          {!registrationsClosed && registrations.length >= 4 && !tournament.bracket_generated && (
+                            <Button 
+                              onClick={async () => {
+                                try {
+                                  const { error } = await supabase
+                                    .from('tournaments')
+                                    .update({ registration_closed: true })
+                                    .eq('id', id);
+                                  
+                                  if (error) throw error;
+                                  toast.success('Inscrições encerradas! Você pode gerar as chaves agora.');
+                                  fetchTournamentDetails();
+                                } catch (error) {
+                                  toast.error('Erro ao encerrar inscrições');
+                                }
+                              }}
+                              className="w-full"
+                              variant="outline"
+                            >
+                              Encerrar Inscrições Antecipadamente
+                            </Button>
+                          )}
+
                           {canGenerateBracket && (
                             <Button 
                               onClick={generateBracket}
