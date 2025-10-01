@@ -24,6 +24,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Do NOT sign out user on error - preserve authentication state
   }
 
   resetError = () => {
@@ -38,16 +39,17 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Oops! Algo deu errado
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              Algo deu errado
             </h2>
             <p className="text-gray-600 mb-6">
-              Ocorreu um erro inesperado. Tente recarregar a página ou entre em contato conosco se o problema persistir.
+              Ocorreu um erro inesperado. Não se preocupe, seus dados estão seguros. 
+              Tente uma das opções abaixo para continuar.
             </p>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Button 
                 onClick={this.resetError}
                 className="w-full"
@@ -57,18 +59,18 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => window.location.reload()}
+                onClick={() => window.location.href = '/'}
                 className="w-full"
               >
-                Recarregar página
+                Voltar ao início
               </Button>
             </div>
-            {this.state.error && (
-              <details className="mt-4 text-left">
-                <summary className="text-sm text-gray-500 cursor-pointer">
-                  Detalhes técnicos
+            {this.state.error && process.env.NODE_ENV === 'development' && (
+              <details className="mt-6 text-left">
+                <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700">
+                  Detalhes técnicos (desenvolvimento)
                 </summary>
-                <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto">
+                <pre className="mt-2 text-xs text-red-600 bg-red-50 p-3 rounded overflow-auto max-h-40">
                   {this.state.error.stack}
                 </pre>
               </details>

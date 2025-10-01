@@ -19,6 +19,8 @@ const partnerSchema = z.object({
   contactPhone: z.string().trim().min(10, 'Telefone deve ter pelo menos 10 dígitos').max(20),
   businessType: z.string().trim().min(2, 'Tipo de negócio é obrigatório').max(50),
   description: z.string().trim().max(500, 'Descrição deve ter no máximo 500 caracteres').optional(),
+  specialization: z.string().trim().max(200, 'Especialização deve ter no máximo 200 caracteres').optional(),
+  location: z.string().trim().max(200, 'Local deve ter no máximo 200 caracteres').optional(),
 });
 
 interface PartnerSignupModalProps {
@@ -39,6 +41,8 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
     contactPhone: '',
     businessType: '',
     description: '',
+    specialization: '',
+    location: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -101,6 +105,8 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
         contactPhone: formData.contactPhone.trim(),
         businessType: formData.businessType.trim(),
         description: formData.description.trim() || undefined,
+        specialization: formData.specialization.trim() || undefined,
+        location: formData.location.trim() || undefined,
       });
       
       toast.success('Conta de parceiro criada com sucesso! Verifique seu email para confirmar a conta antes de fazer login.');
@@ -114,6 +120,8 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
         contactPhone: '',
         businessType: '',
         description: '',
+        specialization: '',
+        location: '',
       });
       setCurrentStep(1);
       setErrors({});
@@ -267,13 +275,20 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="business-type">Tipo de Negócio *</Label>
-                <Input
+                <select
                   id="business-type"
                   value={formData.businessType}
                   onChange={(e) => setFormData(prev => ({ ...prev, businessType: e.target.value }))}
-                  placeholder="Ex: Academia, Clube, Condomínio, Arena"
-                  className={errors.businessType ? 'border-red-500' : ''}
-                />
+                  className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors.businessType ? 'border-red-500' : ''}`}
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Academia">Academia</option>
+                  <option value="Clube">Clube</option>
+                  <option value="Condomínio">Condomínio</option>
+                  <option value="Arena">Arena</option>
+                  <option value="Professor">Professor/Instrutor</option>
+                  <option value="Outro">Outro</option>
+                </select>
                 {errors.businessType && <p className="text-red-500 text-sm">{errors.businessType}</p>}
               </div>
 
@@ -289,6 +304,34 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
                 />
                 {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
               </div>
+
+              {formData.businessType === 'Professor' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="specialization">Especialização (opcional)</Label>
+                    <Input
+                      id="specialization"
+                      value={formData.specialization}
+                      onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
+                      placeholder="Ex: Iniciantes, Avançado, Infantil, Alto Rendimento"
+                      className={errors.specialization ? 'border-red-500' : ''}
+                    />
+                    {errors.specialization && <p className="text-red-500 text-sm">{errors.specialization}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Local de Atendimento (opcional)</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="Ex: São Paulo - Zona Sul, Rio de Janeiro - Barra"
+                      className={errors.location ? 'border-red-500' : ''}
+                    />
+                    {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
+                  </div>
+                </>
+              )}
 
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-700">
