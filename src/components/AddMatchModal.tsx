@@ -21,7 +21,7 @@ const AddMatchModal: React.FC<AddMatchModalProps> = ({ isOpen, onClose, onMatchA
   const [formData, setFormData] = useState({
     opponent_name: '',
     match_date: '',
-    result: '' as 'vitoria' | 'derrota' | '',
+    result: '' as 'vitória' | 'derrota' | '',
     score: '',
     sport_type: '',
     court_name: '',
@@ -60,7 +60,7 @@ const AddMatchModal: React.FC<AddMatchModalProps> = ({ isOpen, onClose, onMatchA
         player_id: user.id,
         opponent_name: formData.opponent_name.trim(),
         match_date: formData.match_date,
-        result: formData.result as 'vitoria' | 'derrota',
+        result: formData.result as 'vitória' | 'derrota',
         score: formData.score.trim() || null,
         sport_type: formData.sport_type,
         court_name: formData.court_name.trim() || null,
@@ -76,7 +76,7 @@ const AddMatchModal: React.FC<AddMatchModalProps> = ({ isOpen, onClose, onMatchA
       setFormData({
         opponent_name: '',
         match_date: '',
-        result: '' as 'vitoria' | 'derrota' | '',
+        result: '' as 'vitória' | 'derrota' | '',
         score: '',
         sport_type: '',
         court_name: '',
@@ -129,12 +129,12 @@ const AddMatchModal: React.FC<AddMatchModalProps> = ({ isOpen, onClose, onMatchA
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="result">Resultado *</Label>
-              <Select value={formData.result} onValueChange={(value: 'vitoria' | 'derrota') => setFormData({...formData, result: value})}>
+              <Select value={formData.result} onValueChange={(value: 'vitória' | 'derrota') => setFormData({...formData, result: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o resultado" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="vitoria">Vitória</SelectItem>
+                  <SelectItem value="vitória">Vitória</SelectItem>
                   <SelectItem value="derrota">Derrota</SelectItem>
                 </SelectContent>
               </Select>

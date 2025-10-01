@@ -6,7 +6,7 @@ export interface MatchHistory {
   opponent_id?: string | null;
   opponent_name: string;
   match_date: string;
-  result: 'vitoria' | 'derrota';
+  result: 'vitória' | 'derrota';
   score?: string | null;
   sport_type: string;
   court_name?: string | null;
@@ -40,7 +40,7 @@ export const matchHistoryService = {
 
     return (data || []).map(match => ({
       ...match,
-      result: match.result as 'vitoria' | 'derrota'
+      result: match.result as 'vitória' | 'derrota'
     }));
   },
 
@@ -57,7 +57,7 @@ export const matchHistoryService = {
 
     return {
       ...data,
-      result: data.result as 'vitoria' | 'derrota'
+      result: data.result as 'vitória' | 'derrota'
     };
   },
 
@@ -75,7 +75,7 @@ export const matchHistoryService = {
 
     return {
       ...data,
-      result: data.result as 'vitoria' | 'derrota'
+      result: data.result as 'vitória' | 'derrota'
     };
   },
 
@@ -94,7 +94,7 @@ export const matchHistoryService = {
     const matches = await this.getMatchHistory(playerId);
     
     const totalMatches = matches.length;
-    const wins = matches.filter(match => match.result === 'vitoria').length;
+    const wins = matches.filter(match => match.result === 'vitória').length;
     const losses = totalMatches - wins;
     const winRate = totalMatches > 0 ? (wins / totalMatches) * 100 : 0;
 
@@ -147,10 +147,10 @@ export const matchHistoryService = {
       throw new Error('Failed to fetch head-to-head data');
     }
 
-    const player1Wins = (player1Matches || []).filter(match => match.result === 'vitoria').length +
+    const player1Wins = (player1Matches || []).filter(match => match.result === 'vitória').length +
                        (player2Matches || []).filter(match => match.result === 'derrota').length;
 
-    const player2Wins = (player2Matches || []).filter(match => match.result === 'vitoria').length +
+    const player2Wins = (player2Matches || []).filter(match => match.result === 'vitória').length +
                        (player1Matches || []).filter(match => match.result === 'derrota').length;
 
     const totalMatches = (player1Matches?.length || 0) + (player2Matches?.length || 0);
