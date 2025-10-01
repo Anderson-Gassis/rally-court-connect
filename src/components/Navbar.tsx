@@ -80,11 +80,13 @@ const Navbar = () => {
                         {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/dashboard" className="text-green-600 font-medium">
-                        📊 Painel Admin
-                      </Link>
-                    </DropdownMenuItem>
+                    {user?.email === 'anders.assis1985@gmail.com' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/dashboard" className="text-green-600 font-medium">
+                          📊 Painel Admin
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     {user?.role === 'partner' && (
                       <DropdownMenuItem asChild>
                         <Link to="/add-court">Cadastrar Quadra</Link>
