@@ -355,6 +355,143 @@ const TournamentDetails = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="management">
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5" />
+                      Gestão do Torneio
+                    </CardTitle>
+                    <CardDescription>
+                      Área exclusiva para o organizador gerenciar o evento
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* Status do Torneio */}
+                      <div>
+                        <h3 className="font-semibold mb-4">Status do Torneio</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <p className="text-sm text-gray-600">Total de Inscritos</p>
+                            <p className="text-2xl font-bold text-blue-600">{registrations.length}</p>
+                            <p className="text-xs text-gray-500 mt-1">de {tournament.max_participants} vagas</p>
+                          </div>
+                          <div className="p-4 bg-green-50 rounded-lg">
+                            <p className="text-sm text-gray-600">Pagamentos Confirmados</p>
+                            <p className="text-2xl font-bold text-green-600">
+                              {registrations.filter((r: any) => r.payment_status === 'paid').length}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">inscrições pagas</p>
+                          </div>
+                          <div className="p-4 bg-purple-50 rounded-lg">
+                            <p className="text-sm text-gray-600">Receita Total</p>
+                            <p className="text-2xl font-bold text-purple-600">
+                              R$ {((tournament.entry_fee || 0) * registrations.length * 0.85).toFixed(2)}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">após taxas da plataforma</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ações do Organizador */}
+                      <div>
+                        <h3 className="font-semibold mb-4">Ações</h3>
+                        <div className="space-y-3">
+                          {canGenerateBracket && (
+                            <Button 
+                              onClick={generateBracket}
+                              className="w-full bg-tennis-blue hover:bg-tennis-blue-dark"
+                            >
+                              <Grid3x3 className="mr-2 h-4 w-4" />
+                              Gerar Chaves do Torneio
+                            </Button>
+                          )}
+                          
+                          {tournament.bracket_generated && tournament.status === 'upcoming' && (
+                            <Button 
+                              onClick={async () => {
+                                try {
+                                  const { error } = await supabase
+                                    .from('tournaments')
+                                    .update({ status: 'in_progress' })
+                                    .eq('id', id);
+                                  
+                                  if (error) throw error;
+                                  toast.success('Torneio iniciado!');
+                                  fetchTournamentDetails();
+                                } catch (error) {
+                                  toast.error('Erro ao iniciar torneio');
+                                }
+                              }}
+                              className="w-full"
+                              variant="outline"
+                            >
+                              Iniciar Torneio
+                            </Button>
+                          )}
+                          
+                          {tournament.status === 'in_progress' && (
+                            <Button 
+                              onClick={async () => {
+                                try {
+                                  const { error } = await supabase
+                                    .from('tournaments')
+                                    .update({ status: 'completed' })
+                                    .eq('id', id);
+                                  
+                                  if (error) throw error;
+                                  toast.success('Torneio finalizado!');
+                                  fetchTournamentDetails();
+                                } catch (error) {
+                                  toast.error('Erro ao finalizar torneio');
+                                }
+                              }}
+                              className="w-full"
+                              variant="outline"
+                            >
+                              Finalizar Torneio
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Lista de Inscrições com Status */}
+                      <div>
+                        <h3 className="font-semibold mb-4">Todas as Inscrições</h3>
+                        <div className="space-y-2">
+                          {registrations.map((reg: any, index: number) => (
+                            <div key={reg.id} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm font-semibold text-gray-500">#{index + 1}</span>
+                                <div>
+                                  <p className="font-medium">{reg.profiles?.full_name || 'Jogador'}</p>
+                                  <p className="text-xs text-gray-500">
+                                    Inscrito em {new Date(reg.registration_date).toLocaleDateString('pt-BR')}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={reg.payment_status === 'paid' ? 'default' : 'outline'}>
+                                  {reg.payment_status === 'paid' ? 'Pago' : 'Pendente'}
+                                </Badge>
+                                {reg.validated ? (
+                                  <Badge variant="default" className="bg-green-600">Validado</Badge>
+                                ) : (
+                                  <Badge variant="outline">Não Validado</Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
       </main>

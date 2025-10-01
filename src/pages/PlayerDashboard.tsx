@@ -103,6 +103,8 @@ const PlayerDashboard = () => {
     challengeId: '',
     opponentName: ''
   });
+  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [tournamentsLoading, setTournamentsLoading] = useState(true);
 
   useEffect(() => {
     // Aguardar o loading terminar antes de verificar autenticação
@@ -170,6 +172,30 @@ const PlayerDashboard = () => {
       const challengesData = await challengesService.getChallengesWithProfiles();
       setChallenges(challengesData || []);
       setChallengesLoading(false);
+
+      // Buscar torneios do usuário
+      setTournamentsLoading(true);
+      const { data: registrationData, error: regError } = await supabase
+        .from('tournament_registrations')
+        .select(`
+          *,
+          tournaments (
+            id,
+            name,
+            location,
+            start_date,
+            end_date,
+            sport_type,
+            status,
+            bracket_generated
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('registration_date', { ascending: false });
+
+      if (regError) throw regError;
+      setTournaments(registrationData || []);
+      setTournamentsLoading(false);
 
     } catch (error) {
       console.error('Error fetching player data:', error);
@@ -402,6 +428,7 @@ const PlayerDashboard = () => {
             <TabsList>
               <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
+              <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
               <TabsTrigger value="history">Histórico</TabsTrigger>
               <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
               <TabsTrigger value="favorites">Favoritos</TabsTrigger>
@@ -484,6 +511,116 @@ const PlayerDashboard = () => {
                         <Link to="/courts">
                           <Plus className="h-4 w-4 mr-2" />
                           Fazer Nova Reserva
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="tournaments" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" />
+                    Meus Torneios
+                  </CardTitle>
+                  <CardDescription>
+                    Torneios em que você está inscrito
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {tournamentsLoading ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    </div>
+                  ) : tournaments.length > 0 ? (
+                    <div className="space-y-4">
+                      {tournaments.map((registration: any) => {
+                        const tournament = registration.tournaments;
+                        if (!tournament) return null;
+
+                        return (
+                          <div key={registration.id} className="p-4 border rounded-lg hover:bg-gray-50">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg">{tournament.name}</h3>
+                                <p className="text-sm text-gray-600 flex items-center mt-1">
+                                  <MapPin className="h-3 w-3 mr-1" />
+                                  {tournament.location}
+                                </p>
+                                <p className="text-sm text-gray-500 flex items-center mt-1">
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  {new Date(tournament.start_date).toLocaleDateString('pt-BR')} - {new Date(tournament.end_date).toLocaleDateString('pt-BR')}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-2">
+                                <Badge variant={
+                                  tournament.status === 'upcoming' ? 'default' :
+                                  tournament.status === 'in_progress' ? 'secondary' :
+                                  'outline'
+                                }>
+                                  {tournament.status === 'upcoming' ? 'Próximo' :
+                                   tournament.status === 'in_progress' ? 'Em Andamento' :
+                                   'Finalizado'}
+                                </Badge>
+                                <Badge variant={
+                                  registration.payment_status === 'paid' ? 'default' : 'outline'
+                                }>
+                                  {registration.payment_status === 'paid' ? 'Pago' : 'Pendente'}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            {tournament.bracket_generated && (
+                              <div className="mt-3 pt-3 border-t">
+                                <p className="text-sm text-green-600 font-medium flex items-center">
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Chave do torneio gerada
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="mt-4 flex gap-2">
+                              <Button 
+                                asChild
+                                variant="outline" 
+                                size="sm"
+                              >
+                                <Link to={`/tournaments/${tournament.id}`}>
+                                  Ver Detalhes
+                                </Link>
+                              </Button>
+                              {tournament.bracket_generated && (
+                                <Button 
+                                  asChild
+                                  size="sm"
+                                  className="bg-tennis-blue hover:bg-tennis-blue-dark"
+                                >
+                                  <Link to={`/tournaments/${tournament.id}?tab=bracket`}>
+                                    Ver Chave
+                                  </Link>
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Nenhum torneio inscrito
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Explore torneios disponíveis e participe!
+                      </p>
+                      <Button asChild className="bg-tennis-blue hover:bg-tennis-blue-dark">
+                        <Link to="/tournaments">
+                          <Trophy className="h-4 w-4 mr-2" />
+                          Ver Torneios
                         </Link>
                       </Button>
                     </div>

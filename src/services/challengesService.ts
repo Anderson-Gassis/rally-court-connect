@@ -236,6 +236,9 @@ export const challengesService = {
       const opponentName = opponentProfile?.full_name || 'Oponente';
 
       // Create match history entry
+      // Convert result to Portuguese for database constraint
+      const resultInPortuguese = result === 'win' ? 'vitória' : 'derrota';
+      
       const { error: matchError } = await supabase
         .from('match_history')
         .insert({
@@ -243,7 +246,7 @@ export const challengesService = {
           opponent_id: opponentId,
           opponent_name: opponentName,
           match_date: challenge.preferred_date,
-          result,
+          result: resultInPortuguese,
           score,
           sport_type: challenge.challenge_type,
           notes
