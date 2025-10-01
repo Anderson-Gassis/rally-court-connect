@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { notificationsService } from './notificationsService';
 
 export interface Challenge {
   id: string;
@@ -34,6 +35,32 @@ export const challengesService = {
         .single();
 
       if (error) throw error;
+
+      // Get challenger profile for notification
+      const { data: challengerProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.user.id)
+        .single();
+
+      const challengerName = challengerProfile?.full_name || 'Um jogador';
+
+      // Create notification for the challenged player
+      await notificationsService.createNotification({
+        user_id: challengeData.challenged_id,
+        type: 'challenge',
+        title: 'Novo Convite para Jogo',
+        message: `${challengerName} convidou você para uma partida em ${new Date(challengeData.preferred_date).toLocaleDateString('pt-BR')}`,
+        data: {
+          challenge_id: data.id,
+          challenge_type: challengeData.challenge_type,
+          preferred_date: challengeData.preferred_date,
+          challenger_id: user.user.id,
+          challenger_name: challengerName
+        }
+      });
+
+      console.log('Challenge created and notification sent');
       return data as Challenge;
     } catch (error) {
       console.error('Error creating challenge:', error);

@@ -5,6 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Activity, User, LogOut } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import LoginModal from './LoginModal';
+import NotificationsDropdown from './NotificationsDropdown';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,13 +64,15 @@ const Navbar = () => {
           {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
             {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span>{user?.name}</span>
-                  </Button>
-                </DropdownMenuTrigger>
+              <>
+                <NotificationsDropdown />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>{user?.name}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem asChild>
                     <Link to={user?.role === 'partner' ? '/partner/dashboard' : '/player/dashboard'}>
@@ -90,7 +93,8 @@ const Navbar = () => {
                     Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
+                </DropdownMenu>
+              </>
             ) : (
               <>
                 <Button 
