@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Trophy, Calendar, MapPin, Users, DollarSign, FileText, Grid3x3 } from 'lucide-react';
 import TournamentBracket from '@/components/TournamentBracket';
 import TournamentPaymentButton from '@/components/TournamentPaymentButton';
+import { TournamentMatchManager } from '@/components/TournamentMatchManager';
 
 const TournamentDetails = () => {
   const { id } = useParams();
@@ -23,6 +24,7 @@ const TournamentDetails = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [canGenerateBracket, setCanGenerateBracket] = useState(false);
   const [registrationsClosed, setRegistrationsClosed] = useState(false);
+  const [bracketMatches, setBracketMatches] = useState<any[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -79,6 +81,23 @@ const TournamentDetails = () => {
         (deadlinePassed || closedManually || isFull) && 
         !tournamentData.bracket_generated
       );
+
+      // Fetch bracket matches if bracket is generated
+      if (tournamentData.bracket_generated) {
+        const { data: matchesData, error: matchesError } = await supabase
+          .from('tournament_brackets')
+          .select(`
+            *,
+            player1:profiles!tournament_brackets_player1_id_fkey(full_name),
+            player2:profiles!tournament_brackets_player2_id_fkey(full_name)
+          `)
+          .eq('tournament_id', id)
+          .order('match_number');
+
+        if (!matchesError) {
+          setBracketMatches(matchesData || []);
+        }
+      }
 
     } catch (error: any) {
       console.error('Error fetching tournament:', error);
@@ -339,6 +358,17 @@ const TournamentDetails = () => {
                     </div>
                   </CardContent>
                 </Card>
+              )}
+
+              {tournament.bracket_generated && tournament.organizer_id === user?.id && (
+                <div className="mb-6">
+                  <TournamentMatchManager
+                    tournamentId={tournament.id}
+                    matches={bracketMatches}
+                    onMatchUpdated={fetchTournamentDetails}
+                    isOrganizer={tournament.organizer_id === user?.id}
+                  />
+                </div>
               )}
               
               {tournament.bracket_generated ? (

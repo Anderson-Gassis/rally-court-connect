@@ -38,9 +38,11 @@ const Rankings = () => {
       const playersWithStats = profiles.map((profile: any) => {
         const matches = profile.match_history || [];
         const totalMatches = matches.length;
-        const wins = matches.filter((m: any) => m.result === 'win').length;
+        const wins = matches.filter((m: any) => m.result === 'vitória').length;
         const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
-        const points = wins * 10 + totalMatches * 2;
+        
+        // Use ranking_points from profile (updated by rankingService)
+        const points = profile.ranking_points || 0;
 
         return {
           id: profile.user_id,

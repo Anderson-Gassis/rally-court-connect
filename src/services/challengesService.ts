@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { notificationsService } from './notificationsService';
+import { rankingService } from './rankingService';
 
 export interface Challenge {
   id: string;
@@ -235,24 +236,22 @@ export const challengesService = {
 
       const opponentName = opponentProfile?.full_name || 'Oponente';
 
-      // Create match history entry
-      // Convert result to Portuguese for database constraint
+      // Convert result to Portuguese for database
       const resultInPortuguese = result === 'win' ? 'vitória' : 'derrota';
       
-      const { error: matchError } = await supabase
-        .from('match_history')
-        .insert({
-          player_id: user.user.id,
-          opponent_id: opponentId,
-          opponent_name: opponentName,
-          match_date: challenge.preferred_date,
-          result: resultInPortuguese,
-          score,
-          sport_type: challenge.challenge_type,
-          notes
-        });
-
-      if (matchError) throw matchError;
+      // Record match result and update rankings
+      await rankingService.recordMatchResult(
+        user.user.id,
+        opponentId,
+        opponentName,
+        resultInPortuguese,
+        score,
+        new Date(challenge.preferred_date),
+        challenge.challenge_type,
+        undefined, // courtName
+        notes,
+        'challenge'
+      );
 
       // Update challenge status to completed
       const { error: updateError } = await supabase
@@ -276,7 +275,7 @@ export const challengesService = {
         user_id: opponentId,
         type: 'match_result',
         title: 'Resultado Reportado',
-        message: `${userName} reportou o resultado da partida: ${score}`,
+        message: `${userName} reportou o resultado da partida: ${score}. Seu ranking foi atualizado!`,
         data: {
           challenge_id: challengeId,
           result: result === 'win' ? 'loss' : 'win', // Opposite for opponent
