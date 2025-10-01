@@ -218,6 +218,12 @@ const PlayerDashboard = () => {
     new Date(booking.booking_date) >= new Date() && booking.status === 'confirmed'
   );
   const totalSpent = bookings.reduce((sum, booking) => sum + booking.total_price, 0);
+  
+  // Contar desafios aceitos (próximos jogos)
+  const acceptedChallenges = challenges.filter(c => 
+    c.status === 'accepted' && new Date(c.preferred_date) >= new Date()
+  );
+  const totalUpcomingGames = upcomingBookings.length + acceptedChallenges.length;
 
   const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -374,9 +380,9 @@ const PlayerDashboard = () => {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{upcomingBookings.length}</div>
+                <div className="text-2xl font-bold">{totalUpcomingGames}</div>
                 <p className="text-xs text-muted-foreground">
-                  reservas confirmadas
+                  {upcomingBookings.length} reservas + {acceptedChallenges.length} desafios
                 </p>
               </CardContent>
             </Card>
