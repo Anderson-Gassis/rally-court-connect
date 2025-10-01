@@ -59,7 +59,7 @@ const BookingModal = ({
           <DialogTitle className="text-2xl">Reservar Quadra</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 pb-4">
           {/* Court Info */}
           <div className="p-4 bg-muted rounded-lg">
             <h3 className="font-semibold text-lg">{courtName}</h3>
@@ -115,18 +115,30 @@ const BookingModal = ({
             </div>
           </div>
 
-          {/* Payment Button */}
+          {/* Duration Info */}
+          {totalHours > 0 && (
+            <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+              <p className="text-sm font-medium">
+                Duração selecionada: <span className="text-primary">{totalHours}h</span>
+              </p>
+            </div>
+          )}
+
+          {/* Package Selection and Payment */}
           {canProceed && (
-            <BookingPaymentButton
-              courtId={courtId}
-              courtName={courtName}
-              bookingDate={date.toISOString().split("T")[0]}
-              startTime={startTime}
-              endTime={endTime}
-              totalHours={totalHours}
-              pricePerHour={pricePerHour}
-              onSuccess={() => onOpenChange(false)}
-            />
+            <div className="space-y-4 pt-2 border-t">
+              <h3 className="font-semibold text-lg">Escolha seu Pacote</h3>
+              <BookingPaymentButton
+                courtId={courtId}
+                courtName={courtName}
+                bookingDate={date.toISOString().split("T")[0]}
+                startTime={startTime}
+                endTime={endTime}
+                totalHours={totalHours}
+                pricePerHour={pricePerHour}
+                onSuccess={() => onOpenChange(false)}
+              />
+            </div>
           )}
         </div>
       </DialogContent>
