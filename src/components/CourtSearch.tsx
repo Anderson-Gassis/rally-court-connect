@@ -156,7 +156,6 @@ const CourtSearch = ({ onSearch }: CourtSearchProps) => {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Distance Slider */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">Distância máxima (km)</label>
             <Slider
               defaultValue={distance}
               max={30}
