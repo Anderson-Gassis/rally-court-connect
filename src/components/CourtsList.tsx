@@ -8,6 +8,16 @@ interface CourtsListProps {
 }
 
 const CourtsList = ({ courts }: CourtsListProps) => {
+  // Sort courts: featured first, then by rating
+  const sortedCourts = [...courts].sort((a, b) => {
+    const aFeatured = a.featured_until && new Date(a.featured_until) > new Date();
+    const bFeatured = b.featured_until && new Date(b.featured_until) > new Date();
+    
+    if (aFeatured && !bFeatured) return -1;
+    if (!aFeatured && bFeatured) return 1;
+    return b.rating - a.rating;
+  });
+
   if (courts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -18,7 +28,7 @@ const CourtsList = ({ courts }: CourtsListProps) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {courts.map(court => (
+      {sortedCourts.map(court => (
         <CourtCard 
           key={court.id} 
           id={court.id}
@@ -32,6 +42,7 @@ const CourtsList = ({ courts }: CourtsListProps) => {
           available={court.available}
           sportType={court.sport_type}
           features={court.features}
+          featuredUntil={court.featured_until}
         />
       ))}
     </div>

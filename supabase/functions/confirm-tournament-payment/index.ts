@@ -42,13 +42,20 @@ serve(async (req) => {
 
     console.log("Tournament payment confirmed, creating registration:", session.metadata);
 
-    // Create tournament registration record
+    // Calculate platform fee (15%)
+    const totalAmount = session.amount_total ? session.amount_total / 100 : 0; // Convert from cents
+    const platformFee = totalAmount * 0.15;
+    const organizerAmount = totalAmount - platformFee;
+
+    // Create tournament registration record with monetization data
     const { data: registration, error: registrationError } = await supabaseClient
       .from('tournament_registrations')
       .insert({
         user_id: session.metadata?.userId,
         tournament_id: session.metadata?.tournamentId,
-        payment_status: 'paid'
+        payment_status: 'paid',
+        platform_fee: platformFee,
+        organizer_amount: organizerAmount
       })
       .select()
       .single();

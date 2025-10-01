@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { MapPin, Star, Clock } from "lucide-react";
+import { MapPin, Star, Clock, Sparkles } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BookingModal from "./BookingModal";
@@ -18,6 +18,7 @@ interface CourtCardProps {
   available: boolean;
   sportType: string; // 'tennis', 'beach-tennis', 'padel'
   features?: string[];
+  featuredUntil?: string | null;
 }
 
 const CourtCard = ({
@@ -31,9 +32,12 @@ const CourtCard = ({
   price,
   available,
   sportType,
-  features = []
+  features = [],
+  featuredUntil
 }: CourtCardProps) => {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  
+  const isFeatured = featuredUntil && new Date(featuredUntil) > new Date();
   
   const typeColor = {
     // Tennis
@@ -58,10 +62,20 @@ const CourtCard = ({
   const typeClass = typeColor[type.toLowerCase()] || 'bg-gray-500';
   
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
+    <Card className={`overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col ${
+      isFeatured ? 'ring-2 ring-primary shadow-xl' : ''
+    }`}>
       <div className="relative h-48">
         <img src={image} alt={name} className="w-full h-full object-cover" />
-        {available && (
+        {isFeatured && (
+          <Badge 
+            className="absolute top-3 left-3 bg-gradient-to-r from-primary to-primary/80 text-white animate-pulse"
+          >
+            <Sparkles className="h-3 w-3 mr-1" />
+            Destaque
+          </Badge>
+        )}
+        {available && !isFeatured && (
           <Badge 
             className="absolute top-3 left-3 bg-green-500 text-white hover:bg-green-600"
           >

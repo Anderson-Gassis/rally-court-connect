@@ -17,12 +17,16 @@ export type Database = {
       bookings: {
         Row: {
           booking_date: string
+          booking_quantity: number | null
           court_id: string
           created_at: string
+          discount_percentage: number | null
           end_time: string
           id: string
+          partner_amount: number | null
           payment_id: string | null
           payment_status: string | null
+          platform_fee: number | null
           start_time: string
           status: string | null
           total_price: number
@@ -31,12 +35,16 @@ export type Database = {
         }
         Insert: {
           booking_date: string
+          booking_quantity?: number | null
           court_id: string
           created_at?: string
+          discount_percentage?: number | null
           end_time: string
           id?: string
+          partner_amount?: number | null
           payment_id?: string | null
           payment_status?: string | null
+          platform_fee?: number | null
           start_time: string
           status?: string | null
           total_price: number
@@ -45,12 +53,16 @@ export type Database = {
         }
         Update: {
           booking_date?: string
+          booking_quantity?: number | null
           court_id?: string
           created_at?: string
+          discount_percentage?: number | null
           end_time?: string
           id?: string
+          partner_amount?: number | null
           payment_id?: string | null
           payment_status?: string | null
+          platform_fee?: number | null
           start_time?: string
           status?: string | null
           total_price?: number
@@ -109,6 +121,8 @@ export type Database = {
           available: boolean | null
           created_at: string
           description: string | null
+          featured_plan: string | null
+          featured_until: string | null
           features: string[] | null
           id: string
           image_url: string | null
@@ -129,6 +143,8 @@ export type Database = {
           available?: boolean | null
           created_at?: string
           description?: string | null
+          featured_plan?: string | null
+          featured_until?: string | null
           features?: string[] | null
           id?: string
           image_url?: string | null
@@ -149,6 +165,8 @@ export type Database = {
           available?: boolean | null
           created_at?: string
           description?: string | null
+          featured_plan?: string | null
+          featured_until?: string | null
           features?: string[] | null
           id?: string
           image_url?: string | null
@@ -171,6 +189,63 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partner_info"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      featured_listing_payments: {
+        Row: {
+          court_id: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          partner_id: string | null
+          payment_id: string | null
+          payment_status: string | null
+          plan_type: string
+          price: number
+          start_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          court_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          partner_id?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          plan_type: string
+          price: number
+          start_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          court_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          partner_id?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          plan_type?: string
+          price?: number
+          start_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_listing_payments_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "featured_listing_payments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_info"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -360,21 +435,27 @@ export type Database = {
       tournament_registrations: {
         Row: {
           id: string
+          organizer_amount: number | null
           payment_status: string | null
+          platform_fee: number | null
           registration_date: string
           tournament_id: string
           user_id: string
         }
         Insert: {
           id?: string
+          organizer_amount?: number | null
           payment_status?: string | null
+          platform_fee?: number | null
           registration_date?: string
           tournament_id: string
           user_id: string
         }
         Update: {
           id?: string
+          organizer_amount?: number | null
           payment_status?: string | null
+          platform_fee?: number | null
           registration_date?: string
           tournament_id?: string
           user_id?: string

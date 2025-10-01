@@ -21,11 +21,13 @@ import {
   Mail,
   CheckCircle,
   AlertCircle,
-  Star
+  Star,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import FeaturedListingPlans from '@/components/FeaturedListingPlans';
 
 interface PartnerProfile {
   user_id: string;
@@ -611,6 +613,24 @@ const PartnerProfile = () => {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Featured Listing Plans Section - Only for verified partners */}
+                {partnerInfo?.verified && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5" />
+                        Planos de Destaque
+                      </CardTitle>
+                      <CardDescription>
+                        Aumente a visibilidade das suas quadras nos resultados de busca
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FeaturedListingPlans partnerId={user?.id} />
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Status da Verificação */}
                 <Card>

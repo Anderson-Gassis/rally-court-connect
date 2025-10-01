@@ -29,13 +29,21 @@ serve(async (req) => {
     console.log("Creating booking payment for user:", user.email);
 
     // Get request body
-    const { courtId, bookingDate, startTime, endTime, totalHours } = await req.json();
+    const { courtId, bookingDate, startTime, endTime, totalHours, bookingQuantity = 1, amount } = await req.json();
 
-    if (!courtId || !bookingDate || !startTime || !endTime || !totalHours) {
+    if (!courtId || !bookingDate || !startTime || !endTime || !totalHours || !amount) {
       throw new Error("Missing required booking information");
     }
 
-    console.log("Booking details:", { courtId, bookingDate, startTime, endTime, totalHours });
+    console.log("Booking details:", { 
+      courtId, 
+      bookingDate, 
+      startTime, 
+      endTime, 
+      totalHours,
+      bookingQuantity,
+      amount 
+    });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -49,8 +57,20 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Calculate total price (R$ 50,00 per hour)
-    const totalPrice = totalHours * 5000; // 5000 centavos = R$ 50,00
+    // Calculate discount
+    const getDiscount = (quantity: number) => {
+      if (quantity === 1) return 0;
+      if (quantity === 2) return 7;
+      return 13; // 3+
+    };
+    
+    const discount = getDiscount(bookingQuantity);
+    
+    console.log("Price calculation:", { 
+      amount,
+      bookingQuantity,
+      discount
+    });
 
     // Create payment session
     const session = await stripe.checkout.sessions.create({
@@ -58,8 +78,15 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1SBSchIFe8gGrMxwBPhlVCdG", // Reserva de Quadra price
-          quantity: totalHours,
+          price_data: {
+            currency: 'brl',
+            product_data: {
+              name: 'Reserva de Quadra',
+              description: `${bookingQuantity} sessão(ões) de ${totalHours}h${discount > 0 ? ` (${discount}% desconto)` : ''}`,
+            },
+            unit_amount: amount,
+          },
+          quantity: 1,
         },
       ],
       mode: "payment",
@@ -72,6 +99,8 @@ serve(async (req) => {
         endTime,
         userId: user.id,
         totalHours: totalHours.toString(),
+        bookingQuantity: bookingQuantity.toString(),
+        discountPercentage: discount.toString(),
       },
     });
 

@@ -4,6 +4,7 @@ import { CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import BookingPackageSelector from "./BookingPackageSelector";
 
 interface BookingPaymentButtonProps {
   courtId: string;
@@ -29,8 +30,25 @@ const BookingPaymentButton = ({
   onSuccess
 }: BookingPaymentButtonProps) => {
   const [loading, setLoading] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Calcular desconto baseado na quantidade
+  const getDiscount = (quantity: number) => {
+    if (quantity === 1) return 0;
+    if (quantity === 2) return 7;
+    return 13; // 3 ou mais
+  };
+
+  const discount = getDiscount(selectedQuantity);
+  const basePrice = totalHours * pricePerHour * selectedQuantity;
+  const discountAmount = basePrice * (discount / 100);
+  const totalPrice = basePrice - discountAmount;
+  
+  // Comissão da plataforma: 15%
+  const platformFee = totalPrice * 0.15;
+  const partnerAmount = totalPrice - platformFee;
 
   const handlePayment = async () => {
     if (!user) {
@@ -44,7 +62,7 @@ const BookingPaymentButton = ({
 
     setLoading(true);
     try {
-      // First create the booking record
+      // First create the booking record with monetization data
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
@@ -53,7 +71,11 @@ const BookingPaymentButton = ({
           booking_date: bookingDate,
           start_time: startTime,
           end_time: endTime,
-          total_price: totalHours * pricePerHour,
+          total_price: totalPrice,
+          booking_quantity: selectedQuantity,
+          discount_percentage: discount,
+          platform_fee: platformFee,
+          partner_amount: partnerAmount,
           status: 'pending',
           payment_status: 'pending'
         })
@@ -71,7 +93,8 @@ const BookingPaymentButton = ({
           startTime,
           endTime,
           totalHours,
-          amount: Math.round(totalHours * pricePerHour * 100)
+          bookingQuantity: selectedQuantity,
+          amount: Math.round(totalPrice * 100)
         }
       });
 
@@ -115,10 +138,15 @@ const BookingPaymentButton = ({
     }
   };
 
-  const totalPrice = totalHours * pricePerHour;
-
   return (
     <div className="space-y-4">
+      <BookingPackageSelector
+        selectedQuantity={selectedQuantity}
+        onSelectQuantity={setSelectedQuantity}
+        pricePerHour={pricePerHour}
+        totalHours={totalHours}
+      />
+
       <div className="p-4 border rounded-lg bg-muted/50">
         <h3 className="font-semibold mb-2">Resumo da Reserva</h3>
         <div className="space-y-1 text-sm">
@@ -135,9 +163,25 @@ const BookingPaymentButton = ({
             <span>{startTime} - {endTime}</span>
           </div>
           <div className="flex justify-between">
-            <span>Duração:</span>
+            <span>Duração por sessão:</span>
             <span>{totalHours}h</span>
           </div>
+          <div className="flex justify-between">
+            <span>Quantidade de sessões:</span>
+            <span>{selectedQuantity}x</span>
+          </div>
+          {discount > 0 && (
+            <>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal:</span>
+                <span className="line-through">R$ {basePrice.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-green-600">
+                <span>Desconto ({discount}%):</span>
+                <span>-R$ {discountAmount.toFixed(2)}</span>
+              </div>
+            </>
+          )}
           <div className="flex justify-between font-semibold border-t pt-1 mt-2">
             <span>Total:</span>
             <span>R$ {totalPrice.toFixed(2)}</span>
