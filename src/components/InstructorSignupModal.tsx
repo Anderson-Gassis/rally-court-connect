@@ -49,6 +49,7 @@ const InstructorSignupModal: React.FC<InstructorSignupModalProps> = ({ isOpen, o
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -143,7 +144,8 @@ const InstructorSignupModal: React.FC<InstructorSignupModalProps> = ({ isOpen, o
         }
       );
       
-      toast.success('Cadastro realizado! Verifique seu email para confirmar.');
+      // Se chegou aqui sem erro, o email já estava confirmado (raro)
+      toast.success('Cadastro realizado com sucesso!');
       onClose();
       setFormData({
         email: '',
@@ -157,25 +159,92 @@ const InstructorSignupModal: React.FC<InstructorSignupModalProps> = ({ isOpen, o
         location: '',
       });
       setCurrentStep(1);
+      setShowSuccessScreen(false);
     } catch (error: any) {
       console.error('Registration error:', error);
-      toast.error(error.message || 'Erro ao realizar cadastro');
+      
+      // Se for erro de confirmação necessária, mostrar tela de sucesso
+      if (error.message === 'CONFIRMATION_REQUIRED') {
+        setShowSuccessScreen(true);
+      } else {
+        toast.error(error.message || 'Erro ao realizar cadastro');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCloseSuccess = () => {
+    setShowSuccessScreen(false);
+    onClose();
+    setFormData({
+      email: '',
+      password: '',
+      full_name: '',
+      phone: '',
+      specialization: [],
+      experience_years: 0,
+      hourly_rate: 0,
+      bio: '',
+      location: '',
+    });
+    setCurrentStep(1);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Cadastro de Professor</DialogTitle>
-          <DialogDescription>
-            Preencha suas informações para começar a dar aulas na plataforma
-          </DialogDescription>
-        </DialogHeader>
+        {showSuccessScreen ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-2xl text-center">✅ Cadastro Realizado!</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6 py-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <Award className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <h3 className="font-semibold text-lg text-green-900">
+                      Bem-vindo à equipe de professores!
+                    </h3>
+                    <p className="text-sm text-green-800">
+                      Seu cadastro foi realizado com sucesso. Para continuar, você precisa confirmar seu email.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-3">
+                <h4 className="font-semibold text-blue-900">📧 Próximos Passos:</h4>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
+                  <li>Verifique sua caixa de entrada no email <strong>{formData.email}</strong></li>
+                  <li>Abra o email de confirmação que enviamos</li>
+                  <li>Clique no link de confirmação</li>
+                  <li>Faça login na plataforma e comece a receber alunos!</li>
+                </ol>
+                <p className="text-xs text-blue-600 mt-3">
+                  💡 Dica: Se não encontrar o email, verifique sua pasta de spam ou lixo eletrônico.
+                </p>
+              </div>
+
+              <Button onClick={handleCloseSuccess} className="w-full">
+                Entendi, vou verificar meu email
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-2xl">Cadastro de Professor</DialogTitle>
+              <DialogDescription>
+                Preencha suas informações para começar a dar aulas na plataforma
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
           {currentStep === 1 ? (
             <div className="space-y-6">
               <div className="bg-blue-50 p-4 rounded-lg space-y-3">
@@ -352,6 +421,8 @@ const InstructorSignupModal: React.FC<InstructorSignupModalProps> = ({ isOpen, o
             </div>
           )}
         </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -181,12 +181,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw error;
       }
 
-      // Verificar se o usuário foi criado com sucesso
-      if (data.user && !data.user.email_confirmed_at) {
-        // Usuário criado mas precisa confirmar email
-        throw new Error('CONFIRMATION_REQUIRED');
-      }
-
       // O trigger handle_new_user() criará automaticamente o profile
       if (data.user) {
         // Aguardar um pouco para o trigger processar
@@ -241,6 +235,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.error('Instructor info creation error:', instructorError);
             throw new Error('Erro ao criar informações do professor');
           }
+        }
+
+        // Verificar se o usuário precisa confirmar email (após criar os dados)
+        if (!data.user.email_confirmed_at) {
+          // Usuário criado mas precisa confirmar email
+          throw new Error('CONFIRMATION_REQUIRED');
         }
 
         // Registrar atividade de registro
