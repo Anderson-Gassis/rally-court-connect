@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Star } from 'lucide-react';
+import heroTennisCourt from '@/assets/hero-tennis-court.jpg';
 const HeroSection = () => {
   return <section className="relative bg-gradient-to-r from-tennis-blue-light to-white py-16 overflow-hidden">
       <div className="container mx-auto px-4">
@@ -44,7 +45,7 @@ const HeroSection = () => {
           {/* Hero Image */}
           <div className="hidden lg:flex justify-center relative">
             <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-xl">
-              <img src="https://images.unsplash.com/photo-1569955914862-7d551e5516a1?q=80&w=1000" alt="Tennis Court" className="absolute inset-0 w-full h-full object-cover" />
+              <img src={heroTennisCourt} alt="Tennis Court" className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black bg-opacity-20"></div>
               
               {/* Floating Cards */}
