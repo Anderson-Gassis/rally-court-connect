@@ -76,12 +76,23 @@ const PlayersSearchContainer = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   };
 
-  // Auto search on mount if authenticated
+  // Auto search on mount if authenticated - run only once
   useEffect(() => {
-    if (isAuthenticated && players.length === 0 && !loading) {
-      searchPlayers();
-    }
-  }, [isAuthenticated, searchPlayers, players.length, loading]);
+    let isMounted = true;
+    
+    const initialSearch = async () => {
+      if (isAuthenticated && isMounted) {
+        await searchPlayers();
+      }
+    };
+    
+    initialSearch();
+    
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // Only run when auth status changes
 
   if (!isAuthenticated) {
     return (
