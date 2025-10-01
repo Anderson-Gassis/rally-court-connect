@@ -14,6 +14,7 @@ interface BookingPaymentButtonProps {
   totalHours: number;
   pricePerHour: number;
   disabled?: boolean;
+  onSuccess?: () => void;
 }
 
 const BookingPaymentButton = ({
@@ -24,7 +25,8 @@ const BookingPaymentButton = ({
   endTime,
   totalHours,
   pricePerHour,
-  disabled = false
+  disabled = false,
+  onSuccess
 }: BookingPaymentButtonProps) => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -89,9 +91,17 @@ const BookingPaymentButton = ({
       if (data?.url) {
         window.open(data.url, '_blank');
         toast({
-          title: "Redirecionando",
-          description: "Você será redirecionado para o pagamento.",
+          title: "Pagamento Iniciado",
+          description: "Complete o pagamento na nova aba aberta.",
         });
+        // Close modal after opening payment
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess();
+          }, 1000);
+        }
+      } else {
+        throw new Error("URL de pagamento não recebida");
       }
     } catch (error) {
       console.error("Payment error:", error);

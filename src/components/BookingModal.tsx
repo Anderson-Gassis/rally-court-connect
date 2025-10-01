@@ -125,6 +125,7 @@ const BookingModal = ({
               endTime={endTime}
               totalHours={totalHours}
               pricePerHour={pricePerHour}
+              onSuccess={() => onOpenChange(false)}
             />
           )}
         </div>
