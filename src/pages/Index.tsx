@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import CourtSearch from '@/components/CourtSearch';
@@ -13,8 +13,10 @@ import { useCourts } from '@/hooks/useCourts';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAuth } from '@/hooks/useAuth';
 import LoginModal from '@/components/LoginModal';
+import { CourtFilters } from '@/services/courtsService';
 
 const Index = () => {
+  const navigate = useNavigate();
   const { latitude, longitude } = useGeolocation();
   const { data: courts = [], isLoading } = useCourts({
     lat: latitude,
@@ -25,6 +27,16 @@ const Index = () => {
 
   const handleLoginClick = () => {
     setIsLoginModalOpen(true);
+  };
+
+  const handleSearch = (location: string, filters: CourtFilters) => {
+    // Navigate to courts page with search parameters
+    const params = new URLSearchParams();
+    if (location) params.set('location', location);
+    if (filters.sport_type) params.set('sport_type', filters.sport_type);
+    if (filters.max_distance) params.set('max_distance', filters.max_distance.toString());
+    
+    navigate(`/courts?${params.toString()}`);
   };
 
   return (
@@ -38,7 +50,7 @@ const Index = () => {
         
         {/* Search Widget */}
         <div className="container mx-auto px-4">
-          <CourtSearch />
+          <CourtSearch onSearch={handleSearch} />
           
           {/* Featured Courts */}
           <section className="mt-16">

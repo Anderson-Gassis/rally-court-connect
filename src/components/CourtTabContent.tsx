@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GridIcon, MapIcon } from 'lucide-react';
 import CourtSearch from '@/components/CourtSearch';
@@ -8,8 +9,28 @@ import MapView from '@/components/MapView';
 import { useCourtSearch } from '@/hooks/useCourts';
 
 const CourtTabContent = () => {
+  const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const { courts, isLoading, error, setSearchTerm, setFilters } = useCourtSearch();
+
+  // Apply URL parameters on mount
+  useEffect(() => {
+    const location = searchParams.get('location');
+    const sportType = searchParams.get('sport_type');
+    const maxDistance = searchParams.get('max_distance');
+
+    if (location || sportType || maxDistance) {
+      if (location) setSearchTerm(location);
+      
+      const urlFilters: any = {};
+      if (sportType) urlFilters.sport_type = sportType;
+      if (maxDistance) urlFilters.max_distance = parseFloat(maxDistance);
+      
+      if (Object.keys(urlFilters).length > 0) {
+        setFilters(urlFilters);
+      }
+    }
+  }, [searchParams, setSearchTerm, setFilters]);
 
   const handleSearch = (location: string, filters: any) => {
     setSearchTerm(location);

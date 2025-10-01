@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Star } from 'lucide-react';
 const HeroSection = () => {
@@ -16,10 +17,12 @@ const HeroSection = () => {
             </p>
             
             <div className="flex flex-wrap gap-3 mt-4">
-              <Button className="bg-tennis-blue hover:bg-tennis-blue-dark text-white py-6 px-8 text-lg">
-                Encontrar Quadras
+              <Button className="bg-tennis-blue hover:bg-tennis-blue-dark text-white py-6 px-8 text-lg" asChild>
+                <Link to="/courts">Encontrar Quadras</Link>
               </Button>
-              <Button variant="outline" className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 py-6 px-8 text-lg">Encontrar jogadores</Button>
+              <Button variant="outline" className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10 py-6 px-8 text-lg" asChild>
+                <Link to="/players">Encontrar jogadores</Link>
+              </Button>
             </div>
             
             <div className="flex flex-wrap gap-4 md:gap-6 pt-4">
