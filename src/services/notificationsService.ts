@@ -91,14 +91,18 @@ export const notificationsService = {
     data?: any;
   }): Promise<Notification | null> {
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert(notification)
-        .select()
-        .single();
+      // Use edge function to bypass RLS and create notification for other users
+      const { data, error } = await supabase.functions.invoke('create-notification', {
+        body: notification
+      });
 
-      if (error) throw error;
-      return data as Notification;
+      if (error) {
+        console.error('Error creating notification:', error);
+        throw error;
+      }
+
+      console.log('Notification created successfully via edge function');
+      return data.notification as Notification;
     } catch (error) {
       console.error('Error creating notification:', error);
       return null;

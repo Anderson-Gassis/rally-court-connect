@@ -24,3 +24,6 @@ verify_jwt = false
 
 [functions.send-challenge-reminders]
 verify_jwt = false
+
+[functions.create-notification]
+# Requires authentication - don't set verify_jwt = false
