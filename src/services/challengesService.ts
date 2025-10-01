@@ -7,6 +7,7 @@ export interface Challenge {
   challenged_id: string;
   challenge_type: string;
   preferred_date: string;
+  preferred_time?: string;
   message?: string;
   status: 'pending' | 'accepted' | 'declined' | 'completed';
   created_at: string;
@@ -30,6 +31,7 @@ export const challengesService = {
     challenged_id: string;
     challenge_type: string;
     preferred_date: string;
+    preferred_time?: string;
     message?: string;
   }): Promise<Challenge> {
     try {
@@ -58,15 +60,19 @@ export const challengesService = {
       const challengerName = challengerProfile?.full_name || 'Um jogador';
 
       // Create notification for the challenged player
+      const dateStr = new Date(challengeData.preferred_date).toLocaleDateString('pt-BR');
+      const timeStr = challengeData.preferred_time ? ` às ${challengeData.preferred_time}` : '';
+      
       await notificationsService.createNotification({
         user_id: challengeData.challenged_id,
         type: 'challenge',
         title: 'Novo Convite para Jogo',
-        message: `${challengerName} convidou você para uma partida em ${new Date(challengeData.preferred_date).toLocaleDateString('pt-BR')}`,
+        message: `${challengerName} convidou você para uma partida em ${dateStr}${timeStr}`,
         data: {
           challenge_id: data.id,
           challenge_type: challengeData.challenge_type,
           preferred_date: challengeData.preferred_date,
+          preferred_time: challengeData.preferred_time,
           challenger_id: user.user.id,
           challenger_name: challengerName
         }

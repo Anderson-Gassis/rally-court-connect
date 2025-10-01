@@ -88,6 +88,7 @@ export type Database = {
           id: string
           message: string | null
           preferred_date: string
+          preferred_time: string | null
           status: string
           updated_at: string
         }
@@ -99,6 +100,7 @@ export type Database = {
           id?: string
           message?: string | null
           preferred_date: string
+          preferred_time?: string | null
           status?: string
           updated_at?: string
         }
@@ -110,6 +112,7 @@ export type Database = {
           id?: string
           message?: string | null
           preferred_date?: string
+          preferred_time?: string | null
           status?: string
           updated_at?: string
         }

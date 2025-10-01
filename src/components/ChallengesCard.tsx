@@ -111,6 +111,12 @@ export const ChallengesCard = ({
                         month: 'long', 
                         day: 'numeric' 
                       })}
+                      {challenge.preferred_time && (
+                        <>
+                          {' '}<Clock className="h-3 w-3 ml-2 mr-1" />
+                          {challenge.preferred_time}
+                        </>
+                      )}
                     </p>
                     {challenge.message && (
                       <p className="text-sm text-gray-500 italic">"{challenge.message}"</p>
@@ -184,6 +190,12 @@ export const ChallengesCard = ({
                           day: '2-digit', 
                           month: 'short' 
                         })}
+                        {challenge.preferred_time && (
+                          <>
+                            {' '}<Clock className="h-3 w-3 ml-2 mr-1" />
+                            {challenge.preferred_time}
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -228,6 +240,12 @@ export const ChallengesCard = ({
                     <p className="text-sm text-gray-600 flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />
                       {new Date(challenge.preferred_date).toLocaleDateString('pt-BR')}
+                      {challenge.preferred_time && (
+                        <>
+                          {' '}<Clock className="h-3 w-3 ml-2 mr-1" />
+                          {challenge.preferred_time}
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -274,6 +292,12 @@ export const ChallengesCard = ({
                       <p className="text-sm text-gray-600 flex items-center">
                         <Calendar className="h-3 w-3 mr-1" />
                         {new Date(challenge.preferred_date).toLocaleDateString('pt-BR')}
+                        {challenge.preferred_time && (
+                          <>
+                            {' '}<Clock className="h-3 w-3 ml-2 mr-1" />
+                            {challenge.preferred_time}
+                          </>
+                        )}
                       </p>
                     </div>
                     <Button

@@ -19,12 +19,13 @@ interface ChallengePlayerModalProps {
 const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: ChallengePlayerModalProps) => {
   const [challengeType, setChallengeType] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
+  const [preferredTime, setPreferredTime] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!challengeType || !preferredDate) {
+    if (!challengeType || !preferredDate || !preferredTime) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -35,6 +36,7 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
         challenged_id: playerId,
         challenge_type: challengeType,
         preferred_date: preferredDate,
+        preferred_time: preferredTime,
         message: message || `Olá ${playerName}! Gostaria de jogar uma partida com você.`
       });
 
@@ -44,6 +46,7 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
       // Reset form
       setChallengeType('');
       setPreferredDate('');
+      setPreferredTime('');
       setMessage('');
     } catch (error) {
       console.error('Error creating challenge:', error);
@@ -95,6 +98,16 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
                 min={new Date().toISOString().split('T')[0]}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="preferredTime">Horário *</Label>
+            <Input
+              id="preferredTime"
+              type="time"
+              value={preferredTime}
+              onChange={(e) => setPreferredTime(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
