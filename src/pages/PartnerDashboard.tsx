@@ -94,13 +94,17 @@ const PartnerDashboard = () => {
       return;
     }
 
-    if (user?.role !== 'partner') {
+    // Só redirecionar se o user estiver carregado E não for partner
+    if (user && user.role && user.role !== 'partner') {
       navigate('/');
       toast.error('Acesso restrito a parceiros');
       return;
     }
 
-    fetchPartnerData();
+    // Só buscar dados se o user estiver completamente carregado
+    if (user && user.role) {
+      fetchPartnerData();
+    }
   }, [isAuthenticated, user, navigate, authLoading]);
 
   const fetchPartnerData = async () => {

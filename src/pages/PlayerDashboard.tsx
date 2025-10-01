@@ -113,13 +113,17 @@ const PlayerDashboard = () => {
       return;
     }
 
-    if (user?.role !== 'player') {
+    // Só redirecionar se o user estiver carregado E não for player
+    if (user && user.role && user.role !== 'player') {
       navigate('/');
       toast.error('Acesso restrito a jogadores');
       return;
     }
 
-    fetchPlayerData();
+    // Só buscar dados se o user estiver completamente carregado
+    if (user && user.role) {
+      fetchPlayerData();
+    }
   }, [isAuthenticated, user, navigate, authLoading]);
 
   const fetchPlayerData = async () => {

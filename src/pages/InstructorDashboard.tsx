@@ -91,13 +91,17 @@ const InstructorDashboard = () => {
       return;
     }
 
-    if (user?.role !== 'instructor') {
+    // Só redirecionar se o user estiver carregado E não for instructor
+    if (user && user.role && user.role !== 'instructor') {
       navigate('/');
       toast.error('Acesso restrito a professores');
       return;
     }
 
-    fetchInstructorData();
+    // Só buscar dados se o user estiver completamente carregado
+    if (user && user.role) {
+      fetchInstructorData();
+    }
   }, [isAuthenticated, user, navigate, authLoading]);
 
   const fetchInstructorData = async () => {
