@@ -45,7 +45,7 @@ const CreateTournament = () => {
     resolver: zodResolver(tournamentSchema),
     defaultValues: {
       name: '',
-      sport_type: 'Tênis',
+      sport_type: 'tennis',
       location: '',
       description: '',
       entry_fee: '0',
@@ -169,9 +169,9 @@ const CreateTournament = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Tênis">Tênis</SelectItem>
-                            <SelectItem value="Padel">Padel</SelectItem>
-                            <SelectItem value="Beach Tennis">Beach Tennis</SelectItem>
+                            <SelectItem value="tennis">Tênis</SelectItem>
+                            <SelectItem value="padel">Padel</SelectItem>
+                            <SelectItem value="beach-tennis">Beach Tennis</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
