@@ -75,7 +75,7 @@ interface Student {
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<InstructorProfile | null>(null);
   const [instructorInfo, setInstructorInfo] = useState<InstructorInfo | null>(null);
   const [bookings, setBookings] = useState<ClassBooking[]>([]);
@@ -83,6 +83,9 @@ const InstructorDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Aguardar o loading terminar antes de verificar autenticação
+    if (authLoading) return;
+
     if (!isAuthenticated) {
       navigate('/');
       return;
@@ -95,7 +98,7 @@ const InstructorDashboard = () => {
     }
 
     fetchInstructorData();
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, authLoading]);
 
   const fetchInstructorData = async () => {
     if (!user) return;

@@ -78,7 +78,7 @@ interface Booking {
 
 const PartnerDashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
   const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -86,6 +86,9 @@ const PartnerDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Aguardar o loading terminar antes de verificar autenticação
+    if (authLoading) return;
+
     if (!isAuthenticated) {
       navigate('/');
       return;
@@ -98,7 +101,7 @@ const PartnerDashboard = () => {
     }
 
     fetchPartnerData();
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, authLoading]);
 
   const fetchPartnerData = async () => {
     if (!user) return;

@@ -85,7 +85,7 @@ interface Booking {
 
 const PlayerDashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [matchHistory, setMatchHistory] = useState<MatchHistory[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -105,6 +105,9 @@ const PlayerDashboard = () => {
   });
 
   useEffect(() => {
+    // Aguardar o loading terminar antes de verificar autenticação
+    if (authLoading) return;
+
     if (!isAuthenticated) {
       navigate('/');
       return;
@@ -117,7 +120,7 @@ const PlayerDashboard = () => {
     }
 
     fetchPlayerData();
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, authLoading]);
 
   const fetchPlayerData = async () => {
     if (!user) return;
@@ -172,31 +175,8 @@ const PlayerDashboard = () => {
     }
   };
 
-  if (!isAuthenticated || user?.role !== 'player') {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <CardTitle>Acesso Restrito</CardTitle>
-              <CardDescription>
-                Você precisa estar logado como jogador para acessar esta área.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate('/')} className="w-full">
-                Fazer Login
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (loading) {
+  // Mostrar loading enquanto autentica ou carrega dados
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
