@@ -14,8 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 const PlayersSearchContainer = () => {
   const [distance, setDistance] = useState([10]);
-  const [sportType, setSportType] = useState('');
-  const [skillLevel, setSkillLevel] = useState('');
+  const [sportType, setSportType] = useState('all');
+  const [skillLevel, setSkillLevel] = useState('all');
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +37,8 @@ const PlayersSearchContainer = () => {
     try {
       const filters = {
         distance: distance[0],
-        ...(sportType && { sport_type: sportType }),
-        ...(skillLevel && { skill_level: skillLevel })
+        ...(sportType && sportType !== 'all' && { sport_type: sportType }),
+        ...(skillLevel && skillLevel !== 'all' && { skill_level: skillLevel })
       };
 
       console.log('Calling playersService with filters:', filters);
@@ -124,7 +124,7 @@ const PlayersSearchContainer = () => {
                 <SelectValue placeholder="Todas as modalidades" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as modalidades</SelectItem>
+                <SelectItem value="all">Todas as modalidades</SelectItem>
                 <SelectItem value="tennis">🎾 Tênis</SelectItem>
                 <SelectItem value="padel">🏸 Padel</SelectItem>
                 <SelectItem value="beach-tennis">🏐 Beach Tennis</SelectItem>
@@ -138,7 +138,7 @@ const PlayersSearchContainer = () => {
                 <SelectValue placeholder="Todos os níveis" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os níveis</SelectItem>
+                <SelectItem value="all">Todos os níveis</SelectItem>
                 <SelectItem value="Iniciante">Iniciante</SelectItem>
                 <SelectItem value="Intermediário">Intermediário</SelectItem>
                 <SelectItem value="Avançado">Avançado</SelectItem>
