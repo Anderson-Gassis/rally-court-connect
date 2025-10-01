@@ -20,6 +20,7 @@ const RoleBasedNavigation = () => {
 
   const isPartner = user.role === 'partner';
   const isPlayer = user.role === 'player';
+  const isInstructor = user.role === 'instructor';
 
   return (
     <div className="flex items-center space-x-2">
@@ -40,6 +41,23 @@ const RoleBasedNavigation = () => {
         </>
       )}
       
+      {isInstructor && (
+        <>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/instructor/dashboard">
+              <Trophy className="h-4 w-4 mr-1" />
+              Dashboard
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/instructor/profile">
+              <User className="h-4 w-4 mr-1" />
+              Meu Perfil
+            </Link>
+          </Button>
+        </>
+      )}
+      
       {isPlayer && (
         <>
           <Button asChild variant="outline" size="sm">
@@ -52,6 +70,12 @@ const RoleBasedNavigation = () => {
             <Link to="/courts">
               <Calendar className="h-4 w-4 mr-1" />
               Reservar
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/instructors">
+              <Star className="h-4 w-4 mr-1" />
+              Professores
             </Link>
           </Button>
         </>

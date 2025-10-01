@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import PartnerSignupModal from './PartnerSignupModal';
+import InstructorSignupModal from './InstructorSignupModal';
 import { toast } from 'sonner';
 
 interface LoginModalProps {
@@ -18,6 +19,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
   const [isPartnerSignupOpen, setIsPartnerSignupOpen] = useState(false);
+  const [isInstructorSignupOpen, setIsInstructorSignupOpen] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [lastRegisteredEmail, setLastRegisteredEmail] = useState('');
@@ -351,11 +353,24 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                   className="w-full border-tennis-blue text-tennis-blue hover:bg-tennis-blue hover:text-white"
                   onClick={handlePartnerSignupClick}
                 >
-                  Cadastre-se como Parceiro
+                  Cadastre-se como Proprietário de Quadra
+                </Button>
+                
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                  onClick={() => {
+                    onClose();
+                    setIsInstructorSignupOpen(true);
+                  }}
+                >
+                  Cadastre-se como Professor
                 </Button>
                 
                 <p className="text-xs text-center text-gray-600">
-                  Parceiros: cadastre suas quadras e receba reservas
+                  Proprietários: cadastre quadras e receba reservas<br/>
+                  Professores: ofereça aulas e gerencie alunos
                 </p>
               </form>
             </TabsContent>
@@ -367,6 +382,11 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
       <PartnerSignupModal 
         isOpen={isPartnerSignupOpen}
         onClose={() => setIsPartnerSignupOpen(false)}
+      />
+      
+      <InstructorSignupModal 
+        isOpen={isInstructorSignupOpen}
+        onClose={() => setIsInstructorSignupOpen(false)}
       />
     </>
   );

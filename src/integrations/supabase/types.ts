@@ -115,6 +115,128 @@ export type Database = {
         }
         Relationships: []
       }
+      class_bookings: {
+        Row: {
+          booking_date: string
+          class_id: string
+          created_at: string
+          end_time: string
+          id: string
+          instructor_amount: number | null
+          instructor_id: string
+          is_trial: boolean | null
+          notes: string | null
+          payment_id: string | null
+          payment_status: string
+          platform_fee: number | null
+          start_time: string
+          status: string
+          student_id: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          class_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          instructor_amount?: number | null
+          instructor_id: string
+          is_trial?: boolean | null
+          notes?: string | null
+          payment_id?: string | null
+          payment_status?: string
+          platform_fee?: number | null
+          start_time: string
+          status?: string
+          student_id: string
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          class_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          instructor_amount?: number | null
+          instructor_id?: string
+          is_trial?: boolean | null
+          notes?: string | null
+          payment_id?: string | null
+          payment_status?: string
+          platform_fee?: number | null
+          start_time?: string
+          status?: string
+          student_id?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_bookings_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          class_type: string
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          instructor_id: string
+          max_students: number | null
+          price: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_type: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          instructor_id: string
+          max_students?: number | null
+          price: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_type?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          instructor_id?: string
+          max_students?: number | null
+          price?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courts: {
         Row: {
           address: string | null
@@ -248,6 +370,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      instructor_info: {
+        Row: {
+          availability: Json | null
+          bio: string | null
+          certifications: string[] | null
+          created_at: string
+          experience_years: number | null
+          hourly_rate: number
+          id: string
+          location: string | null
+          specialization: string[] | null
+          trial_class_available: boolean | null
+          trial_class_price: number | null
+          updated_at: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          availability?: Json | null
+          bio?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          experience_years?: number | null
+          hourly_rate?: number
+          id?: string
+          location?: string | null
+          specialization?: string[] | null
+          trial_class_available?: boolean | null
+          trial_class_price?: number | null
+          updated_at?: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          availability?: Json | null
+          bio?: string | null
+          certifications?: string[] | null
+          created_at?: string
+          experience_years?: number | null
+          hourly_rate?: number
+          id?: string
+          location?: string | null
+          specialization?: string[] | null
+          trial_class_available?: boolean | null
+          trial_class_price?: number | null
+          updated_at?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
       }
       match_history: {
         Row: {
@@ -468,6 +641,53 @@ export type Database = {
         }
         Relationships: []
       }
+      students: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          goals: string | null
+          id: string
+          instructor_id: string
+          notes: string | null
+          skill_level: string | null
+          student_user_id: string
+          total_classes: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          goals?: string | null
+          id?: string
+          instructor_id: string
+          notes?: string | null
+          skill_level?: string | null
+          student_user_id: string
+          total_classes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          goals?: string | null
+          id?: string
+          instructor_id?: string
+          notes?: string | null
+          skill_level?: string | null
+          student_user_id?: string
+          total_classes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_registrations: {
         Row: {
           id: string
@@ -607,7 +827,7 @@ export type Database = {
       }
     }
     Enums: {
-      user_role: "player" | "partner" | "admin"
+      user_role: "player" | "partner" | "admin" | "instructor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -735,7 +955,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["player", "partner", "admin"],
+      user_role: ["player", "partner", "admin", "instructor"],
     },
   },
 } as const

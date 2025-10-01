@@ -10,7 +10,7 @@ interface User {
   avatarUrl?: string;
   skillLevel?: string;
   location?: string;
-  role?: 'player' | 'partner' | 'admin';
+  role?: 'player' | 'partner' | 'instructor' | 'admin';
 }
 
 interface AuthContextType {
@@ -18,7 +18,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  register: (email: string, password: string, name: string, role?: 'player' | 'partner', partnerData?: any) => Promise<void>;
+  register: (email: string, password: string, name: string, role?: 'player' | 'partner' | 'instructor', partnerData?: any) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendConfirmation: (email: string) => Promise<void>;
   logout: () => void;
@@ -156,7 +156,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const register = async (email: string, password: string, name: string, role: 'player' | 'partner' = 'player', partnerData?: any) => {
+  const register = async (email: string, password: string, name: string, role: 'player' | 'partner' | 'instructor' = 'player', partnerData?: any) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -217,6 +217,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (partnerError) {
             console.error('Partner info creation error:', partnerError);
             throw new Error('Erro ao criar informações do parceiro');
+          }
+        }
+
+        // Se for instructor, criar instructor_info record
+        if (role === 'instructor' && partnerData) {
+          const instructorInfoData: any = {
+            user_id: data.user.id,
+            specialization: partnerData.specialization || [],
+            experience_years: partnerData.experience_years || 0,
+            hourly_rate: partnerData.hourly_rate || 0,
+            bio: partnerData.bio || '',
+            location: partnerData.location || '',
+            trial_class_available: true,
+            trial_class_price: 0,
+          };
+
+          const { error: instructorError } = await supabase
+            .from('instructor_info')
+            .insert(instructorInfoData);
+
+          if (instructorError) {
+            console.error('Instructor info creation error:', instructorError);
+            throw new Error('Erro ao criar informações do professor');
           }
         }
 
