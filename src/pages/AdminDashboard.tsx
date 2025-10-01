@@ -53,15 +53,12 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Verificar se é admin (você pode adicionar um campo role='admin' na tabela profiles)
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-
-      // Por enquanto, vamos permitir acesso a todos usuários autenticados
-      // Você pode adicionar verificação de role aqui: if (profile?.role !== 'admin')
+      // Apenas o email específico tem acesso ao dashboard admin
+      if (user.email !== 'anders.assis1985@gmail.com') {
+        toast.error("Acesso negado. Você não tem permissão de administrador.");
+        navigate("/");
+        return;
+      }
       
       await fetchRevenueData();
     } catch (error) {
