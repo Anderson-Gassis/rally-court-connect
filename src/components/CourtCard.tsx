@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { MapPin, Star, Clock, Sparkles } from "lucide-react";
+import { MapPin, Clock, Sparkles, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BookingModal from "./BookingModal";
 import LazyImage from "./LazyImage";
+import CourtRating from "./CourtRating";
+import CourtReviewsModal from "./CourtReviewsModal";
 
 interface CourtCardProps {
   id: string;
@@ -37,6 +38,7 @@ const CourtCard = ({
   featuredUntil
 }: CourtCardProps) => {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
   
   const isFeatured = featuredUntil && new Date(featuredUntil) > new Date();
   
@@ -98,10 +100,12 @@ const CourtCard = ({
       <CardContent className="p-4 flex-grow">
         <div className="flex items-start justify-between">
           <h3 className="font-semibold text-lg text-gray-900">{name}</h3>
-          <div className="flex items-center text-yellow-500">
-            <Star className="h-4 w-4 fill-current stroke-yellow-500" />
-            <span className="ml-1 text-sm font-medium text-gray-900">{rating}</span>
-          </div>
+          <button 
+            onClick={() => setReviewsModalOpen(true)}
+            className="hover:opacity-80 transition-opacity"
+          >
+            <CourtRating rating={rating} showCount={false} />
+          </button>
         </div>
         
         <div className="mt-2 flex items-center text-gray-600 text-sm">
@@ -127,12 +131,21 @@ const CourtCard = ({
           <Clock className="h-4 w-4 text-gray-500 mr-1" />
           <span className="text-tennis-blue-dark font-semibold">R${price}/hora</span>
         </div>
-        <Button 
-          className="bg-tennis-blue hover:bg-tennis-blue-dark text-white"
-          onClick={() => setBookingModalOpen(true)}
-        >
-          Reservar
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            size="icon"
+            onClick={() => setReviewsModalOpen(true)}
+          >
+            <MessageSquare className="h-4 w-4" />
+          </Button>
+          <Button 
+            className="bg-tennis-blue hover:bg-tennis-blue-dark text-white"
+            onClick={() => setBookingModalOpen(true)}
+          >
+            Reservar
+          </Button>
+        </div>
       </CardFooter>
 
       <BookingModal
@@ -141,6 +154,13 @@ const CourtCard = ({
         courtId={id}
         courtName={name}
         pricePerHour={price}
+      />
+
+      <CourtReviewsModal
+        courtId={id}
+        courtName={name}
+        isOpen={reviewsModalOpen}
+        onClose={() => setReviewsModalOpen(false)}
       />
     </Card>
   );
