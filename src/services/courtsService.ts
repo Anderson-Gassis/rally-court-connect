@@ -86,10 +86,21 @@ export const courtsService = {
           !court.distance || court.distance <= filters.max_distance!
         );
       }
-
-      // Sort by distance
-      courts.sort((a, b) => (a.distance || 0) - (b.distance || 0));
     }
+
+    // Sort by plan priority first (premium > basic > free), then by distance
+    courts.sort((a, b) => {
+      const planPriority = { premium: 3, basic: 2, free: 1 };
+      const aPriority = planPriority[a.ad_plan as keyof typeof planPriority] || 0;
+      const bPriority = planPriority[b.ad_plan as keyof typeof planPriority] || 0;
+      
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority; // Higher priority first
+      }
+      
+      // Same plan, sort by distance
+      return (a.distance || 0) - (b.distance || 0);
+    });
 
     return courts;
   },
@@ -158,10 +169,21 @@ export const courtsService = {
           !court.distance || court.distance <= filters.max_distance!
         );
       }
-
-      // Sort by distance
-      courts.sort((a, b) => (a.distance || 0) - (b.distance || 0));
     }
+
+    // Sort by plan priority first (premium > basic > free), then by distance
+    courts.sort((a, b) => {
+      const planPriority = { premium: 3, basic: 2, free: 1 };
+      const aPriority = planPriority[a.ad_plan as keyof typeof planPriority] || 0;
+      const bPriority = planPriority[b.ad_plan as keyof typeof planPriority] || 0;
+      
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority; // Higher priority first
+      }
+      
+      // Same plan, sort by distance
+      return (a.distance || 0) - (b.distance || 0);
+    });
 
     return courts;
   }

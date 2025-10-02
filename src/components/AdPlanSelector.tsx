@@ -15,8 +15,10 @@ const AdPlanSelector = ({ selectedPlan, onSelectPlan, adType, baseAmount = 0 }: 
     if (plan === 'free') return 0;
     
     if (adType === 'partner_search') {
-      return 19.90;
-    } else if (adType === 'court' || adType === 'instructor') {
+      return plan === 'basic' ? 19.90 : 19.90;
+    } else if (adType === 'court') {
+      return plan === 'basic' ? 49.90 : 89.90;
+    } else if (adType === 'instructor') {
       return baseAmount * 0.15;
     }
     return 0;
@@ -30,8 +32,8 @@ const AdPlanSelector = ({ selectedPlan, onSelectPlan, adType, baseAmount = 0 }: 
       color: 'bg-gray-100 text-gray-700',
       features: [
         'Anúncio publicado',
-        'Baixa visibilidade',
-        'Final das pesquisas'
+        'Listagem nacional via geolocalização',
+        'Visibilidade padrão'
       ],
       price: 0
     },
@@ -41,9 +43,9 @@ const AdPlanSelector = ({ selectedPlan, onSelectPlan, adType, baseAmount = 0 }: 
       icon: TrendingUp,
       color: 'bg-blue-100 text-blue-700',
       features: [
-        'Maior visibilidade',
-        'Meio das pesquisas',
-        'Destaque moderado'
+        'Prioridade nas buscas regionais',
+        'Destaque moderado',
+        'Suporte prioritário'
       ],
       price: calculatePrice('basic')
     },
@@ -54,10 +56,10 @@ const AdPlanSelector = ({ selectedPlan, onSelectPlan, adType, baseAmount = 0 }: 
       color: 'bg-primary/10 text-primary',
       badge: 'Mais Popular',
       features: [
-        'Máxima visibilidade',
+        'Máxima prioridade nas buscas',
         'Topo das pesquisas',
-        'Destaque garantido',
-        'Badge de destaque'
+        'Vantagens em criação de torneios',
+        'Recursos futuros incluídos'
       ],
       price: calculatePrice('premium')
     }
@@ -70,7 +72,9 @@ const AdPlanSelector = ({ selectedPlan, onSelectPlan, adType, baseAmount = 0 }: 
         <p className="text-sm text-muted-foreground">
           {adType === 'partner_search' 
             ? 'Valor fixo de R$ 19,90 para planos pagos'
-            : 'Planos pagos: 15% do valor da ' + (adType === 'court' ? 'locação' : 'aula')}
+            : adType === 'court'
+            ? 'Planos pagos: Básico R$ 49,90 | Premium R$ 89,90'
+            : 'Planos pagos: 15% do valor da aula'}
         </p>
       </div>
 

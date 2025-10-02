@@ -43,9 +43,9 @@ serve(async (req) => {
       amount = 19.90;
       description = `Anúncio de Parceiro - Plano ${planName === 'basic' ? 'Básico' : 'Premium'}`;
     } else if (adType === 'court') {
-      // Quadra: 15% do valor da locação
-      amount = baseAmount * 0.15;
-      description = `Anúncio de Quadra - Plano ${planName === 'basic' ? 'Básico' : 'Premium'} (15% do valor)`;
+      // Quadra: valor fixo por plano
+      amount = planName === 'basic' ? 49.90 : 89.90;
+      description = `Anúncio de Quadra - Plano ${planName === 'basic' ? 'Básico (R$ 49,90)' : 'Premium (R$ 89,90)'}`;
     } else if (adType === 'instructor') {
       // Professor: 15% do valor da aula
       amount = baseAmount * 0.15;
