@@ -74,6 +74,11 @@ const TournamentBracketPDF = ({ tournamentName, matches }: TournamentBracketPDFP
   const roundsData = getMatchesByRound();
   const totalRounds = roundsData.length;
 
+  // Don't render if no matches
+  if (!matches || matches.length === 0) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       <Button onClick={generatePDF} className="w-full">
@@ -89,29 +94,19 @@ const TournamentBracketPDF = ({ tournamentName, matches }: TournamentBracketPDFP
               <p className="text-sm text-gray-600 mt-1">Chave do Torneio</p>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <div className="flex gap-8 overflow-x-auto pb-4">
               {roundsData.map(([roundKey, roundMatches], roundIndex) => {
                 const roundNum = parseInt(roundKey.split('_')[1]);
-                const isLastRound = roundIndex === totalRounds - 1;
                 
                 return (
-                  <div key={roundKey} className="flex-shrink-0" style={{ minWidth: '220px' }}>
+                  <div key={roundKey} className="flex-shrink-0 relative min-w-[220px]">
                     <div className="text-center mb-4">
                       <h3 className="text-lg font-bold text-gray-900">
                         {getRoundName(roundNum, totalRounds)}
                       </h3>
                     </div>
 
-                    <div 
-                      className="space-y-4"
-                      style={{ 
-                        paddingTop: `${roundIndex * 40}px`,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-around',
-                        minHeight: `${Math.max(roundMatches.length * 120, 400)}px`
-                      }}
-                    >
+                    <div className="space-y-8">
                       {roundMatches.map((match: any) => (
                         <div
                           key={match.id}
@@ -158,15 +153,6 @@ const TournamentBracketPDF = ({ tournamentName, matches }: TournamentBracketPDFP
                         </div>
                       ))}
                     </div>
-
-                    {!isLastRound && (
-                      <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 text-gray-400">
-                        <svg width="20" height="100%" viewBox="0 0 20 100" preserveAspectRatio="none">
-                          <line x1="0" y1="25" x2="20" y2="50" stroke="currentColor" strokeWidth="2" />
-                          <line x1="0" y1="75" x2="20" y2="50" stroke="currentColor" strokeWidth="2" />
-                        </svg>
-                      </div>
-                    )}
                   </div>
                 );
               })}
