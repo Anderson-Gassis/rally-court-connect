@@ -43,11 +43,11 @@ const NotificationsDropdown = () => {
     if (notification.type === 'challenge') {
       // Redirecionar para a dashboard do usuário na aba de jogos
       if (user?.role === 'player') {
-        navigate('/player-dashboard?tab=games');
+        navigate('/player/dashboard?tab=games');
       } else if (user?.role === 'partner') {
-        navigate('/partner-dashboard?tab=games');
+        navigate('/partner/dashboard?tab=games');
       } else if (user?.role === 'instructor') {
-        navigate('/instructor-dashboard?tab=games');
+        navigate('/instructor/dashboard?tab=games');
       }
     } else if (notification.type === 'tournament') {
       // Se houver um ID de torneio na notificação, ir direto para os detalhes
@@ -58,22 +58,22 @@ const NotificationsDropdown = () => {
       }
     } else if (notification.type === 'match_result') {
       if (user?.role === 'player') {
-        navigate('/player-dashboard?tab=history');
+        navigate('/player/dashboard?tab=history');
       }
     } else if (notification.type === 'booking') {
       if (user?.role === 'player') {
-        navigate('/player-dashboard?tab=bookings');
+        navigate('/player/dashboard?tab=bookings');
       } else if (user?.role === 'partner') {
-        navigate('/partner-dashboard?tab=bookings');
+        navigate('/partner/dashboard?tab=bookings');
       }
     } else {
       // Fallback para tipos de notificação não especificados
       if (user?.role === 'player') {
-        navigate('/player-dashboard');
+        navigate('/player/dashboard');
       } else if (user?.role === 'partner') {
-        navigate('/partner-dashboard');
+        navigate('/partner/dashboard');
       } else if (user?.role === 'instructor') {
-        navigate('/instructor-dashboard');
+        navigate('/instructor/dashboard');
       }
     }
   };
