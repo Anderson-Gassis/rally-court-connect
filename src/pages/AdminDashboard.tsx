@@ -13,6 +13,8 @@ interface RevenueStats {
   tournamentRevenue: number;
   bookingRevenue: number;
   classRevenue: number;
+  adRevenue: number;
+  featuredListingRevenue: number;
   totalTransactions: number;
 }
 
@@ -35,6 +37,8 @@ const AdminDashboard = () => {
     tournamentRevenue: 0,
     bookingRevenue: 0,
     classRevenue: 0,
+    adRevenue: 0,
+    featuredListingRevenue: 0,
     totalTransactions: 0,
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -112,17 +116,50 @@ const AdminDashboard = () => {
         `)
         .eq("payment_status", "paid");
 
+      // Buscar receita de anúncios (marketplace - parceiros e quadras)
+      const { data: adData } = await supabase
+        .from("ad_payments")
+        .select(`
+          id,
+          amount,
+          created_at,
+          payment_status,
+          ad_type,
+          user_id
+        `)
+        .eq("payment_status", "paid");
+
+      // Buscar receita de planos destaque de quadras
+      const { data: featuredData } = await supabase
+        .from("featured_listing_payments")
+        .select(`
+          id,
+          price,
+          created_at,
+          payment_status,
+          plan_type,
+          partner_id,
+          court_id
+        `)
+        .eq("payment_status", "paid");
+
       // Calcular estatísticas
       const tournamentRevenue = tournamentData?.reduce((sum, t) => sum + (Number(t.platform_fee) || 0), 0) || 0;
       const bookingRevenue = bookingData?.reduce((sum, b) => sum + (Number(b.platform_fee) || 0), 0) || 0;
       const classRevenue = classData?.reduce((sum, c) => sum + (Number(c.platform_fee) || 0), 0) || 0;
+      const adRevenue = adData?.reduce((sum, a) => sum + (Number(a.amount) || 0), 0) || 0;
+      const featuredListingRevenue = featuredData?.reduce((sum, f) => sum + (Number(f.price) || 0), 0) || 0;
+
+      const totalRevenue = tournamentRevenue + bookingRevenue + classRevenue + adRevenue + featuredListingRevenue;
 
       setStats({
-        totalRevenue: tournamentRevenue + bookingRevenue + classRevenue,
+        totalRevenue,
         tournamentRevenue,
         bookingRevenue,
         classRevenue,
-        totalTransactions: (tournamentData?.length || 0) + (bookingData?.length || 0) + (classData?.length || 0),
+        adRevenue,
+        featuredListingRevenue,
+        totalTransactions: (tournamentData?.length || 0) + (bookingData?.length || 0) + (classData?.length || 0) + (adData?.length || 0) + (featuredData?.length || 0),
       });
 
       // Consolidar transações
@@ -149,6 +186,22 @@ const AdminDashboard = () => {
           amount: Number(c.platform_fee) || 0,
           platform_fee: Number(c.platform_fee) || 0,
           date: c.created_at,
+        })) || []),
+        ...(adData?.map(a => ({
+          id: a.id,
+          type: 'Anúncio',
+          amount: Number(a.amount) || 0,
+          platform_fee: Number(a.amount) || 0,
+          date: a.created_at,
+          tournament_name: `Plano ${a.ad_type}`,
+        })) || []),
+        ...(featuredData?.map(f => ({
+          id: f.id,
+          type: 'Plano Destaque',
+          amount: Number(f.price) || 0,
+          platform_fee: Number(f.price) || 0,
+          date: f.created_at,
+          tournament_name: `Plano ${f.plan_type}`,
         })) || []),
       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -229,12 +282,57 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Transações</p>
+                  <p className="text-sm text-gray-600">Aulas</p>
                   <p className="text-2xl font-bold text-orange-600">
+                    R$ {stats.classRevenue.toFixed(2)}
+                  </p>
+                </div>
+                <Users className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Cards Adicionais de Receita */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Anúncios Marketplace</p>
+                  <p className="text-2xl font-bold text-pink-600">
+                    R$ {stats.adRevenue.toFixed(2)}
+                  </p>
+                </div>
+                <DollarSign className="h-8 w-8 text-pink-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Planos Destaque</p>
+                  <p className="text-2xl font-bold text-indigo-600">
+                    R$ {stats.featuredListingRevenue.toFixed(2)}
+                  </p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-indigo-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total de Transações</p>
+                  <p className="text-2xl font-bold text-teal-600">
                     {stats.totalTransactions}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-orange-600" />
+                <Users className="h-8 w-8 text-teal-600" />
               </div>
             </CardContent>
           </Card>
@@ -294,6 +392,32 @@ const AdminDashboard = () => {
                         </p>
                       </div>
                     </div>
+
+                    <div className="flex items-center justify-between p-4 bg-pink-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <DollarSign className="h-5 w-5 text-pink-600" />
+                        <span className="font-medium">Anúncios Marketplace</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-pink-600">R$ {stats.adRevenue.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">
+                          {stats.totalRevenue > 0 ? ((stats.adRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <TrendingUp className="h-5 w-5 text-indigo-600" />
+                        <span className="font-medium">Planos Destaque</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-indigo-600">R$ {stats.featuredListingRevenue.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">
+                          {stats.totalRevenue > 0 ? ((stats.featuredListingRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -346,11 +470,13 @@ const AdminDashboard = () => {
                           <td className="p-3">
                             {new Date(transaction.date).toLocaleDateString('pt-BR')}
                           </td>
-                          <td className="p-3">
+                           <td className="p-3">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               transaction.type === 'Torneio' ? 'bg-blue-100 text-blue-700' :
                               transaction.type === 'Reserva' ? 'bg-purple-100 text-purple-700' :
-                              'bg-orange-100 text-orange-700'
+                              transaction.type === 'Aula' ? 'bg-orange-100 text-orange-700' :
+                              transaction.type === 'Anúncio' ? 'bg-pink-100 text-pink-700' :
+                              'bg-indigo-100 text-indigo-700'
                             }`}>
                               {transaction.type}
                             </span>
@@ -378,7 +504,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="breakdown">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -442,6 +568,52 @@ const AdminDashboard = () => {
                       <span className="text-sm text-gray-600">% da Receita</span>
                       <span className="font-medium">
                         {stats.totalRevenue > 0 ? ((stats.classRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-pink-600" />
+                    Anúncios Marketplace
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Receita Total</span>
+                      <span className="font-bold text-pink-600">R$ {stats.adRevenue.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">% da Receita</span>
+                      <span className="font-medium">
+                        {stats.totalRevenue > 0 ? ((stats.adRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-indigo-600" />
+                    Planos Destaque
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Receita Total</span>
+                      <span className="font-bold text-indigo-600">R$ {stats.featuredListingRevenue.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">% da Receita</span>
+                      <span className="font-medium">
+                        {stats.totalRevenue > 0 ? ((stats.featuredListingRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
                       </span>
                     </div>
                   </div>
