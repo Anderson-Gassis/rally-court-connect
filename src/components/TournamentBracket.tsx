@@ -214,33 +214,72 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
 
   const getCurrentRoundMatches = () => {
     const roundKey = `round_${currentRound}`;
-    return matches.filter(m => m.round === roundKey);
+    const realMatches = matches.filter(m => m.round === roundKey);
+
+    // If DB has matches for this round (or it's the first), use them
+    if (realMatches.length > 0 || currentRound === 1) return realMatches;
+
+    // Otherwise, build virtual pairings from winners of the previous round
+    const prevRound = currentRound - 1;
+    const prevKey = `round_${prevRound}`;
+    const prevMatches = matches.filter(m => m.round === prevKey);
+    if (prevMatches.length === 0) return [];
+
+    const half = Math.ceil(prevMatches.length / 2);
+    const buildVirtual = (i: number) => {
+      const a = i;
+      const b = i + half;
+      const matchA = prevMatches.find(m => m.match_number === a);
+      const matchB = prevMatches.find(m => m.match_number === b);
+      const winnerAName = matchA?.winner?.full_name || `Vencedor da Partida #${a}`;
+      const winnerBName = matchB?.winner?.full_name || `Vencedor da Partida #${b}`;
+      return {
+        id: `virtual-${roundKey}-${i}`,
+        round: roundKey,
+        match_number: i,
+        status: 'pending',
+        player1: { full_name: winnerAName },
+        player2: { full_name: winnerBName },
+        player1_id: matchA?.winner_id || null,
+        player2_id: matchB?.winner_id || null,
+      } as any;
+    };
+
+    const count = Math.max(1, Math.floor(prevMatches.length / 2));
+    return Array.from({ length: count }, (_, idx) => buildVirtual(idx + 1));
   };
 
   const getTotalRounds = () => {
-    if (matches.length === 0) return 0;
     const rounds = new Set(matches.map(m => m.round));
-    return rounds.size;
+    return rounds.size || 1;
   };
 
-  const hasMatchesInRound = (roundNum: number) => {
-    const roundKey = `round_${roundNum}`;
-    return matches.some(m => m.round === roundKey);
-  };
+  const canNavigateToNextRound = () => {
+    const nextRoundKey = `round_${currentRound + 1}`;
+    const hasNextRoundRows = matches.some(m => m.round === nextRoundKey);
+    if (hasNextRoundRows) return true;
 
+    // Allow navigation if there are at least 2 winners in the current round (to preview pairings)
+    const currentKey = `round_${currentRound}`;
+    const winnersInCurrent = matches.filter(m => m.round === currentKey && !!m.winner_id).length;
+    return winnersInCurrent >= 2;
+  };
   const getMatchReference = (matchNumber: number, previousRound: number) => {
-    // For displaying "Vencedor da Partida #X"
+    // Para exibir "Vencedor da Partida #X" com o mapeamento solicitado (1x3, 2x4, ...)
     const prevRoundKey = `round_${previousRound}`;
-    const isPlayer1 = matchNumber % 2 === 1;
-    const sourceMatch1 = (matchNumber - 1) * 2 + 1;
-    const sourceMatch2 = sourceMatch1 + 1;
-    
-    if (previousRound === 1) {
+    const prevCount = matches.filter(m => m.round === prevRoundKey).length;
+
+    if (prevCount <= 0) {
+      const sourceMatch1 = (matchNumber - 1) * 2 + 1;
+      const sourceMatch2 = sourceMatch1 + 1;
       return { match1: sourceMatch1, match2: sourceMatch2 };
     }
-    return { match1: sourceMatch1, match2: sourceMatch2 };
-  };
 
+    const half = Math.ceil(prevCount / 2);
+    const a = matchNumber;
+    const b = matchNumber + half;
+    return { match1: a, match2: b };
+  };
   const getRoundName = (roundNum: number) => {
     const totalRounds = getTotalRounds();
     const roundsFromEnd = totalRounds - roundNum + 1;
@@ -292,8 +331,8 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
           
           <Button
             variant="outline"
-            onClick={() => setCurrentRound(prev => Math.min(totalRounds, prev + 1))}
-            disabled={currentRound >= totalRounds || !hasMatchesInRound(currentRound + 1)}
+            onClick={() => setCurrentRound(prev => prev + 1)}
+            disabled={!canNavigateToNextRound()}
           >
             Próxima Rodada →
           </Button>
