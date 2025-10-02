@@ -238,32 +238,55 @@ const TournamentDetails = () => {
     try {
       toast.loading('Gerando chaves do torneio...');
       
-      // Sort registrations by ranking
+      // Sort registrations by ranking (seeding)
       const sortedRegistrations = [...registrations].sort((a, b) => 
         (b.profiles?.ranking_points || 0) - (a.profiles?.ranking_points || 0)
       );
 
-      // Generate bracket matches (assuming single elimination)
       const numPlayers = sortedRegistrations.length;
-      const rounds = Math.ceil(Math.log2(numPlayers));
       
-      // First round matches
-      const matches = [];
-      for (let i = 0; i < numPlayers / 2; i++) {
-        matches.push({
-          tournament_id: id,
-          round: 'round_1',
-          match_number: i + 1,
-          player1_id: sortedRegistrations[i]?.user_id,
-          player2_id: sortedRegistrations[numPlayers - 1 - i]?.user_id,
-          status: 'pending',
-        });
+      // Calculate total rounds needed (potência de 2 mais próxima)
+      const nextPowerOf2 = Math.pow(2, Math.ceil(Math.log2(numPlayers)));
+      const totalRounds = Math.ceil(Math.log2(nextPowerOf2));
+      
+      const allMatches = [];
+      
+      // Generate ALL rounds at once
+      for (let round = 1; round <= totalRounds; round++) {
+        const matchesInRound = nextPowerOf2 / Math.pow(2, round);
+        
+        for (let matchNum = 1; matchNum <= matchesInRound; matchNum++) {
+          if (round === 1) {
+            // First round: assign actual players
+            const player1Index = (matchNum - 1) * 2;
+            const player2Index = player1Index + 1;
+            
+            allMatches.push({
+              tournament_id: id,
+              round: `round_${round}`,
+              match_number: matchNum,
+              player1_id: sortedRegistrations[player1Index]?.user_id || null,
+              player2_id: sortedRegistrations[player2Index]?.user_id || null,
+              status: 'pending',
+            });
+          } else {
+            // Future rounds: TBD (will be filled as winners advance)
+            allMatches.push({
+              tournament_id: id,
+              round: `round_${round}`,
+              match_number: matchNum,
+              player1_id: null,
+              player2_id: null,
+              status: 'pending',
+            });
+          }
+        }
       }
 
-      // Insert matches
+      // Insert ALL matches at once
       const { error } = await supabase
         .from('tournament_brackets')
-        .insert(matches);
+        .insert(allMatches);
 
       if (error) throw error;
 
@@ -273,7 +296,7 @@ const TournamentDetails = () => {
         .update({ bracket_generated: true })
         .eq('id', id);
 
-      toast.success('Chaves geradas com sucesso!');
+      toast.success(`Chaves geradas com sucesso! ${totalRounds} rodadas criadas (até a final).`);
       fetchTournamentDetails();
     } catch (error: any) {
       console.error('Error generating bracket:', error);
@@ -441,15 +464,55 @@ const TournamentDetails = () => {
 
             <TabsContent value="registrations">
               <Card>
-                <CardHeader>
-                  <CardTitle>Jogadores Inscritos ({registrations.length})</CardTitle>
-                  <CardDescription>Lista de jogadores com inscrição confirmada</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Jogadores Inscritos ({registrations.length})</CardTitle>
+                    <CardDescription>Lista de jogadores com inscrição confirmada</CardDescription>
+                  </div>
+                  {tournament.organizer_id === user?.id && registrations.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const html2canvas = (await import('html2canvas')).default;
+                          const jsPDF = (await import('jspdf')).default;
+
+                          const element = document.getElementById('registrations-list');
+                          if (!element) return;
+
+                          const canvas = await html2canvas(element, {
+                            scale: 2,
+                            backgroundColor: '#ffffff',
+                          });
+
+                          const imgData = canvas.toDataURL('image/png');
+                          const pdf = new jsPDF('p', 'mm', 'a4');
+                          const imgWidth = 190;
+                          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                          pdf.setFontSize(18);
+                          pdf.text(`Lista de Inscritos - ${tournament.name}`, 10, 10);
+                          pdf.addImage(imgData, 'PNG', 10, 20, imgWidth, imgHeight);
+                          pdf.save(`inscritos-${tournament.name}.pdf`);
+                          
+                          toast.success('PDF baixado com sucesso!');
+                        } catch (error) {
+                          console.error('Erro ao gerar PDF:', error);
+                          toast.error('Erro ao gerar PDF');
+                        }
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Baixar PDF
+                    </Button>
+                  )}
                 </CardHeader>
                 <CardContent>
                   {registrations.length === 0 ? (
                     <p className="text-center text-gray-500 py-8">Nenhum jogador inscrito ainda</p>
                   ) : (
-                    <div className="space-y-2">
+                    <div id="registrations-list" className="space-y-2">
                       {registrations.map((reg: any, index: number) => (
                         <div key={reg.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-3">

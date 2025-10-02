@@ -98,64 +98,49 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     fetchComments(match.id);
   };
 
-  const checkAndGenerateNextRound = async (currentMatch: any) => {
+  const advanceWinnerToNextRound = async (currentMatch: any, winnerId: string) => {
     try {
+      // Determine position in next round
       const currentRound = currentMatch.round;
-      const { data: roundMatches } = await supabase
-        .from('tournament_brackets')
-        .select('id,status')
-        .eq('tournament_id', tournamentId)
-        .eq('round', currentRound);
-      if (!roundMatches) return;
-      const allCompleted = roundMatches.every((m: any) => m.status === 'completed');
-      if (!allCompleted) return;
-
-      const { data: winners } = await supabase
-        .from('tournament_brackets')
-        .select('winner_id')
-        .eq('tournament_id', tournamentId)
-        .eq('round', currentRound)
-        .eq('status', 'completed')
-        .not('winner_id', 'is', null);
-      if (!winners || winners.length === 0) return;
-
-      if (winners.length === 1) {
-        await supabase.from('tournaments').update({ status: 'completed' }).eq('id', tournamentId);
-        toast.success('Torneio finalizado! Campeão definido.');
-        return;
-      }
-
       const roundNumber = parseInt(String(currentRound).split('_')[1]);
       const nextRound = `round_${roundNumber + 1}`;
-
-      const { data: existingNext } = await supabase
+      const nextMatchNumber = Math.ceil(currentMatch.match_number / 2);
+      
+      // Determine if winner goes to player1 or player2 position
+      const isPlayer1Position = currentMatch.match_number % 2 === 1;
+      
+      // Update next round match with the winner
+      const { error } = await supabase
         .from('tournament_brackets')
-        .select('id')
+        .update({
+          [isPlayer1Position ? 'player1_id' : 'player2_id']: winnerId
+        })
         .eq('tournament_id', tournamentId)
         .eq('round', nextRound)
+        .eq('match_number', nextMatchNumber);
+
+      if (error) throw error;
+
+      // Check if this was the final match
+      const { data: finalCheck } = await supabase
+        .from('tournament_brackets')
+        .select('round')
+        .eq('tournament_id', tournamentId)
+        .order('round', { ascending: false })
         .limit(1);
-      if (existingNext && existingNext.length > 0) return;
 
-      const nextMatches: any[] = [];
-      for (let i = 0; i < Math.floor(winners.length / 2); i++) {
-        nextMatches.push({
-          tournament_id: tournamentId,
-          round: nextRound,
-          match_number: i + 1,
-          player1_id: winners[i * 2]?.winner_id,
-          player2_id: winners[i * 2 + 1]?.winner_id,
-          status: 'pending'
-        });
-      }
-
-      if (nextMatches.length > 0) {
-        const { error: insertError } = await supabase
-          .from('tournament_brackets')
-          .insert(nextMatches);
-        if (!insertError) toast.success(`Próxima rodada (${nextRound}) gerada automaticamente!`);
+      if (finalCheck && finalCheck[0]?.round === currentRound) {
+        await supabase
+          .from('tournaments')
+          .update({ status: 'completed' })
+          .eq('id', tournamentId);
+        toast.success('🏆 Torneio finalizado! Campeão definido!');
+      } else {
+        toast.success('Vencedor avançou para a próxima rodada!');
       }
     } catch (error) {
-      console.error('Error generating next round:', error);
+      console.error('Error advancing winner:', error);
+      toast.error('Erro ao avançar vencedor');
     }
   };
 
@@ -183,9 +168,10 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
 
       if (error) throw error;
 
-      await checkAndGenerateNextRound(selectedMatch);
+      // Advance winner to next round
+      await advanceWinnerToNextRound(selectedMatch, winnerId);
 
-      toast.success('Resultado reportado! Aguardando confirmação do oponente.');
+      toast.success('Resultado registrado com sucesso!');
       setSelectedMatch(null);
       fetchMatches();
     } catch (error: any) {
@@ -229,14 +215,15 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
   };
 
   const getRoundName = (round: string) => {
-    const roundMap: { [key: string]: string } = {
-      'round_1': 'Primeira Rodada',
-      'round_2': 'Oitavas',
-      'round_3': 'Quartas',
-      'round_4': 'Semifinal',
-      'round_5': 'Final'
+    const roundNumber = parseInt(round.split('_')[1]);
+    const roundMap: { [key: number]: string } = {
+      1: 'Primeira Rodada (R32/R16)',
+      2: 'Segunda Rodada (R16/R8)',
+      3: 'Quartas de Final',
+      4: 'Semifinal',
+      5: 'Final'
     };
-    return roundMap[round] || round;
+    return roundMap[roundNumber] || `Rodada ${roundNumber}`;
   };
 
   if (loading) {
