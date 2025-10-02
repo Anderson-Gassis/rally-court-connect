@@ -215,6 +215,7 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
   };
 
   const getRoundName = (round: string) => {
+    if (!round) return 'Aguardando';
     const roundNumber = parseInt(round.split('_')[1]);
     const roundMap: { [key: number]: string } = {
       1: 'Primeira Rodada (R32/R16)',
