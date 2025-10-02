@@ -165,12 +165,15 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-[96vw] sm:w-full max-w-[400px] max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6 mx-2 sm:mx-4">
+        <DialogContent className="w-[95vw] sm:w-full max-w-[420px] max-h-[90vh] overflow-y-auto p-4 sm:p-6"  aria-describedby="login-description">
 
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl sm:text-2xl">
               {showForgotPassword ? 'Recuperar senha' : 'Acesse sua conta'}
             </DialogTitle>
+            <p id="login-description" className="sr-only">
+              Faça login ou crie sua conta
+            </p>
           </DialogHeader>
           
           {showForgotPassword ? (
