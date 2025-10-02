@@ -67,6 +67,7 @@ interface MatchHistory {
   sport_type: string;
   court_name?: string;
   duration_minutes?: number;
+  notes?: string;
 }
 
 interface Booking {
@@ -429,9 +430,8 @@ const PlayerDashboard = () => {
               <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
               <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
-              <TabsTrigger value="history">Histórico</TabsTrigger>
+              <TabsTrigger value="history">Histórico e Estatísticas</TabsTrigger>
               <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
-              <TabsTrigger value="favorites">Favoritos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="games" className="space-y-6">
@@ -630,33 +630,115 @@ const PlayerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6">
+              {/* Estatísticas */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Histórico de Jogos</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Estatísticas de Desempenho
+                  </CardTitle>
                   <CardDescription>
-                    Todas as suas reservas anteriores
+                    Seu desempenho e análise de resultados
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {matchHistory.map((match) => (
-                      <div key={match.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold">vs {match.opponent_name}</h3>
-                            {getStatusBadge(match.result === 'win' ? 'completed' : 'cancelled')}
-                          </div>
-                          <p className="text-sm text-gray-500 flex items-center">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {match.match_date} • {match.sport_type}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold">{match.score || 'N/A'}</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <Trophy className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                        <p className="text-3xl font-bold text-green-600">{wins}</p>
+                        <p className="text-sm text-gray-600">Vitórias</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                        <p className="text-3xl font-bold text-red-600">{losses}</p>
+                        <p className="text-sm text-gray-600">Derrotas</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                        <p className="text-3xl font-bold text-blue-600">{winRate}%</p>
+                        <p className="text-sm text-gray-600">Taxa de Vitórias</p>
+                      </CardContent>
+                    </Card>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Histórico de Jogos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Histórico de Partidas
+                  </CardTitle>
+                  <CardDescription>
+                    Todas as suas partidas registradas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {matchHistory.length > 0 ? (
+                    <div className="space-y-4">
+                      {matchHistory.map((match) => (
+                        <div key={match.id} className="p-4 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="font-semibold text-lg">vs {match.opponent_name}</h3>
+                                <Badge variant={match.result === 'vitória' ? 'default' : 'destructive'} className={match.result === 'vitória' ? 'bg-green-100 text-green-800' : ''}>
+                                  {match.result === 'vitória' ? <Trophy className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                                  {match.result === 'vitória' ? 'Vitória' : 'Derrota'}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 flex items-center mb-1">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                {new Date(match.match_date).toLocaleDateString('pt-BR')}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {match.sport_type} {match.court_name ? `• ${match.court_name}` : ''}
+                              </p>
+                              {match.duration_minutes && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                  <Clock className="h-3 w-3 inline mr-1" />
+                                  Duração: {match.duration_minutes} min
+                                </p>
+                              )}
+                              {match.notes && (
+                                <p className="text-sm text-gray-600 mt-2 italic">
+                                  "{match.notes}"
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-tennis-blue">{match.score || 'N/A'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Nenhuma partida registrada
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Comece a registrar suas partidas para acompanhar seu desempenho
+                      </p>
+                      <Button 
+                        onClick={() => setIsAddMatchModalOpen(true)}
+                        className="bg-tennis-blue hover:bg-tennis-blue-dark"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Registrar Primeira Partida
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -720,57 +802,6 @@ const PlayerDashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="favorites" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Estatísticas e Ranking</CardTitle>
-                  <CardDescription>
-                    Seu desempenho e posição no ranking
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <Trophy className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-green-600">{wins}</p>
-                        <p className="text-sm text-gray-600">Vitórias</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-red-600">{losses}</p>
-                        <p className="text-sm text-gray-600">Derrotas</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-blue-600">{winRate}%</p>
-                        <p className="text-sm text-gray-600">Taxa de Vitórias</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  
-                  <div className="text-center py-4">
-                    <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Sistema de Ranking
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      Continue jogando para subir no ranking quando o sistema estiver disponível.
-                    </p>
-                    <Button onClick={() => setIsAddMatchModalOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Registrar Nova Partida
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
         </div>
       </main>
