@@ -64,13 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				tennis: {
-					'blue-light': '#D3E4FD',
-					'blue': '#33C3F0',
-					'blue-dark': '#0FA0CE',
-					'green': '#5CA63C',
-					'orange': '#F99B45',
-					'gray': '#E9ECF1',
-					'gray-dark': '#8E9196'
+					'blue-light': 'hsl(213, 94%, 92%)',
+					'blue': 'hsl(196, 85%, 57%)',
+					'blue-dark': 'hsl(196, 84%, 43%)',
+					'green': 'hsl(98, 46%, 45%)',
+					'orange': 'hsl(30, 93%, 62%)',
+					'gray': 'hsl(220, 20%, 93%)',
+					'gray-dark': 'hsl(220, 4%, 57%)'
 				}
 			},
 			borderRadius: {
