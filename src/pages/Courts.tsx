@@ -26,20 +26,20 @@ const Courts = () => {
   const bookingSteps = [
     { 
       id: 1, 
-      title: "Find", 
-      description: "Search for courts with advanced filters",
+      title: "Encontrar", 
+      description: "Busque quadras com filtros avançados",
       icon: <MapPin className="h-8 w-8 text-tennis-blue" />
     },
     { 
       id: 2, 
-      title: "Book", 
-      description: "Select time and confirm with payment",
+      title: "Reservar", 
+      description: "Selecione horário e confirme com pagamento",
       icon: <Book className="h-8 w-8 text-tennis-blue" />
     },
     { 
       id: 3, 
-      title: "Play", 
-      description: "Present digital reservation at the court",
+      title: "Jogar", 
+      description: "Apresente a reserva digital na quadra",
       icon: <Info className="h-8 w-8 text-tennis-blue" />
     }
   ];
@@ -55,7 +55,7 @@ const Courts = () => {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>How it works</NavigationMenuTrigger>
+                  <NavigationMenuTrigger>Como funciona</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-3">
                       {bookingSteps.map((step) => (
@@ -73,14 +73,14 @@ const Courts = () => {
                 <NavigationMenuItem>
                   <Link to="/help">
                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                      Help Center
+                      Central de Ajuda
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <Link to="/contact">
                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                      Contact Us
+                      Fale Conosco
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
@@ -109,20 +109,20 @@ const Courts = () => {
         {/* Registration Banner */}
         <div className="bg-tennis-blue py-12 text-white">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">Join Our Growing Community of Players</h2>
+            <h2 className="text-3xl font-bold mb-4">Junte-se à Nossa Comunidade de Jogadores</h2>
             <p className="text-lg mb-8 max-w-2xl mx-auto">
-              Connect with thousands of players, find courts, join tournaments, and track your progress.
-              Register now and start playing today!
+              Conecte-se com milhares de jogadores, encontre quadras, participe de torneios e acompanhe seu progresso.
+              Registre-se agora e comece a jogar hoje!
             </p>
             <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-tennis-blue">
-              Sign up for free
+              Cadastre-se gratuitamente
             </Button>
           </div>
         </div>
 
         {/* Booking Process Explanation */}
         <div className="container mx-auto px-4 py-16">
-          <h2 className="text-3xl font-bold text-center mb-12">How Court Booking Works</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Como Funciona a Reserva de Quadras</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {bookingSteps.map((step, index) => (
