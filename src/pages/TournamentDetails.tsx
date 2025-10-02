@@ -585,16 +585,23 @@ const TournamentDetails = () => {
                             <Button 
                               onClick={async () => {
                                 try {
+                                  toast.loading('Iniciando torneio...');
                                   const { error } = await supabase
                                     .from('tournaments')
-                                    .update({ status: 'in_progress' })
+                                    .update({ status: 'active' })
                                     .eq('id', id);
                                   
-                                  if (error) throw error;
-                                  toast.success('Torneio iniciado!');
+                                  if (error) {
+                                    console.error('Error starting tournament:', error);
+                                    throw error;
+                                  }
+                                  toast.dismiss();
+                                  toast.success('Torneio iniciado com sucesso!');
                                   fetchTournamentDetails();
-                                } catch (error) {
-                                  toast.error('Erro ao iniciar torneio');
+                                } catch (error: any) {
+                                  toast.dismiss();
+                                  console.error('Error:', error);
+                                  toast.error(error.message || 'Erro ao iniciar torneio');
                                 }
                               }}
                               className="w-full"
@@ -604,20 +611,27 @@ const TournamentDetails = () => {
                             </Button>
                           )}
                           
-                          {tournament.status === 'in_progress' && (
+                          {(tournament.status === 'active' || tournament.status === 'in_progress') && (
                             <Button 
                               onClick={async () => {
                                 try {
+                                  toast.loading('Finalizando torneio...');
                                   const { error } = await supabase
                                     .from('tournaments')
                                     .update({ status: 'completed' })
                                     .eq('id', id);
                                   
-                                  if (error) throw error;
-                                  toast.success('Torneio finalizado!');
+                                  if (error) {
+                                    console.error('Error completing tournament:', error);
+                                    throw error;
+                                  }
+                                  toast.dismiss();
+                                  toast.success('Torneio finalizado com sucesso!');
                                   fetchTournamentDetails();
-                                } catch (error) {
-                                  toast.error('Erro ao finalizar torneio');
+                                } catch (error: any) {
+                                  toast.dismiss();
+                                  console.error('Error:', error);
+                                  toast.error(error.message || 'Erro ao finalizar torneio');
                                 }
                               }}
                               className="w-full"

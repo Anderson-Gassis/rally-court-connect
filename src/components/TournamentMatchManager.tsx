@@ -54,6 +54,9 @@ export const TournamentMatchManager = ({
 
       if (error) throw error;
 
+      // Check if round is complete and generate next round
+      await checkAndGenerateNextRound();
+
       toast.success('Resultado registrado com sucesso!');
       setSelectedMatch('');
       setWinnerId('');
@@ -65,6 +68,66 @@ export const TournamentMatchManager = ({
       toast.error('Erro ao registrar resultado');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkAndGenerateNextRound = async () => {
+    try {
+      // Get current match round
+      const currentMatch = matches.find(m => m.id === selectedMatch);
+      if (!currentMatch) return;
+
+      const currentRound = currentMatch.round;
+
+      // Check if all matches in current round are completed
+      const roundMatches = matches.filter(m => m.round === currentRound);
+      const allCompleted = roundMatches.every(m => 
+        m.id === selectedMatch || m.status === 'completed'
+      );
+
+      if (!allCompleted) return;
+
+      // Get winners from current round
+      const winners = await supabase
+        .from('tournament_brackets')
+        .select('winner_id')
+        .eq('tournament_id', tournamentId)
+        .eq('round', currentRound)
+        .eq('status', 'completed')
+        .not('winner_id', 'is', null);
+
+      if (winners.error || !winners.data || winners.data.length < 2) return;
+
+      // Determine next round name
+      const roundNumber = parseInt(currentRound.split('_')[1]);
+      const nextRound = `round_${roundNumber + 1}`;
+
+      // Generate next round matches
+      const nextMatches = [];
+      for (let i = 0; i < winners.data.length / 2; i++) {
+        nextMatches.push({
+          tournament_id: tournamentId,
+          round: nextRound,
+          match_number: i + 1,
+          player1_id: winners.data[i * 2]?.winner_id,
+          player2_id: winners.data[i * 2 + 1]?.winner_id,
+          status: 'pending'
+        });
+      }
+
+      // Insert next round matches
+      if (nextMatches.length > 0) {
+        const { error: insertError } = await supabase
+          .from('tournament_brackets')
+          .insert(nextMatches);
+
+        if (insertError) throw insertError;
+
+        toast.success(`Próxima rodada (${nextRound}) gerada automaticamente!`);
+      }
+    } catch (error) {
+      console.error('Error generating next round:', error);
+      // Don't throw - this is a nice-to-have feature
     }
   };
 

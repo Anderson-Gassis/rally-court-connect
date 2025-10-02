@@ -222,8 +222,8 @@ const PlayerDashboard = () => {
     );
   }
 
-  const wins = matchHistory.filter(match => match.result === 'win').length;
-  const losses = matchHistory.filter(match => match.result === 'loss').length;
+  const wins = matchHistory.filter(match => match.result === 'vitória').length;
+  const losses = matchHistory.filter(match => match.result === 'derrota').length;
   const winRate = matchHistory.length > 0 ? Math.round((wins / matchHistory.length) * 100) : 0;
   const upcomingBookings = bookings.filter(booking => 
     new Date(booking.booking_date) >= new Date() && booking.status === 'confirmed'
