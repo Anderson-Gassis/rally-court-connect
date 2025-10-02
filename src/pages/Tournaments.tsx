@@ -109,9 +109,9 @@ const Tournaments = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os esportes</SelectItem>
-                <SelectItem value="Tênis">Tênis</SelectItem>
-                <SelectItem value="Padel">Padel</SelectItem>
-                <SelectItem value="Beach Tennis">Beach Tennis</SelectItem>
+                <SelectItem value="tennis">Tênis</SelectItem>
+                <SelectItem value="padel">Padel</SelectItem>
+                <SelectItem value="beach_tennis">Beach Tennis</SelectItem>
               </SelectContent>
             </Select>
             

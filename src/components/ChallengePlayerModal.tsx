@@ -138,7 +138,7 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
             <Button
               type="submit"
               className="flex-1 bg-tennis-blue hover:bg-tennis-blue-dark"
-              disabled={loading}
+              disabled={loading || !challengeType || !preferredDate || !preferredTime}
             >
               {loading ? 'Enviando...' : 'Enviar Convite'}
             </Button>
