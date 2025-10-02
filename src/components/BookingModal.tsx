@@ -14,7 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import BookingPaymentButton from "./BookingPaymentButton";
+import { bookingSchema } from "@/lib/validations/booking";
+import { toast } from "sonner";
 
 interface BookingModalProps {
   open: boolean;
@@ -34,6 +38,7 @@ const BookingModal = ({
   const [date, setDate] = useState<Date>();
   const [startTime, setStartTime] = useState<string>();
   const [endTime, setEndTime] = useState<string>();
+  const [validationError, setValidationError] = useState<string>();
 
   // Generate time slots from 6am to 11pm
   const timeSlots = Array.from({ length: 34 }, (_, i) => {
@@ -50,7 +55,29 @@ const BookingModal = ({
   };
 
   const totalHours = calculateHours();
-  const canProceed = date && startTime && endTime && totalHours > 0;
+  
+  // Validar dados ao mudar
+  const validateBooking = () => {
+    setValidationError(undefined);
+    
+    if (!date || !startTime || !endTime) return false;
+    
+    try {
+      bookingSchema.parse({
+        courtId,
+        date,
+        startTime,
+        endTime,
+      });
+      return true;
+    } catch (error: any) {
+      const errorMessage = error.errors?.[0]?.message || 'Dados inválidos';
+      setValidationError(errorMessage);
+      return false;
+    }
+  };
+
+  const canProceed = date && startTime && endTime && totalHours > 0 && validateBooking();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,8 +142,16 @@ const BookingModal = ({
             </div>
           </div>
 
+          {/* Validation Error */}
+          {validationError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Duration Info */}
-          {totalHours > 0 && (
+          {totalHours > 0 && !validationError && (
             <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
               <p className="text-sm font-medium">
                 Duração selecionada: <span className="text-primary">{totalHours}h</span>

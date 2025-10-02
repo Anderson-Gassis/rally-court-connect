@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, MessageSquare, Trophy } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Calendar, MessageSquare, Trophy, AlertCircle } from 'lucide-react';
 import { challengesService } from '@/services/challengesService';
+import { challengeSchema } from '@/lib/validations/challenge';
 import { toast } from 'sonner';
 
 interface ChallengePlayerModalProps {
@@ -22,11 +24,25 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
   const [preferredTime, setPreferredTime] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState<string>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!challengeType || !preferredDate || !preferredTime) {
-      toast.error('Preencha todos os campos obrigatórios');
+    setValidationError(undefined);
+
+    // Validar com Zod
+    try {
+      challengeSchema.parse({
+        challenged_id: playerId,
+        challenge_type: challengeType,
+        preferred_date: preferredDate,
+        preferred_time: preferredTime,
+        message: message || undefined,
+      });
+    } catch (error: any) {
+      const errorMessage = error.errors?.[0]?.message || 'Dados inválidos';
+      setValidationError(errorMessage);
+      toast.error(errorMessage);
       return;
     }
 
@@ -48,9 +64,12 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
       setPreferredDate('');
       setPreferredTime('');
       setMessage('');
-    } catch (error) {
+      setValidationError(undefined);
+    } catch (error: any) {
       console.error('Error creating challenge:', error);
-      toast.error('Erro ao enviar convite. Tente novamente.');
+      const errorMsg = error.message || 'Erro ao enviar convite. Tente novamente.';
+      setValidationError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -70,6 +89,13 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {validationError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="challengeType">Tipo de Partida *</Label>
             <Select value={challengeType} onValueChange={setChallengeType}>
