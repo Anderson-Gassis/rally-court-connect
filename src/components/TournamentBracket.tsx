@@ -23,6 +23,7 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
   const [newComment, setNewComment] = useState('');
   const [player1Score, setPlayer1Score] = useState('');
   const [player2Score, setPlayer2Score] = useState('');
+  const [currentRound, setCurrentRound] = useState(1);
 
   useEffect(() => {
     fetchMatches();
@@ -100,43 +101,46 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
 
   const advanceWinnerToNextRound = async (currentMatch: any, winnerId: string) => {
     try {
-      // Determine position in next round
-      const currentRound = currentMatch.round;
-      const roundNumber = parseInt(String(currentRound).split('_')[1]);
+      const roundNumber = parseInt(String(currentMatch.round).split('_')[1]);
       const nextRound = `round_${roundNumber + 1}`;
       const nextMatchNumber = Math.ceil(currentMatch.match_number / 2);
-      
-      // Determine if winner goes to player1 or player2 position
       const isPlayer1Position = currentMatch.match_number % 2 === 1;
       
-      // Update next round match with the winner
-      const { error } = await supabase
+      // Check if next round exists
+      const { data: nextRoundMatch } = await supabase
         .from('tournament_brackets')
-        .update({
-          [isPlayer1Position ? 'player1_id' : 'player2_id']: winnerId
-        })
+        .select('*')
         .eq('tournament_id', tournamentId)
         .eq('round', nextRound)
-        .eq('match_number', nextMatchNumber);
+        .eq('match_number', nextMatchNumber)
+        .single();
 
-      if (error) throw error;
+      if (nextRoundMatch) {
+        // Update next round match with the winner
+        const { error } = await supabase
+          .from('tournament_brackets')
+          .update({
+            [isPlayer1Position ? 'player1_id' : 'player2_id']: winnerId
+          })
+          .eq('id', nextRoundMatch.id);
 
-      // Check if this was the final match
-      const { data: finalCheck } = await supabase
-        .from('tournament_brackets')
-        .select('round')
-        .eq('tournament_id', tournamentId)
-        .order('round', { ascending: false })
-        .limit(1);
+        if (error) throw error;
 
-      if (finalCheck && finalCheck[0]?.round === currentRound) {
+        // Check if opponent is already there (auto-advance if both players ready)
+        const opponentKey = isPlayer1Position ? 'player2_id' : 'player1_id';
+        if (!nextRoundMatch[opponentKey]) {
+          // No opponent yet, check if this player should auto-advance (walkover)
+          toast.success('Vencedor avançou para a próxima rodada!');
+        } else {
+          toast.success('Vencedor avançou para a próxima rodada!');
+        }
+      } else {
+        // This was the final match
         await supabase
           .from('tournaments')
           .update({ status: 'completed' })
           .eq('id', tournamentId);
         toast.success('🏆 Torneio finalizado! Campeão definido!');
-      } else {
-        toast.success('Vencedor avançou para a próxima rodada!');
       }
     } catch (error) {
       console.error('Error advancing winner:', error);
@@ -203,28 +207,39 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     }
   };
 
-  const groupMatchesByRound = () => {
-    const grouped: { [key: string]: any[] } = {};
-    matches.forEach(match => {
-      if (!grouped[match.round]) {
-        grouped[match.round] = [];
-      }
-      grouped[match.round].push(match);
-    });
-    return grouped;
+  const getCurrentRoundMatches = () => {
+    const roundKey = `round_${currentRound}`;
+    return matches.filter(m => m.round === roundKey);
   };
 
-  const getRoundName = (round: string) => {
-    if (!round) return 'Aguardando';
-    const roundNumber = parseInt(round.split('_')[1]);
-    const roundMap: { [key: number]: string } = {
-      1: 'Primeira Rodada (R32/R16)',
-      2: 'Segunda Rodada (R16/R8)',
-      3: 'Quartas de Final',
-      4: 'Semifinal',
-      5: 'Final'
-    };
-    return roundMap[roundNumber] || `Rodada ${roundNumber}`;
+  const getTotalRounds = () => {
+    const rounds = new Set(matches.map(m => m.round));
+    return rounds.size;
+  };
+
+  const getMatchReference = (matchNumber: number, previousRound: number) => {
+    // For displaying "Vencedor da Partida #X"
+    const prevRoundKey = `round_${previousRound}`;
+    const isPlayer1 = matchNumber % 2 === 1;
+    const sourceMatch1 = (matchNumber - 1) * 2 + 1;
+    const sourceMatch2 = sourceMatch1 + 1;
+    
+    if (previousRound === 1) {
+      return { match1: sourceMatch1, match2: sourceMatch2 };
+    }
+    return { match1: sourceMatch1, match2: sourceMatch2 };
+  };
+
+  const getRoundName = (roundNum: number) => {
+    const totalRounds = getTotalRounds();
+    const roundsFromEnd = totalRounds - roundNum + 1;
+    
+    if (roundsFromEnd === 1) return 'Final';
+    if (roundsFromEnd === 2) return 'Semifinal';
+    if (roundsFromEnd === 3) return 'Quartas de Final';
+    if (roundsFromEnd === 4) return 'Oitavas de Final (R16)';
+    if (roundsFromEnd === 5) return 'R32';
+    return `Rodada ${roundNum}`;
   };
 
   if (loading) {
@@ -238,72 +253,106 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     );
   }
 
-  const groupedMatches = groupMatchesByRound();
+  const totalRounds = getTotalRounds();
+  const currentMatches = getCurrentRoundMatches();
 
   return (
     <>
-      <div className="space-y-8">
-        {Object.entries(groupedMatches).map(([round, roundMatches]) => (
-          <Card key={round}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
-                {getRoundName(round)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {roundMatches.map((match: any) => (
-                  <div
-                    key={match.id}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => openMatchDialog(match)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-500">
-                        Partida #{match.match_number}
-                      </span>
-                      <Badge variant={match.status === 'completed' ? 'default' : 'outline'}>
-                        {match.status === 'completed' ? 'Finalizada' : 'Pendente'}
-                      </Badge>
-                    </div>
+      <div className="space-y-4">
+        {/* Navigation */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentRound(prev => Math.max(1, prev - 1))}
+            disabled={currentRound === 1}
+          >
+            ← Rodada Anterior
+          </Button>
+          
+          <div className="text-center">
+            <h3 className="text-lg font-bold flex items-center gap-2 justify-center">
+              <Trophy className="h-5 w-5 text-primary" />
+              {getRoundName(currentRound)}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Rodada {currentRound} de {totalRounds}
+            </p>
+          </div>
+          
+          <Button
+            variant="outline"
+            onClick={() => setCurrentRound(prev => Math.min(totalRounds, prev + 1))}
+            disabled={currentRound === totalRounds}
+          >
+            Próxima Rodada →
+          </Button>
+        </div>
 
-                    <div className="space-y-2">
-                      <div className={`flex items-center justify-between p-2 rounded ${match.winner_id === match.player1_id ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}>
-                        <span className="font-medium">
-                          {match.player1?.full_name || 'TBD'}
-                        </span>
-                        {match.player1_score && (
-                          <span className="font-bold">{match.player1_score}</span>
-                        )}
-                      </div>
-
-                      <div className="flex justify-center">
-                        <ChevronRight className="h-4 w-4 text-gray-400 rotate-90" />
-                      </div>
-
-                      <div className={`flex items-center justify-between p-2 rounded ${match.winner_id === match.player2_id ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}>
-                        <span className="font-medium">
-                          {match.player2?.full_name || 'TBD'}
-                        </span>
-                        {match.player2_score && (
-                          <span className="font-bold">{match.player2_score}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {match.scheduled_time && (
-                      <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
-                        <Clock className="h-3 w-3" />
-                        {new Date(match.scheduled_time).toLocaleString('pt-BR')}
-                      </div>
-                    )}
+        {/* Current Round Matches */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {currentMatches.map((match: any) => {
+                const refs = currentRound > 1 ? getMatchReference(match.match_number, currentRound - 1) : null;
+                return (
+                <div
+                  key={match.id}
+                  className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => openMatchDialog(match)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-500">
+                      Partida #{match.match_number}
+                    </span>
+                    <Badge variant={match.status === 'completed' ? 'default' : 'outline'}>
+                      {match.status === 'completed' ? 'Finalizada' : 'Pendente'}
+                    </Badge>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+
+                  <div className="space-y-2">
+                    <div className={`flex items-center justify-between p-2 rounded ${match.winner_id === match.player1_id ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}>
+                      <span className="font-medium text-sm">
+                        {match.player1?.full_name || 
+                         (refs ? `Vencedor da Partida #${refs.match1}` : 'Aguardando...')}
+                      </span>
+                      {match.player1_score && (
+                        <span className="font-bold">{match.player1_score}</span>
+                      )}
+                    </div>
+
+                    <div className="flex justify-center">
+                      <ChevronRight className="h-4 w-4 text-gray-400 rotate-90" />
+                    </div>
+
+                    <div className={`flex items-center justify-between p-2 rounded ${match.winner_id === match.player2_id ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}>
+                      <span className="font-medium text-sm">
+                        {match.player2?.full_name || 
+                         (refs ? `Vencedor da Partida #${refs.match2}` : 'Aguardando...')}
+                      </span>
+                      {match.player2_score && (
+                        <span className="font-bold">{match.player2_score}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {match.scheduled_time && (
+                    <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
+                      <Clock className="h-3 w-3" />
+                      {new Date(match.scheduled_time).toLocaleString('pt-BR')}
+                    </div>
+                  )}
+                  
+                  {!match.player1_id && !match.player2_id && (
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      Aguardando resultados da rodada anterior
+                    </p>
+                  )}
+                </div>
+              );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Dialog open={!!selectedMatch} onOpenChange={() => setSelectedMatch(null)}>
@@ -311,7 +360,7 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
           <DialogHeader>
             <DialogTitle>Detalhes da Partida</DialogTitle>
             <DialogDescription>
-              Partida #{selectedMatch?.match_number} - {getRoundName(selectedMatch?.round)}
+              Partida #{selectedMatch?.match_number} - {selectedMatch?.round ? getRoundName(parseInt(selectedMatch.round.split('_')[1])) : ''}
             </DialogDescription>
           </DialogHeader>
 

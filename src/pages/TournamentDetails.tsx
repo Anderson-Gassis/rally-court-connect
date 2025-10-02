@@ -290,6 +290,70 @@ const TournamentDetails = () => {
 
       if (error) throw error;
 
+      // Auto-advance players without opponents in first round (walkovers)
+      for (const match of allMatches) {
+        if (match.round === 'round_1') {
+          // If only one player in the match, auto-advance them
+          if (match.player1_id && !match.player2_id) {
+            // Auto-advance player1 to next round
+            const nextMatchNum = Math.ceil(match.match_number / 2);
+            const isPlayer1Pos = match.match_number % 2 === 1;
+            
+            await supabase
+              .from('tournament_brackets')
+              .update({
+                [isPlayer1Pos ? 'player1_id' : 'player2_id']: match.player1_id,
+                status: 'completed',
+                winner_id: match.player1_id
+              })
+              .eq('tournament_id', id)
+              .eq('round', 'round_2')
+              .eq('match_number', nextMatchNum);
+              
+            // Mark first round match as completed (walkover)
+            await supabase
+              .from('tournament_brackets')
+              .update({
+                status: 'completed',
+                winner_id: match.player1_id,
+                player1_score: 'W.O.',
+                player2_score: '-'
+              })
+              .eq('tournament_id', id)
+              .eq('round', 'round_1')
+              .eq('match_number', match.match_number);
+          } else if (!match.player1_id && match.player2_id) {
+            // Auto-advance player2 to next round
+            const nextMatchNum = Math.ceil(match.match_number / 2);
+            const isPlayer1Pos = match.match_number % 2 === 1;
+            
+            await supabase
+              .from('tournament_brackets')
+              .update({
+                [isPlayer1Pos ? 'player1_id' : 'player2_id']: match.player2_id,
+                status: 'completed',
+                winner_id: match.player2_id
+              })
+              .eq('tournament_id', id)
+              .eq('round', 'round_2')
+              .eq('match_number', nextMatchNum);
+              
+            // Mark first round match as completed (walkover)
+            await supabase
+              .from('tournament_brackets')
+              .update({
+                status: 'completed',
+                winner_id: match.player2_id,
+                player1_score: '-',
+                player2_score: 'W.O.'
+              })
+              .eq('tournament_id', id)
+              .eq('round', 'round_1')
+              .eq('match_number', match.match_number);
+          }
+        }
+      }
+
       // Update tournament as bracket generated
       await supabase
         .from('tournaments')
