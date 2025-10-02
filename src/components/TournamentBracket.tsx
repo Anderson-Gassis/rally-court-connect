@@ -98,6 +98,67 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     fetchComments(match.id);
   };
 
+  const checkAndGenerateNextRound = async (currentMatch: any) => {
+    try {
+      const currentRound = currentMatch.round;
+      const { data: roundMatches } = await supabase
+        .from('tournament_brackets')
+        .select('id,status')
+        .eq('tournament_id', tournamentId)
+        .eq('round', currentRound);
+      if (!roundMatches) return;
+      const allCompleted = roundMatches.every((m: any) => m.status === 'completed');
+      if (!allCompleted) return;
+
+      const { data: winners } = await supabase
+        .from('tournament_brackets')
+        .select('winner_id')
+        .eq('tournament_id', tournamentId)
+        .eq('round', currentRound)
+        .eq('status', 'completed')
+        .not('winner_id', 'is', null);
+      if (!winners || winners.length === 0) return;
+
+      if (winners.length === 1) {
+        await supabase.from('tournaments').update({ status: 'completed' }).eq('id', tournamentId);
+        toast.success('Torneio finalizado! Campeão definido.');
+        return;
+      }
+
+      const roundNumber = parseInt(String(currentRound).split('_')[1]);
+      const nextRound = `round_${roundNumber + 1}`;
+
+      const { data: existingNext } = await supabase
+        .from('tournament_brackets')
+        .select('id')
+        .eq('tournament_id', tournamentId)
+        .eq('round', nextRound)
+        .limit(1);
+      if (existingNext && existingNext.length > 0) return;
+
+      const nextMatches: any[] = [];
+      for (let i = 0; i < Math.floor(winners.length / 2); i++) {
+        nextMatches.push({
+          tournament_id: tournamentId,
+          round: nextRound,
+          match_number: i + 1,
+          player1_id: winners[i * 2]?.winner_id,
+          player2_id: winners[i * 2 + 1]?.winner_id,
+          status: 'pending'
+        });
+      }
+
+      if (nextMatches.length > 0) {
+        const { error: insertError } = await supabase
+          .from('tournament_brackets')
+          .insert(nextMatches);
+        if (!insertError) toast.success(`Próxima rodada (${nextRound}) gerada automaticamente!`);
+      }
+    } catch (error) {
+      console.error('Error generating next round:', error);
+    }
+  };
+
   const submitScore = async () => {
     if (!selectedMatch || !user) return;
 
@@ -121,6 +182,8 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
         .eq('id', selectedMatch.id);
 
       if (error) throw error;
+
+      await checkAndGenerateNextRound(selectedMatch);
 
       toast.success('Resultado reportado! Aguardando confirmação do oponente.');
       setSelectedMatch(null);

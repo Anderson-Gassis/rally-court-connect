@@ -106,6 +106,7 @@ const PlayerDashboard = () => {
   });
   const [tournaments, setTournaments] = useState<any[]>([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
+  const [bracketStats, setBracketStats] = useState<{ wins: number; losses: number; total: number }>({ wins: 0, losses: 0, total: 0 });
 
   useEffect(() => {
     // Aguardar o loading terminar antes de verificar autenticação
@@ -222,9 +223,9 @@ const PlayerDashboard = () => {
     );
   }
 
-  const wins = matchHistory.filter(match => match.result === 'vitória').length;
-  const losses = matchHistory.filter(match => match.result === 'derrota').length;
-  const winRate = matchHistory.length > 0 ? Math.round((wins / matchHistory.length) * 100) : 0;
+  const wins = matchHistory.filter(m => ['vitória','vitoria','win'].includes((m.result || '').toLowerCase())).length;
+  const losses = matchHistory.filter(m => ['derrota','loss'].includes((m.result || '').toLowerCase())).length;
+  const winRate = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
   const upcomingBookings = bookings.filter(booking => 
     new Date(booking.booking_date) >= new Date() && booking.status === 'confirmed'
   );

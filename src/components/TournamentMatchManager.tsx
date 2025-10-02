@@ -98,32 +98,50 @@ export const TournamentMatchManager = ({
 
       if (winners.error || !winners.data || winners.data.length < 2) return;
 
-      // Determine next round name
-      const roundNumber = parseInt(currentRound.split('_')[1]);
-      const nextRound = `round_${roundNumber + 1}`;
+        // Determine next round name
+        const roundNumber = parseInt(currentRound.split('_')[1]);
+        const nextRound = `round_${roundNumber + 1}`;
 
-      // Generate next round matches
-      const nextMatches = [];
-      for (let i = 0; i < winners.data.length / 2; i++) {
-        nextMatches.push({
-          tournament_id: tournamentId,
-          round: nextRound,
-          match_number: i + 1,
-          player1_id: winners.data[i * 2]?.winner_id,
-          player2_id: winners.data[i * 2 + 1]?.winner_id,
-          status: 'pending'
-        });
-      }
+        // If only one winner, tournament is finished
+        if (winners.data.length === 1) {
+          await supabase.from('tournaments').update({ status: 'completed' }).eq('id', tournamentId);
+          toast.success('Torneio finalizado! Campeão definido.');
+          return;
+        }
 
-      // Insert next round matches
-      if (nextMatches.length > 0) {
-        const { error: insertError } = await supabase
+        // Avoid duplicate generation if next round already exists
+        const existingNext = await supabase
           .from('tournament_brackets')
-          .insert(nextMatches);
+          .select('id')
+          .eq('tournament_id', tournamentId)
+          .eq('round', nextRound)
+          .limit(1);
+        if (!existingNext.error && existingNext.data && existingNext.data.length > 0) {
+          return;
+        }
 
-        if (insertError) throw insertError;
+        // Generate next round matches
+        const nextMatches = [] as any[];
+        for (let i = 0; i < Math.floor(winners.data.length / 2); i++) {
+          nextMatches.push({
+            tournament_id: tournamentId,
+            round: nextRound,
+            match_number: i + 1,
+            player1_id: winners.data[i * 2]?.winner_id,
+            player2_id: winners.data[i * 2 + 1]?.winner_id,
+            status: 'pending'
+          });
+        }
 
-        toast.success(`Próxima rodada (${nextRound}) gerada automaticamente!`);
+        // Insert next round matches
+        if (nextMatches.length > 0) {
+          const { error: insertError } = await supabase
+            .from('tournament_brackets')
+            .insert(nextMatches);
+
+          if (insertError) throw insertError;
+
+          toast.success(`Próxima rodada (${nextRound}) gerada automaticamente!`);
       }
     } catch (error) {
       console.error('Error generating next round:', error);
