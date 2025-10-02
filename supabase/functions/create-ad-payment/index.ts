@@ -84,8 +84,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/success?type=ad&ad_type=${adType}`,
-      cancel_url: `${req.headers.get("origin")}/`,
+      success_url: `${req.headers.get("origin")}/ad-payment-success?session_id={CHECKOUT_SESSION_ID}&ad_type=${adType}`,
+      cancel_url: `${req.headers.get("origin")}/courts`,
       metadata: {
         user_id: user.id,
         ad_type: adType,
