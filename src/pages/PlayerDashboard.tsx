@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -86,6 +86,7 @@ interface Booking {
 
 const PlayerDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [matchHistory, setMatchHistory] = useState<MatchHistory[]>([]);
@@ -107,6 +108,7 @@ const PlayerDashboard = () => {
   const [tournaments, setTournaments] = useState<any[]>([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
   const [bracketStats, setBracketStats] = useState<{ wins: number; losses: number; total: number }>({ wins: 0, losses: 0, total: 0 });
+  const [activeTab, setActiveTab] = useState('games');
 
   useEffect(() => {
     // Aguardar o loading terminar antes de verificar autenticação
@@ -129,6 +131,14 @@ const PlayerDashboard = () => {
       fetchPlayerData();
     }
   }, [isAuthenticated, user, navigate, authLoading]);
+
+  // Ler a aba da URL quando o componente montar ou os parâmetros mudarem
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const fetchPlayerData = async () => {
     if (!user) return;
@@ -426,7 +436,7 @@ const PlayerDashboard = () => {
             </Card>
           </div>
 
-          <Tabs defaultValue="games" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList>
               <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>

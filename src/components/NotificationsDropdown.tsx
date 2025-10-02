@@ -39,21 +39,41 @@ const NotificationsDropdown = () => {
       markAsRead(notification.id);
     }
 
-    // Navegar para a área correspondente
+    // Navegar para a área correspondente baseado no tipo de notificação
     if (notification.type === 'challenge') {
       // Redirecionar para a dashboard do usuário na aba de jogos
+      if (user?.role === 'player') {
+        navigate('/player-dashboard?tab=games');
+      } else if (user?.role === 'partner') {
+        navigate('/partner-dashboard?tab=games');
+      } else if (user?.role === 'instructor') {
+        navigate('/instructor-dashboard?tab=games');
+      }
+    } else if (notification.type === 'tournament') {
+      // Se houver um ID de torneio na notificação, ir direto para os detalhes
+      if (notification.data?.tournament_id) {
+        navigate(`/tournaments/${notification.data.tournament_id}`);
+      } else {
+        navigate('/tournaments');
+      }
+    } else if (notification.type === 'match_result') {
+      if (user?.role === 'player') {
+        navigate('/player-dashboard?tab=history');
+      }
+    } else if (notification.type === 'booking') {
+      if (user?.role === 'player') {
+        navigate('/player-dashboard?tab=bookings');
+      } else if (user?.role === 'partner') {
+        navigate('/partner-dashboard?tab=bookings');
+      }
+    } else {
+      // Fallback para tipos de notificação não especificados
       if (user?.role === 'player') {
         navigate('/player-dashboard');
       } else if (user?.role === 'partner') {
         navigate('/partner-dashboard');
       } else if (user?.role === 'instructor') {
         navigate('/instructor-dashboard');
-      }
-    } else if (notification.type === 'tournament') {
-      navigate('/tournaments');
-    } else if (notification.type === 'match_result') {
-      if (user?.role === 'player') {
-        navigate('/player-dashboard');
       }
     }
   };

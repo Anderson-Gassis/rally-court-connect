@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -78,12 +78,14 @@ interface Booking {
 
 const PartnerDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<PartnerProfile | null>(null);
   const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null);
   const [courts, setCourts] = useState<Court[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     // Aguardar o loading terminar antes de verificar autenticação
@@ -106,6 +108,14 @@ const PartnerDashboard = () => {
       fetchPartnerData();
     }
   }, [isAuthenticated, user, navigate, authLoading]);
+
+  // Ler a aba da URL quando o componente montar ou os parâmetros mudarem
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const fetchPartnerData = async () => {
     if (!user) return;
@@ -342,7 +352,7 @@ const PartnerDashboard = () => {
             </Card>
           </div>
 
-          <Tabs defaultValue="overview" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="courts">Minhas Quadras</TabsTrigger>
