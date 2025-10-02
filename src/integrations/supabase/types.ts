@@ -452,6 +452,85 @@ export type Database = {
           },
         ]
       }
+      instructor_availability: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          instructor_id: string
+          is_available: boolean | null
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          instructor_id: string
+          is_available?: boolean | null
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          instructor_id?: string
+          is_available?: boolean | null
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instructor_availability_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instructor_blocked_times: {
+        Row: {
+          blocked_date: string
+          created_at: string | null
+          end_time: string
+          id: string
+          instructor_id: string
+          reason: string | null
+          start_time: string
+        }
+        Insert: {
+          blocked_date: string
+          created_at?: string | null
+          end_time: string
+          id?: string
+          instructor_id: string
+          reason?: string | null
+          start_time: string
+        }
+        Update: {
+          blocked_date?: string
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          instructor_id?: string
+          reason?: string | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instructor_blocked_times_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructor_info: {
         Row: {
           ad_payment_id: string | null

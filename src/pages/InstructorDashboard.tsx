@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import InstructorAvailabilityManager from '@/components/InstructorAvailabilityManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -447,7 +448,9 @@ const InstructorDashboard = () => {
             </TabsContent>
 
             <TabsContent value="schedule">
-              <Card>
+              <InstructorAvailabilityManager instructorId={instructorInfo?.id || ''} />
+              
+              <Card className="mt-6">
                 <CardHeader>
                   <CardTitle>Todas as Aulas</CardTitle>
                   <CardDescription>
