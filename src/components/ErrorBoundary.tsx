@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -60,10 +59,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               </Button>
               <Button 
                 variant="outline" 
-                asChild
+                onClick={() => window.location.href = '/'}
                 className="w-full"
               >
-                <Link to="/">Voltar ao início</Link>
+                <Home className="h-4 w-4 mr-2" />
+                Voltar ao início
               </Button>
             </div>
             {this.state.error && process.env.NODE_ENV === 'development' && (

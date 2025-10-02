@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -56,11 +56,12 @@ const BookingModal = ({
 
   const totalHours = calculateHours();
   
-  // Validar dados ao mudar
-  const validateBooking = () => {
-    setValidationError(undefined);
-    
-    if (!date || !startTime || !endTime) return false;
+  // Validar dados quando mudarem
+  useEffect(() => {
+    if (!date || !startTime || !endTime) {
+      setValidationError(undefined);
+      return;
+    }
     
     try {
       bookingSchema.parse({
@@ -69,22 +70,26 @@ const BookingModal = ({
         startTime,
         endTime,
       });
-      return true;
+      setValidationError(undefined);
     } catch (error: any) {
       const errorMessage = error.errors?.[0]?.message || 'Dados inválidos';
       setValidationError(errorMessage);
-      return false;
     }
-  };
+  }, [courtId, date, startTime, endTime]);
 
-  const canProceed = date && startTime && endTime && totalHours > 0 && validateBooking();
+  const canProceed = useMemo(() => {
+    return date && startTime && endTime && totalHours > 0 && !validationError;
+  }, [date, startTime, endTime, totalHours, validationError]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto" aria-describedby="booking-description">
         <DialogHeader>
           <DialogTitle className="text-2xl">Reservar Quadra</DialogTitle>
         </DialogHeader>
+        <p id="booking-description" className="sr-only">
+          Selecione data, horários e pacote para reservar a quadra
+        </p>
 
         <div className="space-y-6 pb-4">
           {/* Court Info */}

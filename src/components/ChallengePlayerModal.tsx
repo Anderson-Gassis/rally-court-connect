@@ -77,13 +77,13 @@ const ChallengePlayerModal = ({ isOpen, onClose, playerId, playerName }: Challen
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" aria-describedby="challenge-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-tennis-blue" />
             Convidar para Jogar
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="challenge-description">
             Envie um convite para {playerName} para uma partida
           </DialogDescription>
         </DialogHeader>
