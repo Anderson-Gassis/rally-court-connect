@@ -7,11 +7,28 @@ import CourtSearch from '@/components/CourtSearch';
 import CourtsList from '@/components/CourtsList';
 import MapView from '@/components/MapView';
 import { useCourtSearch } from '@/hooks/useCourts';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { toast } from 'sonner';
 
 const CourtTabContent = () => {
   const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const { courts, isLoading, error, setSearchTerm, setFilters } = useCourtSearch();
+  const { latitude, longitude, getCurrentLocation, error: geoError } = useGeolocation();
+
+  // Get user location on mount
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  // Show error if geolocation fails
+  useEffect(() => {
+    if (geoError) {
+      toast.error('Erro ao obter localização', {
+        description: geoError + '. O filtro de distância pode não funcionar corretamente.'
+      });
+    }
+  }, [geoError]);
 
   // Apply URL parameters on mount
   useEffect(() => {
@@ -34,7 +51,15 @@ const CourtTabContent = () => {
 
   const handleSearch = (location: string, filters: any) => {
     setSearchTerm(location);
-    setFilters(filters);
+    
+    // Add user coordinates to filters for distance calculation
+    const filtersWithCoords = {
+      ...filters,
+      lat: latitude || undefined,
+      lng: longitude || undefined,
+    };
+    
+    setFilters(filtersWithCoords);
   };
 
   if (error) {

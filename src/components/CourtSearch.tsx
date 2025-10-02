@@ -26,7 +26,7 @@ interface CourtSearchProps {
 
 const CourtSearch = ({ onSearch }: CourtSearchProps) => {
   const [location, setLocation] = useState("");
-  const [distance, setDistance] = useState([5]);
+  const [distance, setDistance] = useState([10]);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [sportType, setSportType] = useState("all");
   const [filters, setFilters] = useState({
@@ -143,12 +143,8 @@ const CourtSearch = ({ onSearch }: CourtSearchProps) => {
           onClick={toggleFilters}
         >
           <Filter className="h-4 w-4 mr-1" />
-          Filtros {showFilters ? "▲" : "▼"}
+          {showFilters ? "Ocultar Filtros ▲" : "Mais Filtros ▼"}
         </Button>
-
-        <div className="mt-2 text-sm font-medium text-gray-700">
-          Distância: {distance} km
-        </div>
       </div>
 
       {/* Advanced Filters */}
@@ -156,10 +152,13 @@ const CourtSearch = ({ onSearch }: CourtSearchProps) => {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Distance Slider */}
           <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">
+              Distância Máxima: {distance} km
+            </label>
             <Slider
-              defaultValue={distance}
-              max={30}
-              step={1}
+              value={distance}
+              max={100}
+              step={5}
               onValueChange={setDistance}
               className="py-4"
             />
