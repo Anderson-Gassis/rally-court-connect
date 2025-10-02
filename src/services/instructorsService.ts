@@ -52,7 +52,7 @@ export const instructorsService = {
         .from('instructor_info')
         .select(`
           *,
-          profiles!instructor_info_user_id_fkey (
+          profiles!inner (
             user_id,
             full_name,
             avatar_url,
