@@ -37,16 +37,17 @@ serve(async (req) => {
 
     // Category thresholds based on ranking points
     const categoryThresholds = {
-      'D': { min: 0, max: 50 },
-      'C': { min: 51, max: 150 },
-      'B': { min: 151, max: 300 },
-      'A': { min: 301, max: Infinity }
+      'C': { min: 0, max: 50 },
+      'B': { min: 51, max: 150 },
+      'A': { min: 151, max: 300 },
+      'Amador': { min: 301, max: 600 },
+      'Profissional': { min: 601, max: Infinity }
     };
 
     const rankingPoints = profile.ranking_points || 0;
     
     // Determine suggested category based on ranking
-    let suggestedCategory = 'D';
+    let suggestedCategory = 'C';
     for (const [category, threshold] of Object.entries(categoryThresholds)) {
       if (rankingPoints >= threshold.min && rankingPoints <= threshold.max) {
         suggestedCategory = category;
@@ -55,7 +56,7 @@ serve(async (req) => {
     }
 
     // Check if player is trying to register in a category too far below their level
-    const categoryOrder = ['D', 'C', 'B', 'A'];
+    const categoryOrder = ['C', 'B', 'A', 'Amador', 'Profissional'];
     const requestedIndex = categoryOrder.indexOf(requestedCategory);
     const suggestedIndex = categoryOrder.indexOf(suggestedCategory);
     

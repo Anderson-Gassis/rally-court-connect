@@ -34,10 +34,13 @@ interface InstructorSignupModalProps {
 }
 
 const SPECIALIZATION_OPTIONS = [
-  'Iniciante',
+  'Profissional',
+  'Amador',
+  'Categoria A',
+  'Categoria B',
+  'Categoria C',
   'Crianças',
   'Mulheres',
-  'Profissional',
   'Sparring',
   'Competição',
   'Condicionamento Físico',

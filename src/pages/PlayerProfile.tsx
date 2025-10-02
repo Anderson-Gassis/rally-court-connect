@@ -366,10 +366,11 @@ const PlayerProfile = () => {
                                 <SelectValue placeholder="Selecione o nível" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Iniciante">Iniciante</SelectItem>
-                                <SelectItem value="Intermediário">Intermediário</SelectItem>
-                                <SelectItem value="Avançado">Avançado</SelectItem>
                                 <SelectItem value="Profissional">Profissional</SelectItem>
+                                <SelectItem value="Amador">Amador</SelectItem>
+                                <SelectItem value="A">Categoria A</SelectItem>
+                                <SelectItem value="B">Categoria B</SelectItem>
+                                <SelectItem value="C">Categoria C</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>

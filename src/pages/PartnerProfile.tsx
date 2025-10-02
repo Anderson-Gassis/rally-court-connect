@@ -589,7 +589,7 @@ const PartnerProfile = () => {
                               id="specialization"
                               value={editData.specialization}
                               onChange={(e) => setEditData(prev => ({ ...prev, specialization: e.target.value }))}
-                              placeholder="Ex: Iniciantes, Avançado, Infantil, Alto Rendimento"
+                              placeholder="Ex: Profissional, Amador, Categoria A, Infantil, Alto Rendimento"
                             />
                           ) : (
                             <p className="text-gray-900 py-2">{partnerInfo?.specialization || 'Não informado'}</p>

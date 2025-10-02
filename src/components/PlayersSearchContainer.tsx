@@ -65,9 +65,14 @@ const PlayersSearchContainer = () => {
 
   const getSkillLevelColor = (level?: string) => {
     switch (level?.toLowerCase()) {
-      case 'iniciante': return 'bg-green-100 text-green-800';
-      case 'intermediário': return 'bg-yellow-100 text-yellow-800';
-      case 'avançado': return 'bg-red-100 text-red-800';
+      case 'profissional': return 'bg-purple-100 text-purple-800';
+      case 'amador': return 'bg-blue-100 text-blue-800';
+      case 'a': 
+      case 'categoria a': return 'bg-red-100 text-red-800';
+      case 'b':
+      case 'categoria b': return 'bg-orange-100 text-orange-800';
+      case 'c':
+      case 'categoria c': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -139,9 +144,11 @@ const PlayersSearchContainer = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os níveis</SelectItem>
-                <SelectItem value="Iniciante">Iniciante</SelectItem>
-                <SelectItem value="Intermediário">Intermediário</SelectItem>
-                <SelectItem value="Avançado">Avançado</SelectItem>
+                <SelectItem value="Profissional">Profissional</SelectItem>
+                <SelectItem value="Amador">Amador</SelectItem>
+                <SelectItem value="A">Categoria A</SelectItem>
+                <SelectItem value="B">Categoria B</SelectItem>
+                <SelectItem value="C">Categoria C</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -49,7 +49,7 @@ const Rankings = () => {
           name: profile.full_name || 'Jogador',
           nickname: profile.full_name?.split(' ')[0] || 'Player',
           image: profile.avatar_url,
-          level: profile.skill_level || 'Iniciante',
+          level: profile.skill_level || 'C',
           region: profile.location || 'São Paulo',
           matches: totalMatches,
           winRate,
@@ -145,10 +145,11 @@ const Rankings = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os níveis</SelectItem>
-                    <SelectItem value="Iniciante">Iniciante</SelectItem>
-                    <SelectItem value="Intermediário">Intermediário</SelectItem>
-                    <SelectItem value="Avançado">Avançado</SelectItem>
                     <SelectItem value="Profissional">Profissional</SelectItem>
+                    <SelectItem value="Amador">Amador</SelectItem>
+                    <SelectItem value="A">Categoria A</SelectItem>
+                    <SelectItem value="B">Categoria B</SelectItem>
+                    <SelectItem value="C">Categoria C</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

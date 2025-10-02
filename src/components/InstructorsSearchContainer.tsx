@@ -77,10 +77,13 @@ const InstructorsSearchContainer = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as especializações</SelectItem>
-              <SelectItem value="Iniciante">Iniciante</SelectItem>
+              <SelectItem value="Profissional">Profissional</SelectItem>
+              <SelectItem value="Amador">Amador</SelectItem>
+              <SelectItem value="A">Categoria A</SelectItem>
+              <SelectItem value="B">Categoria B</SelectItem>
+              <SelectItem value="C">Categoria C</SelectItem>
               <SelectItem value="Crianças">Crianças</SelectItem>
               <SelectItem value="Mulheres">Mulheres</SelectItem>
-              <SelectItem value="Profissional">Profissional</SelectItem>
               <SelectItem value="Competição">Competição</SelectItem>
             </SelectContent>
           </Select>

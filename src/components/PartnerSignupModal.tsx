@@ -313,7 +313,7 @@ const PartnerSignupModal = ({ isOpen, onClose }: PartnerSignupModalProps) => {
                       id="specialization"
                       value={formData.specialization}
                       onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
-                      placeholder="Ex: Iniciantes, Avançado, Infantil, Alto Rendimento"
+                      placeholder="Ex: Profissional, Amador, Categoria A, Infantil, Alto Rendimento"
                       className={errors.specialization ? 'border-red-500' : ''}
                     />
                     {errors.specialization && <p className="text-red-500 text-sm">{errors.specialization}</p>}

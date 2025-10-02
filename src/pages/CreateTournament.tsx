@@ -61,10 +61,11 @@ const CreateTournament = () => {
   ];
 
   const categories = [
-    { id: 'A', label: 'Categoria A (Avançado)' },
-    { id: 'B', label: 'Categoria B (Intermediário Avançado)' },
-    { id: 'C', label: 'Categoria C (Intermediário)' },
-    { id: 'D', label: 'Categoria D (Iniciante)' },
+    { id: 'Profissional', label: 'Profissional' },
+    { id: 'Amador', label: 'Amador' },
+    { id: 'A', label: 'Categoria A' },
+    { id: 'B', label: 'Categoria B' },
+    { id: 'C', label: 'Categoria C' },
   ];
 
   const onSubmit = async (data: TournamentForm) => {
