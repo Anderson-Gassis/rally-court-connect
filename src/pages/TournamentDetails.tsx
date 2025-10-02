@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Trophy, Calendar, MapPin, Users, DollarSign, FileText, Grid3x3 } from 'lucide-react';
+import { Trophy, Calendar, MapPin, Users, DollarSign, FileText, Grid3x3, Download } from 'lucide-react';
 import TournamentBracket from '@/components/TournamentBracket';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
