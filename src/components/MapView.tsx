@@ -85,7 +85,14 @@ const MapView = () => {
       window.initMap = initializeMap;
       
       script.onerror = () => {
-        setMapError('Erro ao carregar Google Maps. Verifique a chave de API.');
+        console.error('❌ Google Maps script failed to load');
+        console.error('📋 Checklist:');
+        console.error('1. Billing habilitado no Google Cloud Console?');
+        console.error('2. Maps JavaScript API habilitada?');
+        console.error('3. Places API habilitada?');
+        console.error('4. API key válida e sem restrições bloqueando?');
+        console.error('5. Verifique GOOGLE_MAPS_SETUP.md para instruções completas');
+        setMapError('Erro ao carregar Google Maps. Verifique o console e GOOGLE_MAPS_SETUP.md para instruções.');
       };
       
       document.head.appendChild(script);
