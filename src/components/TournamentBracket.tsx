@@ -106,8 +106,10 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
       const nextMatchNumber = Math.ceil(currentMatch.match_number / 2);
       const isPlayer1Position = currentMatch.match_number % 2 === 1;
       
+      console.log('Advancing winner:', { roundNumber, nextRound, nextMatchNumber, isPlayer1Position, winnerId });
+      
       // Check if next round exists
-      const { data: nextRoundMatch } = await supabase
+      const { data: nextRoundMatch, error: fetchError } = await supabase
         .from('tournament_brackets')
         .select('*')
         .eq('tournament_id', tournamentId)
@@ -115,7 +117,12 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
         .eq('match_number', nextMatchNumber)
         .single();
 
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
       if (nextRoundMatch) {
+        console.log('Found next round match:', nextRoundMatch);
         // Update next round match with the winner
         const { error } = await supabase
           .from('tournament_brackets')
@@ -126,16 +133,14 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
 
         if (error) throw error;
 
-        // Check if opponent is already there (auto-advance if both players ready)
-        const opponentKey = isPlayer1Position ? 'player2_id' : 'player1_id';
-        if (!nextRoundMatch[opponentKey]) {
-          // No opponent yet, check if this player should auto-advance (walkover)
-          toast.success('Vencedor avançou para a próxima rodada!');
-        } else {
-          toast.success('Vencedor avançou para a próxima rodada!');
-        }
+        console.log('Winner advanced successfully');
+        toast.success('Vencedor avançou para a próxima rodada!');
+        
+        // Refresh matches to show updated bracket
+        await fetchMatches();
       } else {
         // This was the final match
+        console.log('This was the final match');
         await supabase
           .from('tournaments')
           .update({ status: 'completed' })
@@ -213,8 +218,14 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
   };
 
   const getTotalRounds = () => {
+    if (matches.length === 0) return 0;
     const rounds = new Set(matches.map(m => m.round));
     return rounds.size;
+  };
+
+  const hasMatchesInRound = (roundNum: number) => {
+    const roundKey = `round_${roundNum}`;
+    return matches.some(m => m.round === roundKey);
   };
 
   const getMatchReference = (matchNumber: number, previousRound: number) => {
@@ -282,7 +293,7 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
           <Button
             variant="outline"
             onClick={() => setCurrentRound(prev => Math.min(totalRounds, prev + 1))}
-            disabled={currentRound === totalRounds}
+            disabled={currentRound >= totalRounds || !hasMatchesInRound(currentRound + 1)}
           >
             Próxima Rodada →
           </Button>
