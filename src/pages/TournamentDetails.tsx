@@ -11,8 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Trophy, Calendar, MapPin, Users, DollarSign, FileText, Grid3x3, Download } from 'lucide-react';
 import TournamentBracket from '@/components/TournamentBracket';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import TournamentBracketPDF from '@/components/TournamentBracketPDF';
 import TournamentPaymentButton from '@/components/TournamentPaymentButton';
 import { TournamentMatchManager } from '@/components/TournamentMatchManager';
 
@@ -62,54 +61,6 @@ const TournamentDetails = () => {
       supabase.removeChannel(channel);
     };
   }, [id]);
-
-  const handleExportBracketPDF = async () => {
-    try {
-      const bracketEl = document.getElementById('bracket-container');
-      if (!bracketEl) return toast.error('Chave não encontrada na página');
-      const canvas = await html2canvas(bracketEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth - 40; // margins
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let y = 20;
-      // Title
-      pdf.setFontSize(14);
-      pdf.text(`Chave do Torneio: ${tournament?.name || ''}`, 20, y);
-      y += 10;
-      // Add image, split into pages if needed
-      if (imgHeight <= pageHeight - 40) {
-        pdf.addImage(imgData, 'PNG', 20, y + 10, imgWidth, imgHeight);
-      } else {
-        let position = 0;
-        let remainingHeight = imgHeight;
-        const pageImgHeight = pageHeight - 60; // account for margins and title
-        while (remainingHeight > 0) {
-          const canvasPage = document.createElement('canvas');
-          canvasPage.width = canvas.width;
-          canvasPage.height = Math.min(canvas.height, Math.round((pageImgHeight * canvas.width) / imgWidth));
-          const ctx = canvasPage.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(canvas, 0, position, canvas.width, canvasPage.height, 0, 0, canvasPage.width, canvasPage.height);
-            const pageData = canvasPage.toDataURL('image/png');
-            if (position > 0) pdf.addPage();
-            pdf.addImage(pageData, 'PNG', 20, 40, imgWidth, pageImgHeight);
-            position += canvasPage.height;
-            remainingHeight -= pageImgHeight;
-          } else {
-            break;
-          }
-        }
-      }
-      pdf.save(`chave-${tournament?.name || 'torneio'}.pdf`);
-      toast.success('PDF gerado com sucesso!');
-    } catch (err) {
-      console.error('Erro ao exportar PDF', err);
-      toast.error('Erro ao exportar PDF da chave');
-    }
-  };
 
   const fetchTournamentDetails = async () => {
     try {
@@ -626,17 +577,17 @@ const TournamentDetails = () => {
               )}
               
               {tournament.bracket_generated ? (
-                <div>
-                  {tournament.organizer_id === user?.id && (
-                    <div className="flex justify-end mb-4">
-                      <Button variant="outline" onClick={handleExportBracketPDF}>
-                        Baixar Chave em PDF
-                      </Button>
-                    </div>
-                  )}
+                <div className="space-y-6">
                   <div id="bracket-container">
                     <TournamentBracket tournamentId={id!} />
                   </div>
+                  
+                  {tournament.organizer_id === user?.id && (
+                    <TournamentBracketPDF 
+                      tournamentName={tournament.name}
+                      matches={bracketMatches}
+                    />
+                  )}
                 </div>
               ) : (
                 <Card>

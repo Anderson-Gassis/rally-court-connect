@@ -219,20 +219,19 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     // If DB has matches for this round (or it's the first), use them
     if (realMatches.length > 0 || currentRound === 1) return realMatches;
 
-    // Otherwise, build virtual pairings from winners of the previous round
+    // Otherwise, build virtual pairings from winners of the previous round (sequencial: 1vs2, 3vs4)
     const prevRound = currentRound - 1;
     const prevKey = `round_${prevRound}`;
     const prevMatches = matches.filter(m => m.round === prevKey);
     if (prevMatches.length === 0) return [];
 
-    const half = Math.ceil(prevMatches.length / 2);
     const buildVirtual = (i: number) => {
-      const a = i;
-      const b = i + half;
-      const matchA = prevMatches.find(m => m.match_number === a);
-      const matchB = prevMatches.find(m => m.match_number === b);
-      const winnerAName = matchA?.winner?.full_name || `Vencedor da Partida #${a}`;
-      const winnerBName = matchB?.winner?.full_name || `Vencedor da Partida #${b}`;
+      const sourceA = (i - 1) * 2 + 1;
+      const sourceB = sourceA + 1;
+      const matchA = prevMatches.find(m => m.match_number === sourceA);
+      const matchB = prevMatches.find(m => m.match_number === sourceB);
+      const winnerAName = matchA?.winner?.full_name || `Vencedor da Partida #${sourceA}`;
+      const winnerBName = matchB?.winner?.full_name || `Vencedor da Partida #${sourceB}`;
       return {
         id: `virtual-${roundKey}-${i}`,
         round: roundKey,
@@ -265,20 +264,10 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     return winnersInCurrent >= 2;
   };
   const getMatchReference = (matchNumber: number, previousRound: number) => {
-    // Para exibir "Vencedor da Partida #X" com o mapeamento solicitado (1x3, 2x4, ...)
-    const prevRoundKey = `round_${previousRound}`;
-    const prevCount = matches.filter(m => m.round === prevRoundKey).length;
-
-    if (prevCount <= 0) {
-      const sourceMatch1 = (matchNumber - 1) * 2 + 1;
-      const sourceMatch2 = sourceMatch1 + 1;
-      return { match1: sourceMatch1, match2: sourceMatch2 };
-    }
-
-    const half = Math.ceil(prevCount / 2);
-    const a = matchNumber;
-    const b = matchNumber + half;
-    return { match1: a, match2: b };
+    // Mapeamento sequencial: Partida 1 (vencedores de #1 vs #2), Partida 2 (vencedores de #3 vs #4)
+    const sourceMatch1 = (matchNumber - 1) * 2 + 1;
+    const sourceMatch2 = sourceMatch1 + 1;
+    return { match1: sourceMatch1, match2: sourceMatch2 };
   };
   const getRoundName = (roundNum: number) => {
     const totalRounds = getTotalRounds();
