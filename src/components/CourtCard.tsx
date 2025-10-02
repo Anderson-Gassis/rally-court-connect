@@ -5,6 +5,7 @@ import { MapPin, Star, Clock, Sparkles } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BookingModal from "./BookingModal";
+import LazyImage from "./LazyImage";
 
 interface CourtCardProps {
   id: string;
@@ -66,7 +67,11 @@ const CourtCard = ({
       isFeatured ? 'ring-2 ring-primary shadow-xl' : ''
     }`}>
       <div className="relative h-48">
-        <img src={image} alt={name} className="w-full h-full object-cover" />
+        <LazyImage
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover"
+        />
         {isFeatured && (
           <Badge 
             className="absolute top-3 left-3 bg-gradient-to-r from-primary to-primary/80 text-white animate-pulse"

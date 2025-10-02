@@ -15,6 +15,7 @@ import { courtsService } from '@/services/courtsService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import AdPlanSelector from '@/components/AdPlanSelector';
+import { validateImageFile } from '@/lib/validations/image';
 
 const AddCourt = () => {
   const navigate = useNavigate();
@@ -73,6 +74,13 @@ const AddCourt = () => {
 
   const handleImageUpload = async (file: File) => {
     if (!file) return null;
+    
+    // Validar imagem
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error || 'Imagem inválida');
+      return null;
+    }
     
     setUploadingImage(true);
     try {
