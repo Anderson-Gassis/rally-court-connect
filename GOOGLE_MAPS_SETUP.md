@@ -1,9 +1,9 @@
 # Configuração do Google Maps - Guia Completo
 
-## 🔑 API Key Atual
-A API key já está configurada nos secrets do Supabase: `GOOGLE_MAPS_API_KEY`
+## 🔑 API Key
+A API key está configurada de forma segura nos secrets do Supabase: `GOOGLE_MAPS_API_KEY`
 
-**Valor atual**: `AIzaSyBoSkK57dZoIh6tVDaEvUM1AhnHdKVtawI`
+**⚠️ NUNCA exponha sua API key publicamente no código!**
 
 ## ✅ Checklist de Configuração no Google Cloud Console
 
