@@ -17,6 +17,15 @@ import TournamentBracketPDF from '@/components/TournamentBracketPDF';
 import TournamentPaymentButton from '@/components/TournamentPaymentButton';
 import { TournamentMatchManager } from '@/components/TournamentMatchManager';
 
+// Robust local date-time parser to avoid timezone shifts from "YYYY-MM-DD"
+function parseLocalDateTime(dateStr?: string, timeStr?: string) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split('-').map((v) => parseInt(v, 10));
+  const [hh, mm] = (timeStr || '00:00').split(':').map((v) => parseInt(v, 10));
+  if (!y || !m || !d) return null;
+  return new Date(y, (m - 1), d, hh || 0, mm || 0, 0, 0);
+}
+
 const TournamentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -129,18 +138,23 @@ const TournamentDetails = () => {
       // - Não atingiu o número máximo de participantes
       const now = new Date();
       
-      // Data e hora de início das inscrições
-      const startDate = new Date(tournamentData.registration_start_date);
-      const [startHours, startMinutes] = (tournamentData.registration_start_time || '00:00').split(':');
-      startDate.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
+      // Data e hora de início das inscrições (montada em horário local para evitar timezone bugs)
+      const startDate = parseLocalDateTime(
+        tournamentData.registration_start_date,
+        tournamentData.registration_start_time || '00:00'
+      );
+
+      // Data e hora de encerramento das inscrições (horário local + 59s/999ms no limite)
+      const deadlineDate = parseLocalDateTime(
+        tournamentData.registration_deadline,
+        tournamentData.registration_deadline_time || '23:59'
+      );
+      if (deadlineDate) {
+        deadlineDate.setSeconds(59, 999);
+      }
       
-      // Data e hora de encerramento das inscrições
-      const deadlineDate = new Date(tournamentData.registration_deadline);
-      const [deadlineHours, deadlineMinutes] = (tournamentData.registration_deadline_time || '23:59').split(':');
-      deadlineDate.setHours(parseInt(deadlineHours), parseInt(deadlineMinutes), 59, 999);
-      
-      const notStartedYet = now < startDate;
-      const deadlinePassed = now > deadlineDate;
+      const notStartedYet = startDate ? now < startDate : false;
+      const deadlinePassed = deadlineDate ? now > deadlineDate : false;
       const closedManually = tournamentData.registration_closed === true;
       
       setRegistrationsNotStarted(notStartedYet);
