@@ -1528,8 +1528,10 @@ export type Database = {
           partner_user_id: string | null
           payment_status: string | null
           platform_fee: number | null
+          refund_id: string | null
           registration_date: string
           seed_position: number | null
+          stripe_payment_intent_id: string | null
           tournament_id: string
           user_id: string
           validated: boolean | null
@@ -1543,8 +1545,10 @@ export type Database = {
           partner_user_id?: string | null
           payment_status?: string | null
           platform_fee?: number | null
+          refund_id?: string | null
           registration_date?: string
           seed_position?: number | null
+          stripe_payment_intent_id?: string | null
           tournament_id: string
           user_id: string
           validated?: boolean | null
@@ -1558,8 +1562,10 @@ export type Database = {
           partner_user_id?: string | null
           payment_status?: string | null
           platform_fee?: number | null
+          refund_id?: string | null
           registration_date?: string
           seed_position?: number | null
+          stripe_payment_intent_id?: string | null
           tournament_id?: string
           user_id?: string
           validated?: boolean | null

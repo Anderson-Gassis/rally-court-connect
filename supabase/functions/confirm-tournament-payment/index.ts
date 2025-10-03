@@ -54,6 +54,7 @@ serve(async (req) => {
         user_id: session.metadata?.userId,
         tournament_id: session.metadata?.tournamentId,
         payment_status: 'paid',
+        stripe_payment_intent_id: session.payment_intent as string,
         platform_fee: platformFee,
         organizer_amount: organizerAmount
       })
