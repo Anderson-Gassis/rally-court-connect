@@ -23,6 +23,7 @@ const tournamentSchema = z.object({
   location: z.string().min(3, 'Localização é obrigatória'),
   description: z.string().optional(),
   registration_start_date: z.string(),
+  registration_start_time: z.string(),
   registration_deadline: z.string(),
   registration_deadline_time: z.string(),
   start_date: z.string(),
@@ -52,6 +53,7 @@ const CreateTournament = () => {
       entry_fee: '0',
       max_participants: '32',
       prize_pool: '0',
+      registration_start_time: '00:00',
       registration_deadline_time: '23:59',
     },
   });
@@ -96,6 +98,7 @@ const CreateTournament = () => {
           location: data.location,
           description: data.description,
           registration_start_date: data.registration_start_date,
+          registration_start_time: data.registration_start_time,
           registration_deadline: data.registration_deadline,
           registration_deadline_time: data.registration_deadline_time,
           start_date: data.start_date,
@@ -277,8 +280,8 @@ const CreateTournament = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Datas e Inscrições</CardTitle>
-                  <CardDescription>Configure os prazos do torneio</CardDescription>
+                  <CardTitle>Período de Inscrições</CardTitle>
+                  <CardDescription>Configure quando os jogadores podem se inscrever</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -287,7 +290,7 @@ const CreateTournament = () => {
                       name="registration_start_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Início das Inscrições *</FormLabel>
+                          <FormLabel>Data de Início das Inscrições *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -298,10 +301,27 @@ const CreateTournament = () => {
 
                     <FormField
                       control={form.control}
+                      name="registration_start_time"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Horário de Início das Inscrições *</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Horário em que as inscrições começam
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="registration_deadline"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Data de Encerramento *</FormLabel>
+                          <FormLabel>Data de Encerramento das Inscrições *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -315,7 +335,7 @@ const CreateTournament = () => {
                       name="registration_deadline_time"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Horário de Encerramento *</FormLabel>
+                          <FormLabel>Horário de Encerramento das Inscrições *</FormLabel>
                           <FormControl>
                             <Input type="time" {...field} />
                           </FormControl>
@@ -326,13 +346,23 @@ const CreateTournament = () => {
                         </FormItem>
                       )}
                     />
+                  </div>
+                </CardContent>
+              </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle>Período de Realização do Torneio</CardTitle>
+                  <CardDescription>Quando o torneio será realizado</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="start_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Data de Início *</FormLabel>
+                          <FormLabel>Data de Início do Torneio *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -346,7 +376,7 @@ const CreateTournament = () => {
                       name="end_date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Data de Término *</FormLabel>
+                          <FormLabel>Data de Término do Torneio *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>

@@ -1611,6 +1611,7 @@ export type Database = {
           registration_deadline: string
           registration_deadline_time: string | null
           registration_start_date: string | null
+          registration_start_time: string | null
           regulation: string | null
           sport_type: string
           start_date: string
@@ -1640,6 +1641,7 @@ export type Database = {
           registration_deadline: string
           registration_deadline_time?: string | null
           registration_start_date?: string | null
+          registration_start_time?: string | null
           regulation?: string | null
           sport_type: string
           start_date: string
@@ -1669,6 +1671,7 @@ export type Database = {
           registration_deadline?: string
           registration_deadline_time?: string | null
           registration_start_date?: string | null
+          registration_start_time?: string | null
           regulation?: string | null
           sport_type?: string
           start_date?: string
