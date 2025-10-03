@@ -11,6 +11,7 @@ import AddMatchModal from '@/components/AddMatchModal';
 import { BookingDetailsModal } from '@/components/BookingDetailsModal';
 import { ChallengesCard } from '@/components/ChallengesCard';
 import { ReportResultModal } from '@/components/ReportResultModal';
+import { ChatInterface } from '@/components/ChatInterface';
 import { bookingsService } from '@/services/bookingsService';
 import { challengesService } from '@/services/challengesService';
 import { 
@@ -36,7 +37,8 @@ import {
   XCircle,
   Plus,
   Edit,
-  TrendingUp
+  TrendingUp,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -441,6 +443,10 @@ const PlayerDashboard = () => {
               <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
               <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
+              <TabsTrigger value="messages">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Mensagens
+              </TabsTrigger>
               <TabsTrigger value="history">Histórico e Estatísticas</TabsTrigger>
               <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
             </TabsList>
@@ -809,6 +815,23 @@ const PlayerDashboard = () => {
                       </Button>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="messages" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Mensagens
+                  </CardTitle>
+                  <CardDescription>
+                    Converse com outros jogadores
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChatInterface />
                 </CardContent>
               </Card>
             </TabsContent>
