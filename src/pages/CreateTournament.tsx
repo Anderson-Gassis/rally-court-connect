@@ -24,6 +24,7 @@ const tournamentSchema = z.object({
   description: z.string().optional(),
   registration_start_date: z.string(),
   registration_deadline: z.string(),
+  registration_deadline_time: z.string(),
   start_date: z.string(),
   end_date: z.string(),
   entry_fee: z.string(),
@@ -51,6 +52,7 @@ const CreateTournament = () => {
       entry_fee: '0',
       max_participants: '32',
       prize_pool: '0',
+      registration_deadline_time: '23:59',
     },
   });
 
@@ -95,6 +97,7 @@ const CreateTournament = () => {
           description: data.description,
           registration_start_date: data.registration_start_date,
           registration_deadline: data.registration_deadline,
+          registration_deadline_time: data.registration_deadline_time,
           start_date: data.start_date,
           end_date: data.end_date,
           entry_fee: Math.round(parseFloat(data.entry_fee) * 100),
@@ -298,10 +301,27 @@ const CreateTournament = () => {
                       name="registration_deadline"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Prazo de Inscrição *</FormLabel>
+                          <FormLabel>Data de Encerramento *</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="registration_deadline_time"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Horário de Encerramento *</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Horário limite para inscrições
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

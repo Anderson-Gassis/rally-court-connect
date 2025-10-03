@@ -1585,6 +1585,9 @@ export type Database = {
       tournaments: {
         Row: {
           bracket_generated: boolean | null
+          cancellation_reason: string | null
+          cancelled: boolean | null
+          cancelled_at: string | null
           categories: string[] | null
           created_at: string
           description: string | null
@@ -1600,6 +1603,7 @@ export type Database = {
           prize_pool: number | null
           registration_closed: boolean | null
           registration_deadline: string
+          registration_deadline_time: string | null
           registration_start_date: string | null
           regulation: string | null
           sport_type: string
@@ -1610,6 +1614,9 @@ export type Database = {
         }
         Insert: {
           bracket_generated?: boolean | null
+          cancellation_reason?: string | null
+          cancelled?: boolean | null
+          cancelled_at?: string | null
           categories?: string[] | null
           created_at?: string
           description?: string | null
@@ -1625,6 +1632,7 @@ export type Database = {
           prize_pool?: number | null
           registration_closed?: boolean | null
           registration_deadline: string
+          registration_deadline_time?: string | null
           registration_start_date?: string | null
           regulation?: string | null
           sport_type: string
@@ -1635,6 +1643,9 @@ export type Database = {
         }
         Update: {
           bracket_generated?: boolean | null
+          cancellation_reason?: string | null
+          cancelled?: boolean | null
+          cancelled_at?: string | null
           categories?: string[] | null
           created_at?: string
           description?: string | null
@@ -1650,6 +1661,7 @@ export type Database = {
           prize_pool?: number | null
           registration_closed?: boolean | null
           registration_deadline?: string
+          registration_deadline_time?: string | null
           registration_start_date?: string | null
           regulation?: string | null
           sport_type?: string

@@ -9,7 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Trophy, Calendar, MapPin, Users, DollarSign, FileText, Grid3x3, Download } from 'lucide-react';
+import { Trophy, Calendar, MapPin, Users, DollarSign, FileText, Grid3x3, Download, XCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import TournamentBracket from '@/components/TournamentBracket';
 import TournamentBracketPDF from '@/components/TournamentBracketPDF';
 import TournamentPaymentButton from '@/components/TournamentPaymentButton';
@@ -26,6 +28,8 @@ const TournamentDetails = () => {
   const [canGenerateBracket, setCanGenerateBracket] = useState(false);
   const [registrationsClosed, setRegistrationsClosed] = useState(false);
   const [bracketMatches, setBracketMatches] = useState<any[]>([]);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -325,6 +329,34 @@ const TournamentDetails = () => {
     } catch (error: any) {
       console.error('Error generating bracket:', error);
       toast.error('Erro ao gerar chaves');
+    }
+  };
+
+  const handleCancelTournament = async () => {
+    if (!cancellationReason.trim()) {
+      toast.error('Por favor, informe o motivo do cancelamento');
+      return;
+    }
+
+    setCancelling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-tournament', {
+        body: {
+          tournamentId: id,
+          reason: cancellationReason
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Torneio cancelado com sucesso! ${data.totalRefunded} estornos processados.`);
+      fetchTournamentDetails();
+    } catch (error: any) {
+      console.error('Error cancelling tournament:', error);
+      toast.error('Erro ao cancelar torneio: ' + error.message);
+    } finally {
+      setCancelling(false);
+      setCancellationReason('');
     }
   };
 
@@ -794,6 +826,69 @@ const TournamentDetails = () => {
                             </Button>
                           )}
                         </div>
+
+                        {/* Botão de Cancelamento de Torneio */}
+                        {!tournament.cancelled && tournament.status !== 'completed' && (
+                          <div className="mt-6 p-4 border-2 border-red-200 rounded-lg bg-red-50">
+                            <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                              <XCircle className="h-5 w-5" />
+                              Cancelar Torneio
+                            </h3>
+                            <p className="text-sm text-red-700 mb-4">
+                              Atenção: Esta ação cancelará o torneio e processará o estorno automático para todos os inscritos.
+                            </p>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="w-full">
+                                  Cancelar Torneio
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Tem certeza que deseja cancelar?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta ação não pode ser desfeita. Todos os jogadores inscritos serão notificados e receberão o estorno automático.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <div className="my-4">
+                                  <label className="text-sm font-medium">Motivo do cancelamento *</label>
+                                  <Textarea
+                                    value={cancellationReason}
+                                    onChange={(e) => setCancellationReason(e.target.value)}
+                                    placeholder="Ex: Condições climáticas, falta de quadras disponíveis..."
+                                    className="mt-2"
+                                    rows={3}
+                                  />
+                                </div>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Voltar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={handleCancelTournament}
+                                    disabled={cancelling}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    {cancelling ? 'Processando...' : 'Confirmar Cancelamento'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
+
+                        {tournament.cancelled && (
+                          <div className="mt-6 p-4 border-2 border-red-300 rounded-lg bg-red-100">
+                            <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                              <XCircle className="h-5 w-5" />
+                              Torneio Cancelado
+                            </h3>
+                            <p className="text-sm text-red-700 mb-2">
+                              <strong>Motivo:</strong> {tournament.cancellation_reason || 'Não informado'}
+                            </p>
+                            <p className="text-sm text-red-600">
+                              Cancelado em: {new Date(tournament.cancelled_at).toLocaleString('pt-BR')}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       {/* Lista de Inscrições com Status */}

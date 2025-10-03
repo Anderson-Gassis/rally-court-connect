@@ -33,3 +33,6 @@ verify_jwt = true
 
 [functions.confirm-ad-payment]
 verify_jwt = false
+
+[functions.cancel-tournament]
+verify_jwt = true
