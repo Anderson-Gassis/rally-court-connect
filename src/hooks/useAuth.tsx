@@ -319,23 +319,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       setLoading(true);
       
-      // Fazer logout no Supabase
-      const { error } = await supabase.auth.signOut();
+      // Fazer logout completo no Supabase (todas as sessões)
+      await supabase.auth.signOut({ scope: 'global' });
       
-      if (error) throw error;
-      
-      // Limpar estado
+      // Limpar estado local
       setUser(null);
       
-      // Limpar qualquer cache de sessão
-      localStorage.removeItem('supabase.auth.token');
+      // Limpar todo o localStorage e sessionStorage
+      localStorage.clear();
       sessionStorage.clear();
+      
+      // Redirecionar para Home
+      window.location.href = '/';
       
     } catch (error) {
       console.error('Logout error:', error);
-      // Em caso de erro, forçar limpeza
+      // Em caso de erro, forçar limpeza e redirecionamento
       setUser(null);
       localStorage.clear();
+      sessionStorage.clear();
       window.location.href = '/';
     } finally {
       setLoading(false);
