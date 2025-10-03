@@ -27,6 +27,7 @@ const TournamentDetails = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [canGenerateBracket, setCanGenerateBracket] = useState(false);
   const [registrationsClosed, setRegistrationsClosed] = useState(false);
+  const [registrationsNotStarted, setRegistrationsNotStarted] = useState(false);
   const [bracketMatches, setBracketMatches] = useState<any[]>([]);
   const [cancelling, setCancelling] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
@@ -123,15 +124,26 @@ const TournamentDetails = () => {
       
       // Inscrições estão abertas se:
       // - Não foram encerradas manualmente pelo organizador
-      // - O prazo de inscrição ainda não passou (considerando fim do dia)
+      // - A data/hora de início já passou
+      // - A data/hora de encerramento ainda não passou
       // - Não atingiu o número máximo de participantes
-      const today = new Date();
-      today.setHours(23, 59, 59, 999); // Fim do dia atual
+      const now = new Date();
+      
+      // Data e hora de início das inscrições
+      const startDate = new Date(tournamentData.registration_start_date);
+      const [startHours, startMinutes] = (tournamentData.registration_start_time || '00:00').split(':');
+      startDate.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
+      
+      // Data e hora de encerramento das inscrições
       const deadlineDate = new Date(tournamentData.registration_deadline);
-      deadlineDate.setHours(23, 59, 59, 999); // Fim do dia do deadline
-      const deadlinePassed = deadlineDate < today;
+      const [deadlineHours, deadlineMinutes] = (tournamentData.registration_deadline_time || '23:59').split(':');
+      deadlineDate.setHours(parseInt(deadlineHours), parseInt(deadlineMinutes), 59, 999);
+      
+      const notStartedYet = now < startDate;
+      const deadlinePassed = now > deadlineDate;
       const closedManually = tournamentData.registration_closed === true;
       
+      setRegistrationsNotStarted(notStartedYet);
       setRegistrationsClosed(closedManually || deadlinePassed || isFull);
       setCanGenerateBracket(
         isOrganizer && 
@@ -426,20 +438,30 @@ const TournamentDetails = () => {
                     <Users className="h-4 w-4 mr-1" />
                     {registrations.length} / {tournament.max_participants} inscritos
                   </div>
-                  {registrationsClosed && (
+                  {registrationsNotStarted && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                      Inscrições em Breve
+                    </Badge>
+                  )}
+                  {!registrationsNotStarted && registrationsClosed && (
                     <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
                       Inscrições Encerradas
+                    </Badge>
+                  )}
+                  {!registrationsNotStarted && !registrationsClosed && (
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                      Inscrições Abertas
                     </Badge>
                   )}
                 </div>
               </div>
               
-              {!isRegistered && tournament.status === 'upcoming' && !registrationsClosed && (
+              {!isRegistered && tournament.status === 'upcoming' && !registrationsClosed && !registrationsNotStarted && (
                 <TournamentPaymentButton
                   tournamentId={tournament.id}
                   tournamentName={tournament.name}
                   entryFee={tournament.entry_fee}
-                  disabled={registrationsClosed}
+                  disabled={registrationsClosed || registrationsNotStarted}
                 />
               )}
               

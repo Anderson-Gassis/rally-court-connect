@@ -50,11 +50,16 @@ const CreateTournament = () => {
       sport_type: 'tennis',
       location: '',
       description: '',
+      registration_start_date: '',
+      registration_start_time: '00:00',
+      registration_deadline: '',
+      registration_deadline_time: '23:59',
+      start_date: '',
+      end_date: '',
       entry_fee: '0',
       max_participants: '32',
       prize_pool: '0',
-      registration_start_time: '00:00',
-      registration_deadline_time: '23:59',
+      regulation: '',
     },
   });
 
