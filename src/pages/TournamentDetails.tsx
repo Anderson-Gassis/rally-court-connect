@@ -116,7 +116,16 @@ const TournamentDetails = () => {
       const paidRegistrations = regsData?.length || 0;
       const hasEnoughPlayers = paidRegistrations >= 4;
       const isFull = paidRegistrations >= (tournamentData.max_participants || 0);
-      const deadlinePassed = new Date(tournamentData.registration_deadline) < new Date();
+      
+      // Inscrições estão abertas se:
+      // - Não foram encerradas manualmente pelo organizador
+      // - O prazo de inscrição ainda não passou (considerando fim do dia)
+      // - Não atingiu o número máximo de participantes
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // Fim do dia atual
+      const deadlineDate = new Date(tournamentData.registration_deadline);
+      deadlineDate.setHours(23, 59, 59, 999); // Fim do dia do deadline
+      const deadlinePassed = deadlineDate < today;
       const closedManually = tournamentData.registration_closed === true;
       
       setRegistrationsClosed(closedManually || deadlinePassed || isFull);

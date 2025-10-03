@@ -105,6 +105,7 @@ const CreateTournament = () => {
           categories: selectedCategories,
           organizer_id: user.id,
           status: 'upcoming',
+          registration_closed: false,
         })
         .select()
         .single();
