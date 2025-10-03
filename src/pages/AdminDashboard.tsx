@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, Users, Trophy, Calendar } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DollarSign, TrendingUp, Users, Trophy, Calendar, Filter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { startOfMonth, endOfMonth, format, subMonths } from "date-fns";
 
 interface RevenueStats {
   totalRevenue: number;
@@ -32,6 +34,7 @@ interface Transaction {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [stats, setStats] = useState<RevenueStats>({
     totalRevenue: 0,
     tournamentRevenue: 0,
@@ -46,6 +49,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     checkAdminAccess();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      fetchRevenueData();
+    }
+  }, [selectedMonth]);
 
   const checkAdminAccess = async () => {
     try {
@@ -76,6 +85,13 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
 
+      // Calcular datas do período selecionado
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const startDate = startOfMonth(new Date(year, month - 1));
+      const endDate = endOfMonth(new Date(year, month - 1));
+
+      console.log('Fetching data for period:', format(startDate, 'yyyy-MM-dd'), 'to', format(endDate, 'yyyy-MM-dd'));
+
       // Buscar receita de torneios
       const { data: tournamentData } = await supabase
         .from("tournament_registrations")
@@ -88,7 +104,9 @@ const AdminDashboard = () => {
           tournament_id,
           tournaments:tournament_id (name)
         `)
-        .eq("payment_status", "paid");
+        .eq("payment_status", "paid")
+        .gte("registration_date", format(startDate, 'yyyy-MM-dd'))
+        .lte("registration_date", format(endDate, 'yyyy-MM-dd'));
 
       // Buscar receita de reservas de quadras
       const { data: bookingData } = await supabase
@@ -96,13 +114,16 @@ const AdminDashboard = () => {
         .select(`
           id,
           platform_fee,
+          total_price,
           created_at,
           payment_status,
           user_id,
           court_id,
           courts:court_id (name)
         `)
-        .eq("payment_status", "paid");
+        .eq("payment_status", "paid")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString());
 
       // Buscar receita de aulas
       const { data: classData } = await supabase
@@ -110,11 +131,14 @@ const AdminDashboard = () => {
         .select(`
           id,
           platform_fee,
+          total_price,
           created_at,
           payment_status,
           student_id
         `)
-        .eq("payment_status", "paid");
+        .eq("payment_status", "paid")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString());
 
       // Buscar receita de anúncios (marketplace - parceiros e quadras)
       const { data: adData } = await supabase
@@ -127,7 +151,9 @@ const AdminDashboard = () => {
           ad_type,
           user_id
         `)
-        .eq("payment_status", "paid");
+        .eq("payment_status", "paid")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString());
 
       // Buscar receita de planos destaque de quadras
       const { data: featuredData } = await supabase
@@ -141,14 +167,36 @@ const AdminDashboard = () => {
           partner_id,
           court_id
         `)
-        .eq("payment_status", "paid");
+        .eq("payment_status", "paid")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString());
 
-      // Calcular estatísticas
+      // Calcular estatísticas com 15% de taxa
       const tournamentRevenue = tournamentData?.reduce((sum, t) => sum + (Number(t.platform_fee) || 0), 0) || 0;
-      const bookingRevenue = bookingData?.reduce((sum, b) => sum + (Number(b.platform_fee) || 0), 0) || 0;
-      const classRevenue = classData?.reduce((sum, c) => sum + (Number(c.platform_fee) || 0), 0) || 0;
-      const adRevenue = adData?.reduce((sum, a) => sum + (Number(a.amount) || 0), 0) || 0;
-      const featuredListingRevenue = featuredData?.reduce((sum, f) => sum + (Number(f.price) || 0), 0) || 0;
+      
+      // Para reservas, se não tiver platform_fee calculado, calcular 15% do total
+      const bookingRevenue = bookingData?.reduce((sum, b) => {
+        const fee = Number(b.platform_fee) || (Number(b.total_price) * 0.15);
+        return sum + fee;
+      }, 0) || 0;
+      
+      // Para aulas, se não tiver platform_fee calculado, calcular 15% do total
+      const classRevenue = classData?.reduce((sum, c) => {
+        const fee = Number(c.platform_fee) || (Number(c.total_price) * 0.15);
+        return sum + fee;
+      }, 0) || 0;
+      
+      // Para anúncios, calcular 15% do valor (a plataforma fica com 15%)
+      const adRevenue = adData?.reduce((sum, a) => {
+        const fee = Number(a.amount) * 0.15;
+        return sum + fee;
+      }, 0) || 0;
+      
+      // Para planos destaque, calcular 15% do valor
+      const featuredListingRevenue = featuredData?.reduce((sum, f) => {
+        const fee = Number(f.price) * 0.15;
+        return sum + fee;
+      }, 0) || 0;
 
       const totalRevenue = tournamentRevenue + bookingRevenue + classRevenue + adRevenue + featuredListingRevenue;
 
@@ -172,37 +220,49 @@ const AdminDashboard = () => {
           date: t.registration_date,
           tournament_name: t.tournaments?.name,
         })) || []),
-        ...(bookingData?.map(b => ({
-          id: b.id,
-          type: 'Reserva',
-          amount: Number(b.platform_fee) || 0,
-          platform_fee: Number(b.platform_fee) || 0,
-          date: b.created_at,
-          court_name: b.courts?.name,
-        })) || []),
-        ...(classData?.map(c => ({
-          id: c.id,
-          type: 'Aula',
-          amount: Number(c.platform_fee) || 0,
-          platform_fee: Number(c.platform_fee) || 0,
-          date: c.created_at,
-        })) || []),
-        ...(adData?.map(a => ({
-          id: a.id,
-          type: 'Anúncio',
-          amount: Number(a.amount) || 0,
-          platform_fee: Number(a.amount) || 0,
-          date: a.created_at,
-          tournament_name: `Plano ${a.ad_type}`,
-        })) || []),
-        ...(featuredData?.map(f => ({
-          id: f.id,
-          type: 'Plano Destaque',
-          amount: Number(f.price) || 0,
-          platform_fee: Number(f.price) || 0,
-          date: f.created_at,
-          tournament_name: `Plano ${f.plan_type}`,
-        })) || []),
+        ...(bookingData?.map(b => {
+          const fee = Number(b.platform_fee) || (Number(b.total_price) * 0.15);
+          return {
+            id: b.id,
+            type: 'Reserva',
+            amount: fee,
+            platform_fee: fee,
+            date: b.created_at,
+            court_name: b.courts?.name,
+          };
+        }) || []),
+        ...(classData?.map(c => {
+          const fee = Number(c.platform_fee) || (Number(c.total_price) * 0.15);
+          return {
+            id: c.id,
+            type: 'Aula',
+            amount: fee,
+            platform_fee: fee,
+            date: c.created_at,
+          };
+        }) || []),
+        ...(adData?.map(a => {
+          const fee = Number(a.amount) * 0.15;
+          return {
+            id: a.id,
+            type: 'Anúncio',
+            amount: fee,
+            platform_fee: fee,
+            date: a.created_at,
+            tournament_name: `Plano ${a.ad_type}`,
+          };
+        }) || []),
+        ...(featuredData?.map(f => {
+          const fee = Number(f.price) * 0.15;
+          return {
+            id: f.id,
+            type: 'Plano Destaque',
+            amount: fee,
+            platform_fee: fee,
+            date: f.created_at,
+            tournament_name: `Plano ${f.plan_type}`,
+          };
+        }) || []),
       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setTransactions(allTransactions);
@@ -230,8 +290,33 @@ const AdminDashboard = () => {
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
-          <p className="text-gray-600">Visão geral da receita da plataforma</p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Painel Administrativo</h1>
+              <p className="text-gray-600">Visão geral da receita da plataforma</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-gray-500" />
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Selecione o mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const date = subMonths(new Date(), i);
+                    const value = format(date, 'yyyy-MM');
+                    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                    const label = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+                    return (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* Cards de Estatísticas */}
