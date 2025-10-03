@@ -191,7 +191,7 @@ const PlayerDashboard = () => {
       setChallenges(challengesData || []);
       setChallengesLoading(false);
 
-      // Buscar torneios do usuário
+      // Buscar torneios do usuário (inscrições)
       setTournamentsLoading(true);
       const { data: registrationData, error: regError } = await supabase
         .from('tournament_registrations')
@@ -205,14 +205,39 @@ const PlayerDashboard = () => {
             end_date,
             sport_type,
             status,
-            bracket_generated
+            bracket_generated,
+            tournament_code
           )
         `)
         .eq('user_id', user.id)
         .order('registration_date', { ascending: false });
 
       if (regError) throw regError;
-      setTournaments(registrationData || []);
+
+      // Buscar torneios criados pelo usuário
+      const { data: createdTournamentsData, error: createdError } = await supabase
+        .from('tournaments')
+        .select('*')
+        .eq('organizer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (createdError) throw createdError;
+
+      // Combinar os dois tipos de torneios
+      const allTournaments = [
+        ...(registrationData || []),
+        ...(createdTournamentsData || []).map(tournament => ({
+          id: tournament.id,
+          tournament_id: tournament.id,
+          user_id: user.id,
+          payment_status: 'organizer',
+          registration_date: tournament.created_at,
+          tournaments: tournament,
+          is_organizer: true
+        }))
+      ];
+
+      setTournaments(allTournaments);
       setTournamentsLoading(false);
 
     } catch (error) {
@@ -570,11 +595,26 @@ const PlayerDashboard = () => {
                         const tournament = registration.tournaments;
                         if (!tournament) return null;
 
+                        const isOrganizer = registration.is_organizer || registration.payment_status === 'organizer';
+
                         return (
                           <div key={registration.id} className="p-4 border rounded-lg hover:bg-gray-50">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
-                                <h3 className="font-semibold text-lg">{tournament.name}</h3>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold text-lg">{tournament.name}</h3>
+                                  {isOrganizer && (
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                                      <User className="h-3 w-3 mr-1" />
+                                      Organizador
+                                    </Badge>
+                                  )}
+                                </div>
+                                {tournament.tournament_code && (
+                                  <p className="text-xs font-mono text-gray-500 mb-1">
+                                    Código: {tournament.tournament_code}
+                                  </p>
+                                )}
                                 <p className="text-sm text-gray-600 flex items-center mt-1">
                                   <MapPin className="h-3 w-3 mr-1" />
                                   {tournament.location}
@@ -594,11 +634,13 @@ const PlayerDashboard = () => {
                                    tournament.status === 'in_progress' ? 'Em Andamento' :
                                    'Finalizado'}
                                 </Badge>
-                                <Badge variant={
-                                  registration.payment_status === 'paid' ? 'default' : 'outline'
-                                }>
-                                  {registration.payment_status === 'paid' ? 'Pago' : 'Pendente'}
-                                </Badge>
+                                {!isOrganizer && (
+                                  <Badge variant={
+                                    registration.payment_status === 'paid' ? 'default' : 'outline'
+                                  }>
+                                    {registration.payment_status === 'paid' ? 'Pago' : 'Pendente'}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
 
