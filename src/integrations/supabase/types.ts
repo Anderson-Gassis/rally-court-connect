@@ -1698,6 +1698,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      is_league_member: {
+        Args: { _league_id: string; _user_id: string }
+        Returns: boolean
+      }
       log_user_activity: {
         Args: { activity_data_param?: Json; activity_type_param: string }
         Returns: undefined
