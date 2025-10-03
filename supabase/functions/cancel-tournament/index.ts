@@ -40,11 +40,14 @@ serve(async (req) => {
     // Buscar todas as inscrições pagas
     const { data: registrations, error: regsError } = await supabaseClient
       .from("tournament_registrations")
-      .select("*, profiles:user_id(email)")
+      .select("*")
       .eq("tournament_id", tournamentId)
       .eq("payment_status", "paid");
 
-    if (regsError) throw new Error("Failed to fetch registrations");
+    if (regsError) {
+      console.error("Error fetching registrations:", regsError);
+      throw new Error(`Failed to fetch registrations: ${regsError.message}`);
+    }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
