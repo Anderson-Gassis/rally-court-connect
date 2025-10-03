@@ -60,16 +60,29 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Use tournament entry fee or default R$ 100,00
-    const entryFee = tournament.entry_fee || 10000; // Default 10000 centavos = R$ 100,00
+    // Use tournament entry fee (already in cents from database)
+    const entryFee = tournament.entry_fee || 0;
 
-    // Create payment session
+    if (entryFee <= 0) {
+      throw new Error("Invalid entry fee");
+    }
+
+    console.log("Entry fee (in cents):", entryFee);
+
+    // Create payment session with dynamic pricing
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1SBScyIFe8gGrMxw8bZUPtD7", // Inscrição em Torneio price
+          price_data: {
+            currency: "brl",
+            unit_amount: entryFee, // Already in cents
+            product_data: {
+              name: `Inscrição: ${tournament.name}`,
+              description: `Taxa de inscrição para o torneio ${tournament.name}`,
+            },
+          },
           quantity: 1,
         },
       ],
