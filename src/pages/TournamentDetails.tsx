@@ -376,6 +376,11 @@ const TournamentDetails = () => {
                   </Badge>
                 </div>
                 <h1 className="text-3xl font-bold mb-2">{tournament.name}</h1>
+                {tournament.tournament_code && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 bg-primary/10 text-primary rounded-full text-sm font-mono font-semibold">
+                    <span>Código: {tournament.tournament_code}</span>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <div className="flex items-center">
                     <MapPin className="h-4 w-4 mr-1" />

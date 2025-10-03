@@ -1605,6 +1605,7 @@ export type Database = {
           sport_type: string
           start_date: string
           status: string | null
+          tournament_code: string | null
           updated_at: string
         }
         Insert: {
@@ -1629,6 +1630,7 @@ export type Database = {
           sport_type: string
           start_date: string
           status?: string | null
+          tournament_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -1653,6 +1655,7 @@ export type Database = {
           sport_type?: string
           start_date?: string
           status?: string | null
+          tournament_code?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1689,6 +1692,10 @@ export type Database = {
       check_email_exists: {
         Args: { email_to_check: string }
         Returns: boolean
+      }
+      generate_tournament_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_user_role: {
         Args: { user_id: string }
