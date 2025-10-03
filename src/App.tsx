@@ -26,6 +26,7 @@ import TournamentSuccess from "./pages/TournamentSuccess";
 import AdPaymentSuccess from "./pages/AdPaymentSuccess";
 import Players from "./pages/Players";
 import AdminDashboard from "./pages/AdminDashboard";
+import LeagueDetails from "./pages/LeagueDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/tournament-success" element={<TournamentSuccess />} />
             <Route path="/ad-payment-success" element={<AdPaymentSuccess />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/leagues/:id" element={<LeagueDetails />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -514,6 +514,54 @@ export type Database = {
           },
         ]
       }
+      friend_requests: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          sender_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          sender_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       instructor_availability: {
         Row: {
           created_at: string | null
@@ -650,6 +698,282 @@ export type Database = {
           updated_at?: string
           user_id?: string
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      league_invitations: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          league_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          league_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          league_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_invitations_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      league_members: {
+        Row: {
+          id: string
+          joined_at: string
+          league_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          league_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          league_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_members_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      league_rankings: {
+        Row: {
+          draws: number
+          id: string
+          league_id: string
+          losses: number
+          matches_played: number
+          points: number
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          draws?: number
+          id?: string
+          league_id: string
+          losses?: number
+          matches_played?: number
+          points?: number
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          draws?: number
+          id?: string
+          league_id?: string
+          losses?: number
+          matches_played?: number
+          points?: number
+          updated_at?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_rankings_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      league_tournament_matches: {
+        Row: {
+          created_at: string
+          id: string
+          match_date: string | null
+          player1_id: string
+          player1_score: number | null
+          player2_id: string
+          player2_score: number | null
+          status: string
+          tournament_id: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_date?: string | null
+          player1_id: string
+          player1_score?: number | null
+          player2_id: string
+          player2_score?: number | null
+          status?: string
+          tournament_id: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_date?: string | null
+          player1_id?: string
+          player1_score?: number | null
+          player2_id?: string
+          player2_score?: number | null
+          status?: string
+          tournament_id?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_tournament_matches_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "league_tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      league_tournament_participants: {
+        Row: {
+          created_at: string
+          id: string
+          tournament_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tournament_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tournament_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_tournament_participants_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "league_tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      league_tournaments: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          league_id: string
+          name: string
+          start_date: string
+          status: string
+          tournament_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          league_id: string
+          name: string
+          start_date: string
+          status?: string
+          tournament_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          league_id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          tournament_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_tournaments_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leagues: {
+        Row: {
+          admin_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_private: boolean
+          name: string
+          rules: string | null
+          sport_type: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_private?: boolean
+          name: string
+          rules?: string | null
+          sport_type: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_private?: boolean
+          name?: string
+          rules?: string | null
+          sport_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1011,9 +1335,12 @@ export type Database = {
           phone: string | null
           playing_time: string | null
           preferred_surface: string | null
+          profile_visibility: string | null
           ranking_points: number | null
           ranking_position: number | null
           role: Database["public"]["Enums"]["user_role"] | null
+          show_email: boolean | null
+          show_phone: boolean | null
           skill_level: string | null
           updated_at: string
           user_id: string
@@ -1032,9 +1359,12 @@ export type Database = {
           phone?: string | null
           playing_time?: string | null
           preferred_surface?: string | null
+          profile_visibility?: string | null
           ranking_points?: number | null
           ranking_position?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          show_email?: boolean | null
+          show_phone?: boolean | null
           skill_level?: string | null
           updated_at?: string
           user_id: string
@@ -1053,9 +1383,12 @@ export type Database = {
           phone?: string | null
           playing_time?: string | null
           preferred_surface?: string | null
+          profile_visibility?: string | null
           ranking_points?: number | null
           ranking_position?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          show_email?: boolean | null
+          show_phone?: boolean | null
           skill_level?: string | null
           updated_at?: string
           user_id?: string

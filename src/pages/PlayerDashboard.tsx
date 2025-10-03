@@ -12,6 +12,8 @@ import { BookingDetailsModal } from '@/components/BookingDetailsModal';
 import { ChallengesCard } from '@/components/ChallengesCard';
 import { ReportResultModal } from '@/components/ReportResultModal';
 import { ChatInterface } from '@/components/ChatInterface';
+import { FriendsManager } from '@/components/FriendsManager';
+import { LeaguesManager } from '@/components/LeaguesManager';
 import { bookingsService } from '@/services/bookingsService';
 import { challengesService } from '@/services/challengesService';
 import { 
@@ -38,7 +40,9 @@ import {
   Plus,
   Edit,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  Users,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -443,6 +447,14 @@ const PlayerDashboard = () => {
               <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
               <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
+              <TabsTrigger value="friends">
+                <Users className="h-4 w-4 mr-2" />
+                Amigos
+              </TabsTrigger>
+              <TabsTrigger value="leagues">
+                <Shield className="h-4 w-4 mr-2" />
+                Ligas
+              </TabsTrigger>
               <TabsTrigger value="messages">
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Mensagens
@@ -644,6 +656,18 @@ const PlayerDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="messages" className="space-y-6">
+              <ChatInterface />
+            </TabsContent>
+
+            <TabsContent value="friends" className="space-y-6">
+              <FriendsManager />
+            </TabsContent>
+
+            <TabsContent value="leagues" className="space-y-6">
+              <LeaguesManager />
             </TabsContent>
 
             <TabsContent value="history" className="space-y-6">
