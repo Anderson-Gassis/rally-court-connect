@@ -53,10 +53,29 @@ export const sendFriendRequest = async (receiverId: string) => {
     .single();
 
   if (error) throw error;
+
+  // Dispara notificação para o destinatário (receiver)
+  try {
+    await supabase.functions.invoke('create-notification', {
+      body: {
+        user_id: receiverId,
+        type: 'friend_request',
+        title: 'Novo pedido de amizade',
+        message: 'Você recebeu um pedido de amizade',
+        data: { request_id: data.id, sender_id: user.id, receiver_id: receiverId }
+      }
+    });
+  } catch (e) {
+    console.warn('Falha ao criar notificação de amizade (ignorado):', e);
+  }
+
   return data;
 };
 
 export const getPendingRequests = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
+
   const { data, error } = await supabase
     .from('friend_requests')
     .select(`
@@ -64,6 +83,7 @@ export const getPendingRequests = async () => {
       sender:profiles!friend_requests_sender_id_fkey(full_name, avatar_url, email)
     `)
     .eq('status', 'pending')
+    .eq('receiver_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -79,10 +99,31 @@ export const respondToFriendRequest = async (requestId: string, status: 'accepte
     .single();
 
   if (error) throw error;
+
+  // Notificar o remetente quando a solicitação for aceita
+  if (data && status === 'accepted') {
+    try {
+      await supabase.functions.invoke('create-notification', {
+        body: {
+          user_id: data.sender_id,
+          type: 'friend_request_accepted',
+          title: 'Pedido de amizade aceito',
+          message: 'Seu pedido de amizade foi aceito!',
+          data: { request_id: data.id, receiver_id: data.receiver_id }
+        }
+      });
+    } catch (e) {
+      console.warn('Falha ao notificar aceite de amizade (ignorado):', e);
+    }
+  }
+
   return data;
 };
 
 export const getFriendsList = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
+
   const { data, error } = await supabase
     .from('friendships')
     .select(`
@@ -95,6 +136,7 @@ export const getFriendsList = async () => {
         skill_level
       )
     `)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) throw error;

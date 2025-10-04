@@ -26,6 +26,29 @@ function parseLocalDateTime(dateStr?: string, timeStr?: string) {
   return new Date(y, (m - 1), d, hh || 0, mm || 0, 0, 0);
 }
 
+// Current datetime in a specific IANA timezone (e.g., America/Sao_Paulo)
+function getNowInTimeZone(tz: string) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).formatToParts(new Date());
+  const map: Record<string, string> = {};
+  for (const p of parts) if (p.type !== 'literal') map[p.type] = p.value;
+  return new Date(
+    Number(map.year),
+    Number(map.month) - 1,
+    Number(map.day),
+    Number(map.hour),
+    Number(map.minute),
+    Number(map.second)
+  );
+}
+
 const TournamentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -129,14 +152,15 @@ const TournamentDetails = () => {
       const isOrganizer = tournamentData.organizer_id === user?.id;
       const paidRegistrations = regsData?.length || 0;
       const hasEnoughPlayers = paidRegistrations >= 4;
-      const isFull = paidRegistrations >= (tournamentData.max_participants || 0);
+      const maxCap = Number(tournamentData.max_participants) || 0;
+      const isFull = maxCap > 0 && paidRegistrations >= maxCap;
       
       // Inscrições estão abertas se:
       // - Não foram encerradas manualmente pelo organizador
       // - A data/hora de início já passou
       // - A data/hora de encerramento ainda não passou
       // - Não atingiu o número máximo de participantes
-      const now = new Date();
+      const now = getNowInTimeZone('America/Sao_Paulo');
       
       // Data e hora de início das inscrições (montada em horário local para evitar timezone bugs)
       const startDate = parseLocalDateTime(
