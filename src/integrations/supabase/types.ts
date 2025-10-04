@@ -692,6 +692,62 @@ export type Database = {
         }
         Relationships: []
       }
+      instructor_ad_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          discount_percentage: number | null
+          duration_months: number
+          expires_at: string | null
+          id: string
+          instructor_id: string | null
+          payment_id: string | null
+          payment_status: string | null
+          plan_name: string
+          stripe_session_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          discount_percentage?: number | null
+          duration_months?: number
+          expires_at?: string | null
+          id?: string
+          instructor_id?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          plan_name: string
+          stripe_session_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          discount_percentage?: number | null
+          duration_months?: number
+          expires_at?: string | null
+          id?: string
+          instructor_id?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          plan_name?: string
+          stripe_session_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instructor_ad_payments_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instructor_availability: {
         Row: {
           created_at: string | null

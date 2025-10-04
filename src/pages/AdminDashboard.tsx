@@ -11,12 +11,17 @@ import { toast } from "sonner";
 import { startOfMonth, endOfMonth, format, subMonths } from "date-fns";
 
 interface RevenueStats {
-  totalRevenue: number;
+  totalTPV: number; // Total Payment Volume - 100% do processado
+  totalRevenue: number; // Receita da plataforma (taxas)
+  tournamentTPV: number;
   tournamentRevenue: number;
+  bookingTPV: number;
   bookingRevenue: number;
+  classTPV: number;
   classRevenue: number;
-  adRevenue: number;
-  featuredListingRevenue: number;
+  adTPV: number; // 100% dos anúncios
+  featuredListingTPV: number; // 100% dos planos destaque
+  instructorAdTPV: number; // 100% dos planos de instrutores
   totalTransactions: number;
 }
 
@@ -36,12 +41,17 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [stats, setStats] = useState<RevenueStats>({
+    totalTPV: 0,
     totalRevenue: 0,
+    tournamentTPV: 0,
     tournamentRevenue: 0,
+    bookingTPV: 0,
     bookingRevenue: 0,
+    classTPV: 0,
     classRevenue: 0,
-    adRevenue: 0,
-    featuredListingRevenue: 0,
+    adTPV: 0,
+    featuredListingTPV: 0,
+    instructorAdTPV: 0,
     totalTransactions: 0,
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -171,43 +181,67 @@ const AdminDashboard = () => {
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
 
-      // Calcular estatísticas com 15% de taxa
-      const tournamentRevenue = tournamentData?.reduce((sum, t) => sum + (Number(t.platform_fee) || 0), 0) || 0;
+      // Buscar receita de planos de instrutores
+      const { data: instructorAdData } = await supabase
+        .from("instructor_ad_payments")
+        .select(`
+          id,
+          amount,
+          created_at,
+          payment_status,
+          plan_name,
+          duration_months,
+          user_id
+        `)
+        .eq("payment_status", "paid")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString());
+
+      // Calcular TPV (Total Payment Volume) e Receita separadamente
       
-      // Para reservas, se não tiver platform_fee calculado, calcular 15% do total
+      // Torneios - TPV é o valor total, Receita é o platform_fee
+      const tournamentTPV = tournamentData?.reduce((sum, t) => sum + (Number(t.platform_fee) || 0), 0) || 0;
+      const tournamentRevenue = tournamentTPV; // Fee já é 15%
+      
+      // Reservas - TPV é 100% do valor, Receita é 15%
+      const bookingTPV = bookingData?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0;
       const bookingRevenue = bookingData?.reduce((sum, b) => {
         const fee = Number(b.platform_fee) || (Number(b.total_price) * 0.15);
         return sum + fee;
       }, 0) || 0;
       
-      // Para aulas, se não tiver platform_fee calculado, calcular 15% do total
+      // Aulas - TPV é 100% do valor, Receita é 15%
+      const classTPV = classData?.reduce((sum, c) => sum + Number(c.total_price), 0) || 0;
       const classRevenue = classData?.reduce((sum, c) => {
         const fee = Number(c.platform_fee) || (Number(c.total_price) * 0.15);
         return sum + fee;
       }, 0) || 0;
       
-      // Para anúncios, calcular 15% do valor (a plataforma fica com 15%)
-      const adRevenue = adData?.reduce((sum, a) => {
-        const fee = Number(a.amount) * 0.15;
-        return sum + fee;
-      }, 0) || 0;
+      // Anúncios - TPV é 100% do valor, sem fee separado (valor já é o total)
+      const adTPV = adData?.reduce((sum, a) => sum + Number(a.amount), 0) || 0;
       
-      // Para planos destaque, calcular 15% do valor
-      const featuredListingRevenue = featuredData?.reduce((sum, f) => {
-        const fee = Number(f.price) * 0.15;
-        return sum + fee;
-      }, 0) || 0;
+      // Planos destaque - TPV é 100% do valor
+      const featuredListingTPV = featuredData?.reduce((sum, f) => sum + Number(f.price), 0) || 0;
 
-      const totalRevenue = tournamentRevenue + bookingRevenue + classRevenue + adRevenue + featuredListingRevenue;
+      // Planos de instrutores - TPV é 100% do valor
+      const instructorAdTPV = instructorAdData?.reduce((sum, i) => sum + Number(i.amount), 0) || 0;
+
+      const totalTPV = tournamentTPV + bookingTPV + classTPV + adTPV + featuredListingTPV + instructorAdTPV;
+      const totalRevenue = tournamentRevenue + bookingRevenue + classRevenue;
 
       setStats({
+        totalTPV,
         totalRevenue,
+        tournamentTPV,
         tournamentRevenue,
+        bookingTPV,
         bookingRevenue,
+        classTPV,
         classRevenue,
-        adRevenue,
-        featuredListingRevenue,
-        totalTransactions: (tournamentData?.length || 0) + (bookingData?.length || 0) + (classData?.length || 0) + (adData?.length || 0) + (featuredData?.length || 0),
+        adTPV,
+        featuredListingTPV,
+        instructorAdTPV,
+        totalTransactions: (tournamentData?.length || 0) + (bookingData?.length || 0) + (classData?.length || 0) + (adData?.length || 0) + (featuredData?.length || 0) + (instructorAdData?.length || 0),
       });
 
       // Consolidar transações
@@ -241,28 +275,30 @@ const AdminDashboard = () => {
             date: c.created_at,
           };
         }) || []),
-        ...(adData?.map(a => {
-          const fee = Number(a.amount) * 0.15;
-          return {
-            id: a.id,
-            type: 'Anúncio',
-            amount: fee,
-            platform_fee: fee,
-            date: a.created_at,
-            tournament_name: `Plano ${a.ad_type}`,
-          };
-        }) || []),
-        ...(featuredData?.map(f => {
-          const fee = Number(f.price) * 0.15;
-          return {
-            id: f.id,
-            type: 'Plano Destaque',
-            amount: fee,
-            platform_fee: fee,
-            date: f.created_at,
-            tournament_name: `Plano ${f.plan_type}`,
-          };
-        }) || []),
+        ...(adData?.map(a => ({
+          id: a.id,
+          type: 'Anúncio',
+          amount: Number(a.amount),
+          platform_fee: Number(a.amount),
+          date: a.created_at,
+          tournament_name: `Plano ${a.ad_type}`,
+        })) || []),
+        ...(featuredData?.map(f => ({
+          id: f.id,
+          type: 'Plano Destaque Quadra',
+          amount: Number(f.price),
+          platform_fee: Number(f.price),
+          date: f.created_at,
+          tournament_name: `Plano ${f.plan_type}`,
+        })) || []),
+        ...(instructorAdData?.map(i => ({
+          id: i.id,
+          type: 'Plano Instrutor',
+          amount: Number(i.amount),
+          platform_fee: Number(i.amount),
+          date: i.created_at,
+          tournament_name: `Plano ${i.plan_name} - ${i.duration_months} meses`,
+        })) || []),
       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setTransactions(allTransactions);
@@ -319,7 +355,44 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Cards de Estatísticas */}
+        {/* Cards de Estatísticas - TPV e Receita */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card className="border-2 border-primary">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">TPV (Total Processado)</p>
+                  <p className="text-3xl font-bold text-primary">
+                    R$ {stats.totalTPV.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Volume total de pagamentos processados
+                  </p>
+                </div>
+                <DollarSign className="h-10 w-10 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-green-600">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 font-medium">Receita Plataforma</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    R$ {stats.totalRevenue.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Taxas e comissões (15%)
+                  </p>
+                </div>
+                <TrendingUp className="h-10 w-10 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Cards de Estatísticas por Categoria */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
@@ -378,15 +451,15 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Cards Adicionais de Receita */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Cards Adicionais de TPV */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Anúncios Marketplace</p>
                   <p className="text-2xl font-bold text-pink-600">
-                    R$ {stats.adRevenue.toFixed(2)}
+                    R$ {stats.adTPV.toFixed(2)}
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-pink-600" />
@@ -398,12 +471,26 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Planos Destaque</p>
+                  <p className="text-sm text-gray-600">Planos Quadras</p>
                   <p className="text-2xl font-bold text-indigo-600">
-                    R$ {stats.featuredListingRevenue.toFixed(2)}
+                    R$ {stats.featuredListingTPV.toFixed(2)}
                   </p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-indigo-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Planos Instrutores</p>
+                  <p className="text-2xl font-bold text-cyan-600">
+                    R$ {stats.instructorAdTPV.toFixed(2)}
+                  </p>
+                </div>
+                <Users className="h-8 w-8 text-cyan-600" />
               </div>
             </CardContent>
           </Card>
@@ -477,16 +564,25 @@ const AdminDashboard = () => {
                         </p>
                       </div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribuição de TPV</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-pink-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <DollarSign className="h-5 w-5 text-pink-600" />
                         <span className="font-medium">Anúncios Marketplace</span>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-pink-600">R$ {stats.adRevenue.toFixed(2)}</p>
+                        <p className="font-bold text-pink-600">R$ {stats.adTPV.toFixed(2)}</p>
                         <p className="text-sm text-gray-600">
-                          {stats.totalRevenue > 0 ? ((stats.adRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                          {stats.totalTPV > 0 ? ((stats.adTPV / stats.totalTPV) * 100).toFixed(1) : 0}%
                         </p>
                       </div>
                     </div>
@@ -494,12 +590,25 @@ const AdminDashboard = () => {
                     <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <TrendingUp className="h-5 w-5 text-indigo-600" />
-                        <span className="font-medium">Planos Destaque</span>
+                        <span className="font-medium">Planos Quadras</span>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-indigo-600">R$ {stats.featuredListingRevenue.toFixed(2)}</p>
+                        <p className="font-bold text-indigo-600">R$ {stats.featuredListingTPV.toFixed(2)}</p>
                         <p className="text-sm text-gray-600">
-                          {stats.totalRevenue > 0 ? ((stats.featuredListingRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                          {stats.totalTPV > 0 ? ((stats.featuredListingTPV / stats.totalTPV) * 100).toFixed(1) : 0}%
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-cyan-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Users className="h-5 w-5 text-cyan-600" />
+                        <span className="font-medium">Planos Instrutores</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-cyan-600">R$ {stats.instructorAdTPV.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">
+                          {stats.totalTPV > 0 ? ((stats.instructorAdTPV / stats.totalTPV) * 100).toFixed(1) : 0}%
                         </p>
                       </div>
                     </div>
@@ -669,13 +778,13 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Receita Total</span>
-                      <span className="font-bold text-pink-600">R$ {stats.adRevenue.toFixed(2)}</span>
+                      <span className="text-sm text-gray-600">TPV Total (100%)</span>
+                      <span className="font-bold text-pink-600">R$ {stats.adTPV.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">% da Receita</span>
+                      <span className="text-sm text-gray-600">% do TPV</span>
                       <span className="font-medium">
-                        {stats.totalRevenue > 0 ? ((stats.adRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                        {stats.totalTPV > 0 ? ((stats.adTPV / stats.totalTPV) * 100).toFixed(1) : 0}%
                       </span>
                     </div>
                   </div>
@@ -686,19 +795,42 @@ const AdminDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-indigo-600" />
-                    Planos Destaque
+                    Planos Quadras
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Receita Total</span>
-                      <span className="font-bold text-indigo-600">R$ {stats.featuredListingRevenue.toFixed(2)}</span>
+                      <span className="text-sm text-gray-600">TPV Total (100%)</span>
+                      <span className="font-bold text-indigo-600">R$ {stats.featuredListingTPV.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">% da Receita</span>
+                      <span className="text-sm text-gray-600">% do TPV</span>
                       <span className="font-medium">
-                        {stats.totalRevenue > 0 ? ((stats.featuredListingRevenue / stats.totalRevenue) * 100).toFixed(1) : 0}%
+                        {stats.totalTPV > 0 ? ((stats.featuredListingTPV / stats.totalTPV) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-cyan-600" />
+                    Planos Instrutores
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">TPV Total (100%)</span>
+                      <span className="font-bold text-cyan-600">R$ {stats.instructorAdTPV.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">% do TPV</span>
+                      <span className="font-medium">
+                        {stats.totalTPV > 0 ? ((stats.instructorAdTPV / stats.totalTPV) * 100).toFixed(1) : 0}%
                       </span>
                     </div>
                   </div>

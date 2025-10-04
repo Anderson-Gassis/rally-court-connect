@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import InstructorAvailabilityManager from '@/components/InstructorAvailabilityManager';
+import InstructorAdPlanSelector from '@/components/InstructorAdPlanSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -43,6 +44,8 @@ interface InstructorInfo {
   verified: boolean;
   trial_class_available: boolean;
   trial_class_price: number;
+  ad_plan?: string;
+  payment_status?: string;
 }
 
 interface ClassBooking {
@@ -367,6 +370,7 @@ const InstructorDashboard = () => {
             <TabsList>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="schedule">Agenda</TabsTrigger>
+              <TabsTrigger value="plans">Planos & Anúncios</TabsTrigger>
               <TabsTrigger value="students">Alunos</TabsTrigger>
               <TabsTrigger value="revenue">Faturamento</TabsTrigger>
             </TabsList>
@@ -487,6 +491,40 @@ const InstructorDashboard = () => {
                       </p>
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="plans" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Planos de Destaque para Instrutores</CardTitle>
+                  <CardDescription>
+                    Escolha um plano para destacar seu perfil e aparecer nas primeiras posições
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {instructorInfo && (
+                    <>
+                      {instructorInfo.ad_plan && instructorInfo.ad_plan !== 'free' && (
+                        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <p className="text-sm font-medium text-green-800">
+                            ✓ Plano Ativo: <span className="font-bold uppercase">{instructorInfo.ad_plan}</span>
+                          </p>
+                          <p className="text-xs text-green-700 mt-1">
+                            Seu anúncio está em destaque na plataforma
+                          </p>
+                        </div>
+                      )}
+                      <InstructorAdPlanSelector
+                        instructorId={instructorInfo.id}
+                        onSuccess={() => {
+                          toast.success('Plano atualizado com sucesso!');
+                          fetchInstructorData();
+                        }}
+                      />
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
