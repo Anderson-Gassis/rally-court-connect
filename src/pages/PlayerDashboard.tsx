@@ -14,6 +14,7 @@ import { ReportResultModal } from '@/components/ReportResultModal';
 import { ChatInterface } from '@/components/ChatInterface';
 import { FriendsManager } from '@/components/FriendsManager';
 import { LeaguesManager } from '@/components/LeaguesManager';
+import BookingCreditsDisplay from '@/components/BookingCreditsDisplay';
 import { bookingsService } from '@/services/bookingsService';
 import { challengesService } from '@/services/challengesService';
 import { 
@@ -471,6 +472,7 @@ const PlayerDashboard = () => {
             <TabsList>
               <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
+              <TabsTrigger value="credits">Meus Créditos</TabsTrigger>
               <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
               <TabsTrigger value="friends">
                 <Users className="h-4 w-4 mr-2" />
@@ -571,6 +573,10 @@ const PlayerDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="credits" className="space-y-6">
+              <BookingCreditsDisplay />
             </TabsContent>
 
             <TabsContent value="tournaments" className="space-y-6">

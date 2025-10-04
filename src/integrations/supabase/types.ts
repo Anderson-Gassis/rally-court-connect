@@ -83,6 +83,57 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_credits: {
+        Row: {
+          court_id: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          original_booking_id: string | null
+          remaining_hours: number
+          total_hours: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          court_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          original_booking_id?: string | null
+          remaining_hours: number
+          total_hours: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          court_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          original_booking_id?: string | null
+          remaining_hours?: number
+          total_hours?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_credits_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_credits_original_booking_id_fkey"
+            columns: ["original_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -332,6 +383,85 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      court_availability: {
+        Row: {
+          court_id: string
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean | null
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          court_id: string
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          court_id?: string
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "court_availability_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      court_blocked_times: {
+        Row: {
+          blocked_date: string
+          court_id: string
+          created_at: string | null
+          end_time: string
+          id: string
+          reason: string | null
+          start_time: string
+        }
+        Insert: {
+          blocked_date: string
+          court_id: string
+          created_at?: string | null
+          end_time: string
+          id?: string
+          reason?: string | null
+          start_time: string
+        }
+        Update: {
+          blocked_date?: string
+          court_id?: string
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          reason?: string | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "court_blocked_times_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       court_reviews: {
         Row: {

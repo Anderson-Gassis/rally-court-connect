@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import CourtAvailabilityManager from '@/components/CourtAvailabilityManager';
 import { 
   Building2, 
   Calendar, 
@@ -356,6 +357,7 @@ const PartnerDashboard = () => {
             <TabsList>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="courts">Minhas Quadras</TabsTrigger>
+              <TabsTrigger value="availability">Agenda & Planos</TabsTrigger>
               <TabsTrigger value="bookings">Reservas</TabsTrigger>
               <TabsTrigger value="analytics">Relatórios</TabsTrigger>
             </TabsList>
@@ -512,6 +514,54 @@ const PartnerDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="availability" className="space-y-6">
+              {courts.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Cadastre uma quadra primeiro</h3>
+                    <p className="text-gray-600 mb-4">
+                      Você precisa ter pelo menos uma quadra cadastrada para gerenciar a agenda.
+                    </p>
+                    <Button asChild>
+                      <Link to="/add-court">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Cadastrar Quadra
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Gerenciar Agenda das Quadras</CardTitle>
+                      <CardDescription>
+                        Selecione uma quadra para configurar horários disponíveis e bloqueios
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                  
+                  {courts.map((court) => (
+                    <Card key={court.id}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Building2 className="h-5 w-5" />
+                          {court.name}
+                        </CardTitle>
+                        <CardDescription>
+                          {court.location} • R$ {court.price_per_hour}/hora
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <CourtAvailabilityManager courtId={court.id} />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="bookings" className="space-y-6">

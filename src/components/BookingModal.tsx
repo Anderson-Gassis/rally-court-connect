@@ -15,10 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import BookingPaymentButton from "./BookingPaymentButton";
 import { bookingSchema } from "@/lib/validations/booking";
 import { toast } from "sonner";
+import { courtAvailabilityService } from "@/services/courtAvailabilityService";
 
 interface BookingModalProps {
   open: boolean;
@@ -39,13 +41,34 @@ const BookingModal = ({
   const [startTime, setStartTime] = useState<string>();
   const [endTime, setEndTime] = useState<string>();
   const [validationError, setValidationError] = useState<string>();
+  const [availableSlots, setAvailableSlots] = useState<{ time: string; isAvailable: boolean; reason?: string }[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
-  // Generate time slots from 6am to 11pm
-  const timeSlots = Array.from({ length: 34 }, (_, i) => {
-    const hour = Math.floor(i / 2) + 6;
-    const minute = i % 2 === 0 ? "00" : "30";
-    return `${hour.toString().padStart(2, "0")}:${minute}`;
-  });
+  // Buscar horários disponíveis quando a data mudar
+  useEffect(() => {
+    if (date) {
+      fetchAvailableSlots();
+    }
+  }, [date, courtId]);
+
+  const fetchAvailableSlots = async () => {
+    if (!date) return;
+    
+    setLoadingSlots(true);
+    try {
+      const slots = await courtAvailabilityService.getAvailableTimeSlotsForDate(courtId, date);
+      setAvailableSlots(slots);
+    } catch (error) {
+      console.error('Error fetching available slots:', error);
+      toast.error('Erro ao buscar horários disponíveis');
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  // Filtrar apenas horários disponíveis para seleção
+  const availableStartTimes = availableSlots.filter(slot => slot.isAvailable).map(slot => slot.time);
+  const availableEndTimes = availableSlots.filter(slot => slot.isAvailable).map(slot => slot.time);
 
   const calculateHours = () => {
     if (!startTime || !endTime) return 0;
@@ -113,39 +136,65 @@ const BookingModal = ({
           </div>
 
           {/* Time Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Horário Início</Label>
-              <Select value={startTime} onValueChange={setStartTime}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {date && (
+            <>
+              {loadingSlots ? (
+                <div className="flex items-center justify-center py-8">
+                  <Clock className="h-6 w-6 animate-spin text-primary" />
+                  <span className="ml-2">Carregando horários disponíveis...</span>
+                </div>
+              ) : availableStartTimes.length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Nenhum horário disponível para esta data. Tente outra data ou entre em contato com o parceiro.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Horário Início</Label>
+                      <Select value={startTime} onValueChange={setStartTime}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableStartTimes.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-            <div className="space-y-2">
-              <Label>Horário Fim</Label>
-              <Select value={endTime} onValueChange={setEndTime}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                    <div className="space-y-2">
+                      <Label>Horário Fim</Label>
+                      <Select value={endTime} onValueChange={setEndTime}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableEndTimes.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Horários definidos pelo parceiro:</strong> Apenas os horários disponíveis são exibidos.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
           {/* Validation Error */}
           {validationError && (
