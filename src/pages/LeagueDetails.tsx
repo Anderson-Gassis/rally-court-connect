@@ -170,11 +170,17 @@ export default function LeagueDetails() {
                               <SelectValue placeholder="Escolha um amigo" />
                             </SelectTrigger>
                             <SelectContent>
-                              {friends.map((f: any) => (
-                                <SelectItem key={f.friend_id} value={f.friend_id}>
-                                  {f.friend?.full_name}
-                                </SelectItem>
-                              ))}
+                              {friends.length === 0 ? (
+                                <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                                  Nenhum amigo disponível
+                                </div>
+                              ) : (
+                                friends.map((friendship: any) => (
+                                  <SelectItem key={friendship.friend_id} value={friendship.friend_id}>
+                                    {friendship.friend?.full_name || 'Sem nome'}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
