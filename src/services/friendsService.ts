@@ -42,6 +42,39 @@ export const sendFriendRequest = async (receiverId: string) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Usuário não autenticado');
 
+  // Impedir auto-convite
+  if (user.id === receiverId) {
+    throw new Error('Você não pode enviar convite para si mesmo');
+  }
+
+  // Verificar se já são amigos
+  const { data: existingFriendship } = await supabase
+    .from('friendships')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('friend_id', receiverId)
+    .single();
+
+  if (existingFriendship) {
+    throw new Error('Vocês já são amigos');
+  }
+
+  // Verificar se existe uma solicitação pendente inversa (receiverId -> user.id)
+  const { data: inverseRequest } = await supabase
+    .from('friend_requests')
+    .select('id')
+    .eq('sender_id', receiverId)
+    .eq('receiver_id', user.id)
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  // Se existe solicitação inversa pendente, aceita automaticamente
+  if (inverseRequest) {
+    await respondToFriendRequest(inverseRequest.id, 'accepted');
+    return { id: inverseRequest.id, message: 'Solicitação aceita automaticamente' };
+  }
+
+  // Inserir nova solicitação
   const { data, error } = await supabase
     .from('friend_requests')
     .insert({
@@ -52,7 +85,15 @@ export const sendFriendRequest = async (receiverId: string) => {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (error.code === '23505') { // Violação de unicidade
+      throw new Error('Já existe uma solicitação pendente entre vocês');
+    }
+    if (error.code === '23514') { // Check constraint (auto-convite)
+      throw new Error('Você não pode enviar convite para si mesmo');
+    }
+    throw error;
+  }
 
   // Dispara notificação para o destinatário (receiver)
   try {
@@ -91,6 +132,28 @@ export const getPendingRequests = async () => {
 };
 
 export const respondToFriendRequest = async (requestId: string, status: 'accepted' | 'rejected') => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
+
+  // Buscar solicitação para verificar permissão
+  const { data: request } = await supabase
+    .from('friend_requests')
+    .select('sender_id, receiver_id, status')
+    .eq('id', requestId)
+    .single();
+
+  if (!request) {
+    throw new Error('Solicitação não encontrada');
+  }
+
+  if (request.receiver_id !== user.id) {
+    throw new Error('Você não tem permissão para responder esta solicitação');
+  }
+
+  if (request.status !== 'pending') {
+    throw new Error('Esta solicitação já foi respondida');
+  }
+
   const { data, error } = await supabase
     .from('friend_requests')
     .update({ status })
@@ -144,10 +207,29 @@ export const getFriendsList = async () => {
 };
 
 export const removeFriend = async (friendshipId: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
+
+  // Buscar amizade para obter friend_id
+  const { data: friendship } = await supabase
+    .from('friendships')
+    .select('user_id, friend_id')
+    .eq('id', friendshipId)
+    .single();
+
+  if (!friendship) {
+    throw new Error('Amizade não encontrada');
+  }
+
+  if (friendship.user_id !== user.id) {
+    throw new Error('Você não tem permissão para remover esta amizade');
+  }
+
+  // Deletar amizade bidirecional (ambas direções)
   const { error } = await supabase
     .from('friendships')
     .delete()
-    .eq('id', friendshipId);
+    .or(`and(user_id.eq.${user.id},friend_id.eq.${friendship.friend_id}),and(user_id.eq.${friendship.friend_id},friend_id.eq.${user.id})`);
 
   if (error) throw error;
 };

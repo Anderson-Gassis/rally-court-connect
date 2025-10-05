@@ -28,9 +28,14 @@ export function FriendsManager() {
 
   const sendRequestMutation = useMutation({
     mutationFn: friendsService.sendFriendRequest,
-    onSuccess: () => {
-      toast.success('Solicitação de amizade enviada!');
+    onSuccess: (data: any) => {
+      if (data?.message) {
+        toast.success(data.message);
+      } else {
+        toast.success('Solicitação de amizade enviada!');
+      }
       queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
       setSearchResults([]);
       setSearchTerm('');
     },
@@ -45,19 +50,25 @@ export function FriendsManager() {
     onSuccess: (_, variables) => {
       toast.success(
         variables.status === 'accepted'
-          ? 'Solicitação aceita!'
+          ? 'Solicitação aceita! Vocês agora são amigos.'
           : 'Solicitação rejeitada'
       );
       queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao responder solicitação');
     }
   });
 
   const removeFriendMutation = useMutation({
     mutationFn: friendsService.removeFriend,
     onSuccess: () => {
-      toast.success('Amigo removido');
+      toast.success('Amizade removida com sucesso');
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao remover amizade');
     }
   });
 
