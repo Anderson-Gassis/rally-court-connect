@@ -36,3 +36,9 @@ verify_jwt = false
 
 [functions.cancel-tournament]
 verify_jwt = true
+
+[functions.accept-friend-request]
+# Requires authentication - don't set verify_jwt = false
+
+[functions.cleanup-friend-requests]
+# Requires authentication - don't set verify_jwt = false

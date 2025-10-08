@@ -68,10 +68,9 @@ export const sendFriendRequest = async (receiverId: string) => {
     .eq('status', 'pending')
     .maybeSingle();
 
-  // Se existe solicitação inversa pendente, aceita automaticamente
+  // Se existe solicitação inversa pendente, não aceitar automaticamente
   if (inverseRequest) {
-    await respondToFriendRequest(inverseRequest.id, 'accepted');
-    return { id: inverseRequest.id, message: 'Solicitação aceita automaticamente' };
+    return { id: inverseRequest.id, message: 'Já existe uma solicitação recebida. Acesse a aba Solicitações para aceitar.' };
   }
 
   // Inserir nova solicitação
@@ -86,8 +85,45 @@ export const sendFriendRequest = async (receiverId: string) => {
     .single();
 
   if (error) {
-    if (error.code === '23505') { // Violação de unicidade
-      throw new Error('Já existe uma solicitação pendente entre vocês');
+    if (error.code === '23505') { // Solicitação pendente existente - tentar limpar e reenviar
+      try {
+        await supabase.functions.invoke('cleanup-friend-requests', {
+          body: { target_user_id: receiverId }
+        });
+        // Tentar reenviar uma única vez
+        const retry = await supabase
+          .from('friend_requests')
+          .insert({
+            sender_id: user.id,
+            receiver_id: receiverId,
+            status: 'pending'
+          })
+          .select()
+          .single();
+
+        if (retry.error) {
+          throw new Error('Já existe uma solicitação pendente entre vocês');
+        }
+
+        // Dispara notificação para o destinatário após recriar a solicitação
+        try {
+          await supabase.functions.invoke('create-notification', {
+            body: {
+              user_id: receiverId,
+              type: 'friend_request',
+              title: 'Novo pedido de amizade',
+              message: 'Você recebeu um pedido de amizade',
+              data: { request_id: retry.data.id, sender_id: user.id, receiver_id: receiverId }
+            }
+          });
+        } catch (e) {
+          console.warn('Falha ao criar notificação de amizade (ignorado):', e);
+        }
+
+        return retry.data;
+      } catch (e) {
+        throw new Error('Já existe uma solicitação pendente entre vocês');
+      }
     }
     if (error.code === '23514') { // Check constraint (auto-convite)
       throw new Error('Você não pode enviar convite para si mesmo');
@@ -154,32 +190,21 @@ export const respondToFriendRequest = async (requestId: string, status: 'accepte
     throw new Error('Esta solicitação já foi respondida');
   }
 
+  if (status === 'accepted') {
+    const { data: result, error: fnError } = await supabase.functions.invoke('accept-friend-request', {
+      body: { request_id: requestId }
+    });
+    if (fnError) throw fnError;
+    return result?.request ?? null;
+  }
+
   const { data, error } = await supabase
     .from('friend_requests')
     .update({ status })
     .eq('id', requestId)
     .select()
     .single();
-
   if (error) throw error;
-
-  // Notificar o remetente quando a solicitação for aceita
-  if (data && status === 'accepted') {
-    try {
-      await supabase.functions.invoke('create-notification', {
-        body: {
-          user_id: data.sender_id,
-          type: 'friend_request_accepted',
-          title: 'Pedido de amizade aceito',
-          message: 'Seu pedido de amizade foi aceito!',
-          data: { request_id: data.id, receiver_id: data.receiver_id }
-        }
-      });
-    } catch (e) {
-      console.warn('Falha ao notificar aceite de amizade (ignorado):', e);
-    }
-  }
-
   return data;
 };
 
