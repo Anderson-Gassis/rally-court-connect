@@ -14,6 +14,7 @@ import PlayerProfile from "./pages/PlayerProfile";
 import PartnerProfile from "./pages/PartnerProfile";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import InstructorProfile from "./pages/InstructorProfile";
+import InstructorPublicProfile from "./pages/InstructorPublicProfile";
 import ResetPassword from "./pages/ResetPassword";
 import Rankings from "./pages/Rankings";
 import Tournaments from "./pages/Tournaments";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/partner/profile" element={<PartnerProfile />} />
             <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
             <Route path="/instructor/profile" element={<InstructorProfile />} />
+            <Route path="/instructors/:id" element={<InstructorPublicProfile />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/player/bookings" element={<PlayerDashboard />} />
             <Route path="/player/profile" element={<PlayerProfile />} />
