@@ -214,29 +214,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }
 
-        // Se for instructor, criar instructor_info record
+        // Se for instructor, criar instructor_info record usando função segura
         if (role === 'instructor' && partnerData) {
-          const instructorInfoData: any = {
-            user_id: data.user.id,
-            specialization: partnerData.specialization || [],
-            experience_years: partnerData.experience_years || 0,
-            hourly_rate: partnerData.hourly_rate || 0,
-            bio: partnerData.bio || '',
-            location: partnerData.location || '',
-            trial_class_available: true,
-            trial_class_price: 0,
-          };
-
-          const { error: instructorError } = await supabase
-            .from('instructor_info')
-            .insert(instructorInfoData);
+          const { error: instructorError } = await supabase.rpc('create_instructor_profile', {
+            p_user_id: data.user.id,
+            p_specialization: partnerData.specialization || [],
+            p_experience_years: partnerData.experience_years || 0,
+            p_hourly_rate: partnerData.hourly_rate || 0,
+            p_bio: partnerData.bio || '',
+            p_location: partnerData.location || ''
+          });
 
           if (instructorError) {
             console.error('Instructor info creation error:', instructorError);
-            
-            // Deletar o usuário criado se falhar ao criar dados do professor
-            await supabase.auth.admin.deleteUser(data.user.id).catch(console.error);
-            
             throw new Error('Erro ao criar informações do professor. Por favor, tente novamente.');
           }
         }

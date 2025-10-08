@@ -1900,6 +1900,17 @@ export type Database = {
         Args: { email_to_check: string }
         Returns: boolean
       }
+      create_instructor_profile: {
+        Args: {
+          p_bio: string
+          p_experience_years: number
+          p_hourly_rate: number
+          p_location: string
+          p_specialization: string[]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       generate_tournament_code: {
         Args: Record<PropertyKey, never>
         Returns: string
