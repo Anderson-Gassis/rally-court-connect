@@ -51,6 +51,10 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
   });
 
   useEffect(() => {
+    if (!instructorId) {
+      setLoading(false);
+      return;
+    }
     fetchData();
   }, [instructorId]);
 
@@ -75,6 +79,10 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
   };
 
   const handleAddAvailability = async () => {
+    if (!instructorId) {
+      toast.error('Perfil de professor ainda não disponível. Conclua o cadastro e tente novamente.');
+      return;
+    }
     try {
       const result = await instructorsService.createAvailability({
         instructor_id: instructorId,
@@ -105,6 +113,10 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
   };
 
   const handleBlockTime = async () => {
+    if (!instructorId) {
+      toast.error('Perfil de professor ainda não disponível. Conclua o cadastro e tente novamente.');
+      return;
+    }
     if (!selectedDate) {
       toast.error('Selecione uma data');
       return;
@@ -171,7 +183,7 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button disabled={!instructorId}>
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Horário
                 </Button>
@@ -305,7 +317,7 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
             </div>
             <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" disabled={!instructorId}>
                   <X className="h-4 w-4 mr-2" />
                   Bloquear Horário
                 </Button>
