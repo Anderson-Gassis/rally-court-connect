@@ -128,7 +128,7 @@ const InstructorSignupModal: React.FC<InstructorSignupModalProps> = ({ isOpen, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm() || loading) return;
 
     setLoading(true);
     try {
@@ -169,6 +169,10 @@ const InstructorSignupModal: React.FC<InstructorSignupModalProps> = ({ isOpen, o
       // Se for erro de confirmação necessária, mostrar tela de sucesso
       if (error.message === 'CONFIRMATION_REQUIRED') {
         setShowSuccessScreen(true);
+      } else if (error.message?.includes('security purposes')) {
+        toast.error('Por favor, aguarde alguns segundos antes de tentar novamente');
+      } else if (error.message?.includes('rate limit')) {
+        toast.error('Muitas tentativas. Aguarde 1 minuto e tente novamente');
       } else {
         toast.error(error.message || 'Erro ao realizar cadastro');
       }

@@ -233,7 +233,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           if (instructorError) {
             console.error('Instructor info creation error:', instructorError);
-            throw new Error('Erro ao criar informações do professor');
+            
+            // Deletar o usuário criado se falhar ao criar dados do professor
+            await supabase.auth.admin.deleteUser(data.user.id).catch(console.error);
+            
+            throw new Error('Erro ao criar informações do professor. Por favor, tente novamente.');
           }
         }
 
