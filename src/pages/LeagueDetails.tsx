@@ -176,7 +176,7 @@ export default function LeagueDetails() {
                                 </div>
                               ) : (
                                 friends.map((friendship: any) => (
-                                  <SelectItem key={friendship.friend_id} value={friendship.friend_id}>
+                                  <SelectItem key={friendship.friend?.id} value={friendship.friend?.id}>
                                     {friendship.friend?.full_name || 'Sem nome'}
                                   </SelectItem>
                                 ))

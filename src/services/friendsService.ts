@@ -215,7 +215,17 @@ export const getFriendsList = async () => {
   const { data, error } = await supabase
     .from('friendships')
     .select(`
-      *,
+      id,
+      user_id,
+      friend_id,
+      created_at,
+      user:profiles!friendships_user_id_fkey(
+        id:user_id,
+        full_name,
+        avatar_url,
+        email,
+        skill_level
+      ),
       friend:profiles!friendships_friend_id_fkey(
         id:user_id,
         full_name,
@@ -224,11 +234,22 @@ export const getFriendsList = async () => {
         skill_level
       )
     `)
-    .eq('user_id', user.id)
+    .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+
+  // Normaliza para sempre retornar o perfil do "outro" usuário em `friend`
+  const normalized = (data || []).map((row: any) => {
+    const isUserA = row.user_id === user.id;
+    const otherProfile = isUserA ? row.friend : row.user;
+    return {
+      ...row,
+      friend: otherProfile,
+    };
+  });
+
+  return normalized;
 };
 
 export const removeFriend = async (friendshipId: string) => {
