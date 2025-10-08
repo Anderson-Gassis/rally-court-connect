@@ -216,7 +216,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // Se for instructor, criar instructor_info record usando função segura
         if (role === 'instructor' && partnerData) {
-          const { error: instructorError } = await supabase.rpc('create_instructor_profile', {
+          const { error: instructorError } = await (supabase as any).rpc('create_instructor_profile', {
             p_user_id: data.user.id,
             p_specialization: partnerData.specialization || [],
             p_experience_years: partnerData.experience_years || 0,
