@@ -53,28 +53,52 @@ const InstructorPublicProfile = () => {
     try {
       if (!id) return;
 
-      // Fetch profile data
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', id)
-        .single();
+      console.log('[InstructorPublicProfile] Buscando perfil para user_id:', id);
 
-      if (profileError) throw profileError;
-      setProfile(profileData);
-
-      // Fetch instructor info
+      // Fetch instructor info first (main data source)
       const { data: instructorData, error: instructorError } = await supabase
         .from('instructor_info')
         .select('*')
         .eq('user_id', id)
         .single();
 
-      if (instructorError) throw instructorError;
+      if (instructorError) {
+        console.error('[InstructorPublicProfile] Erro ao buscar instructor_info:', instructorError);
+        throw new Error('Professor não encontrado');
+      }
+
+      if (!instructorData) {
+        throw new Error('Professor não encontrado');
+      }
+
+      console.log('[InstructorPublicProfile] Instructor info encontrado:', instructorData);
       setInstructorInfo(instructorData);
-    } catch (error) {
-      console.error('Error fetching instructor profile:', error);
-      toast.error('Erro ao carregar perfil do professor');
+
+      // Try to fetch profile data (optional, fallback to instructor_info)
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', id)
+        .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
+
+      if (profileData) {
+        console.log('[InstructorPublicProfile] Profile encontrado:', profileData);
+        setProfile(profileData);
+      } else {
+        console.log('[InstructorPublicProfile] Profile não encontrado, usando dados do instructor_info');
+        // Create a minimal profile from instructor_info
+        setProfile({
+          user_id: instructorData.user_id,
+          full_name: 'Professor', // Default name
+          email: '',
+          phone: '',
+          avatar_url: undefined,
+          location: instructorData.location || undefined
+        });
+      }
+    } catch (error: any) {
+      console.error('[InstructorPublicProfile] Erro:', error);
+      toast.error(error.message || 'Erro ao carregar perfil do professor');
       navigate('/instructors');
     } finally {
       setLoading(false);
@@ -90,8 +114,7 @@ const InstructorPublicProfile = () => {
       toast.error('Faça login para agendar uma aula');
       return;
     }
-    // TODO: Implementar modal de agendamento
-    toast.info('Funcionalidade de agendamento em desenvolvimento');
+    toast.success('Em breve! Entre em contato diretamente com o professor para agendar.');
   };
 
   if (loading) {

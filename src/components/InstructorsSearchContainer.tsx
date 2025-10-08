@@ -212,6 +212,7 @@ const InstructorsSearchContainer = () => {
                         asChild
                         variant="outline"
                         className="w-full border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10"
+                        onClick={() => console.log('[InstructorsSearch] Navegando para perfil:', instructor.user_id)}
                       >
                         <Link to={`/instructors/${instructor.user_id}`}>
                           Ver Perfil
@@ -220,6 +221,7 @@ const InstructorsSearchContainer = () => {
                       <Button 
                         asChild
                         className="w-full bg-tennis-blue hover:bg-tennis-blue-dark text-white"
+                        onClick={() => console.log('[InstructorsSearch] Agendar aula com:', instructor.user_id)}
                       >
                         <Link to={`/instructors/${instructor.user_id}`}>
                           <Calendar className="h-4 w-4 mr-2" />
