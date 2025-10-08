@@ -42,3 +42,9 @@ verify_jwt = true
 
 [functions.cleanup-friend-requests]
 # Requires authentication - don't set verify_jwt = false
+
+[functions.create-instructor-class-payment]
+verify_jwt = true
+
+[functions.confirm-instructor-class-payment]
+verify_jwt = false

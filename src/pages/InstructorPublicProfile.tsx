@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Award, DollarSign, Calendar, Clock, CheckCircle, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import SafeLoading from '@/components/SafeLoading';
+import InstructorBookingModal from '@/components/InstructorBookingModal';
 
 interface InstructorProfile {
   user_id: string;
@@ -42,6 +43,7 @@ const InstructorPublicProfile = () => {
   const [profile, setProfile] = useState<InstructorProfile | null>(null);
   const [instructorInfo, setInstructorInfo] = useState<InstructorInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -114,7 +116,7 @@ const InstructorPublicProfile = () => {
       toast.error('Faça login para agendar uma aula');
       return;
     }
-    toast.success('Em breve! Entre em contato diretamente com o professor para agendar.');
+    setBookingModalOpen(true);
   };
 
   if (loading) {
@@ -327,6 +329,19 @@ const InstructorPublicProfile = () => {
       </div>
 
       <Footer />
+
+      {/* Booking Modal */}
+      {instructorInfo && profile && (
+        <InstructorBookingModal
+          open={bookingModalOpen}
+          onOpenChange={setBookingModalOpen}
+          instructorId={instructorInfo.id}
+          instructorName={profile.full_name}
+          hourlyRate={instructorInfo.hourly_rate}
+          trialAvailable={instructorInfo.trial_class_available}
+          trialPrice={instructorInfo.trial_class_price}
+        />
+      )}
     </div>
   );
 };
