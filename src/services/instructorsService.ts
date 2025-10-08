@@ -48,10 +48,10 @@ export const instructorsService = {
     try {
       console.log('[instructorsService] Buscando instrutores próximos', filters);
 
+      // Buscar todos os instrutores (removido filtro verified)
       let query = supabase
         .from('instructor_info')
-        .select('*')
-        .eq('verified', true);
+        .select('*');
 
       // Aplicar filtros
       if (filters?.specialization && filters.specialization !== 'all') {
