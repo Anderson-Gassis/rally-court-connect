@@ -220,14 +220,14 @@ export const getFriendsList = async () => {
       friend_id,
       created_at,
       user:profiles!friendships_user_id_fkey(
-        id:user_id,
+        user_id,
         full_name,
         avatar_url,
         email,
         skill_level
       ),
       friend:profiles!friendships_friend_id_fkey(
-        id:user_id,
+        user_id,
         full_name,
         avatar_url,
         email,
@@ -245,7 +245,13 @@ export const getFriendsList = async () => {
     const otherProfile = isUserA ? row.friend : row.user;
     return {
       ...row,
-      friend: otherProfile,
+      friend: {
+        id: otherProfile?.user_id,
+        full_name: otherProfile?.full_name,
+        avatar_url: otherProfile?.avatar_url,
+        email: otherProfile?.email,
+        skill_level: otherProfile?.skill_level,
+      },
     };
   });
 
