@@ -50,15 +50,7 @@ export const instructorsService = {
 
       let query = supabase
         .from('instructor_info')
-        .select(`
-          *,
-          profiles!inner (
-            user_id,
-            full_name,
-            avatar_url,
-            location
-          )
-        `)
+        .select('*')
         .eq('verified', true);
 
       // Aplicar filtros
@@ -90,9 +82,18 @@ export const instructorsService = {
         return [];
       }
 
+      // Buscar profiles dos instrutores
+      const userIds = data.map((i: any) => i.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, avatar_url, location')
+        .in('user_id', userIds);
+
+      const profilesMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
       // Mapear dados para o formato esperado
       const instructors: Instructor[] = data.map((instructor: any) => {
-        const profile = instructor.profiles;
+        const profile = profilesMap.get(instructor.user_id);
         
         return {
           id: instructor.id,

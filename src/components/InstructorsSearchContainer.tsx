@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,58 +6,29 @@ import { Slider } from '@/components/ui/slider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Search, Users, Award, Star, Calendar, DollarSign } from 'lucide-react';
-import { Instructor, instructorsService, InstructorFilters } from '@/services/instructorsService';
+import { MapPin, Users, Award, Calendar, DollarSign } from 'lucide-react';
+import { InstructorFilters } from '@/services/instructorsService';
 import SafeLoading from '@/components/SafeLoading';
-import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
+import { useInstructors } from '@/hooks/useInstructors';
 
 const InstructorsSearchContainer = () => {
   const [distance, setDistance] = useState([50]);
   const [specialization, setSpecialization] = useState('all');
   const [maxPrice, setMaxPrice] = useState(500);
   const [trialAvailable, setTrialAvailable] = useState(false);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const { isAuthenticated } = useAuth();
 
-  const searchInstructors = useCallback(async () => {
-    console.log('Iniciando busca de instrutores...', { distance: distance[0], specialization, maxPrice });
-    setLoading(true);
-    setError(null);
+  const filters = useMemo<InstructorFilters>(() => ({
+    distance: distance[0],
+    ...(specialization && specialization !== 'all' && { specialization }),
+    maxPrice,
+    ...(trialAvailable && { trialAvailable: true })
+  }), [distance, specialization, maxPrice, trialAvailable]);
 
-    try {
-      const filters: InstructorFilters = {
-        distance: distance[0],
-        ...(specialization && specialization !== 'all' && { specialization }),
-        maxPrice,
-        ...(trialAvailable && { trialAvailable: true })
-      };
-
-      console.log('Chamando instructorsService com filtros:', filters);
-      const results = await instructorsService.getNearbyInstructors(filters);
-      console.log('Resultados da busca:', results);
-      setInstructors(results);
-    } catch (err) {
-      console.error('Erro ao buscar instrutores:', err);
-      setError('Erro ao buscar professores. Tente novamente.');
-      setInstructors([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [distance, specialization, maxPrice, trialAvailable]);
+  const { data: instructors = [], isLoading, error, refetch } = useInstructors(filters, true);
 
   const getInstructorInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   };
-
-  // Busca inicial ao montar o componente
-  useEffect(() => {
-    searchInstructors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 max-w-6xl mx-auto">
@@ -101,12 +72,11 @@ const InstructorsSearchContainer = () => {
         </div>
 
         <Button 
-          onClick={searchInstructors}
-          disabled={loading}
+          onClick={() => refetch()}
+          disabled={isLoading}
           className="bg-tennis-blue hover:bg-tennis-blue-dark text-white"
         >
-          <Search className="h-4 w-4 mr-2" />
-          {loading ? 'Buscando...' : 'Buscar'}
+          {isLoading ? 'Buscando...' : 'Atualizar'}
         </Button>
       </div>
 
@@ -158,16 +128,16 @@ const InstructorsSearchContainer = () => {
               <h3 className="text-lg font-semibold text-red-800 mb-2">
                 Erro ao carregar professores
               </h3>
-              <p className="text-red-600 mb-4">{error}</p>
+              <p className="text-red-600 mb-4">Erro ao buscar professores. Tente novamente.</p>
               <Button 
-                onClick={searchInstructors}
+                onClick={() => refetch()}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Tentar novamente
               </Button>
             </div>
           </div>
-        ) : loading ? (
+        ) : isLoading ? (
           <SafeLoading message="Buscando professores..." />
         ) : instructors.length > 0 ? (
           <>
@@ -272,11 +242,11 @@ const InstructorsSearchContainer = () => {
               Tente ajustar os filtros ou aumentar a distância de busca.
             </p>
             <Button 
-              onClick={searchInstructors}
+              onClick={() => refetch()}
               variant="outline"
               className="border-tennis-blue text-tennis-blue hover:bg-tennis-blue/10"
             >
-              Tentar novamente
+              Atualizar busca
             </Button>
           </div>
         )}
