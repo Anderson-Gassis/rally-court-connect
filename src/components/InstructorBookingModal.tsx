@@ -156,11 +156,29 @@ const InstructorBookingModal = ({
 
     setLoading(true);
     try {
-      // Criar registro de agendamento (class_id será preenchido posteriormente quando houver classes)
+      // Primeiro, criar a aula na tabela classes
+      const classTitle = isTrialClass ? 'Aula Experimental' : 'Aula Individual';
+      const { data: classData, error: classError } = await supabase
+        .from('classes')
+        .insert({
+          instructor_id: instructorId,
+          title: classTitle,
+          class_type: isTrialClass ? 'trial' : 'individual',
+          description: `Aula agendada para ${date!.toLocaleDateString('pt-BR')}`,
+          duration_minutes: totalHours * 60,
+          price: price,
+          max_students: 1
+        })
+        .select()
+        .single();
+
+      if (classError) throw classError;
+
+      // Agora criar o booking com o class_id correto
       const { data: booking, error: bookingError } = await supabase
         .from('class_bookings')
         .insert({
-          class_id: instructorId, // Usando instructor_id temporariamente como class_id
+          class_id: classData.id,
           student_id: user.id,
           instructor_id: instructorId,
           booking_date: date!.toISOString().split('T')[0],
