@@ -83,6 +83,13 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
       toast.error('Perfil de professor ainda não disponível. Conclua o cadastro e tente novamente.');
       return;
     }
+    // Validação: horário final deve ser após o inicial
+    const [sh, sm] = newAvailability.start_time.split(':').map(Number);
+    const [eh, em] = newAvailability.end_time.split(':').map(Number);
+    if (eh * 60 + em <= sh * 60 + sm) {
+      toast.error('Horário final deve ser após o horário inicial');
+      return;
+    }
     try {
       const result = await instructorsService.createAvailability({
         instructor_id: instructorId,
@@ -119,6 +126,14 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
     }
     if (!selectedDate) {
       toast.error('Selecione uma data');
+      return;
+    }
+
+    // Validação: horário final deve ser após o inicial
+    const [sh, sm] = newBlock.start_time.split(':').map(Number);
+    const [eh, em] = newBlock.end_time.split(':').map(Number);
+    if (eh * 60 + em <= sh * 60 + sm) {
+      toast.error('Horário final deve ser após o horário inicial');
       return;
     }
 
@@ -183,7 +198,7 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
             </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button disabled={!instructorId}>
+                <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Horário
                 </Button>
@@ -317,7 +332,7 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
             </div>
             <Dialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" disabled={!instructorId}>
+                <Button variant="outline">
                   <X className="h-4 w-4 mr-2" />
                   Bloquear Horário
                 </Button>
@@ -336,7 +351,7 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                       className="rounded-md border"
                       locale={ptBR}
                     />
@@ -410,7 +425,7 @@ const InstructorAvailabilityManager: React.FC<InstructorAvailabilityManagerProps
                 <div key={block.id} className="flex items-center justify-between border rounded-lg p-3">
                   <div>
                     <div className="font-medium">
-                      {format(new Date(block.blocked_date), "dd 'de' MMMM", { locale: ptBR })}
+                      {format(new Date(block.blocked_date), 'dd/MM/yyyy')}
                     </div>
                     <div className="text-sm text-gray-600">
                       {block.start_time.slice(0, 5)} - {block.end_time.slice(0, 5)}
