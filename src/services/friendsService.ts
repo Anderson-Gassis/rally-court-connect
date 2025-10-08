@@ -243,17 +243,22 @@ export const getFriendsList = async () => {
   const normalized = (data || []).map((row: any) => {
     const isUserA = row.user_id === user.id;
     const otherProfile = isUserA ? row.friend : row.user;
+    
+    if (!otherProfile) {
+      return null;
+    }
+    
     return {
       ...row,
       friend: {
-        id: otherProfile?.user_id,
-        full_name: otherProfile?.full_name,
-        avatar_url: otherProfile?.avatar_url,
-        email: otherProfile?.email,
-        skill_level: otherProfile?.skill_level,
+        id: otherProfile.user_id,
+        full_name: otherProfile.full_name,
+        avatar_url: otherProfile.avatar_url,
+        email: otherProfile.email,
+        skill_level: otherProfile.skill_level,
       },
     };
-  });
+  }).filter(Boolean);
 
   return normalized;
 };
