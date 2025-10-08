@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { instructorsService, InstructorFilters } from '@/services/instructorsService';
 
 export const useInstructors = (filters?: InstructorFilters, enabled: boolean = true) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+  
+  const query = useQuery({
     queryKey: ['instructors', filters],
     queryFn: () => instructorsService.getNearbyInstructors(filters),
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -14,4 +16,14 @@ export const useInstructors = (filters?: InstructorFilters, enabled: boolean = t
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     refetchOnWindowFocus: false,
   });
+
+  const forceRefetch = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['instructors'] });
+    return query.refetch();
+  };
+
+  return {
+    ...query,
+    refetch: forceRefetch,
+  };
 };
