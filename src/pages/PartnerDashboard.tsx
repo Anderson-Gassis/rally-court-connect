@@ -97,8 +97,8 @@ const PartnerDashboard = () => {
       return;
     }
 
-    // Só redirecionar se o user estiver carregado E não for partner
-    if (user && user.role && user.role !== 'partner') {
+    // Permitir acesso para parceiros e admins
+    if (user && user.role && !user.isPartner && !user.isAdmin) {
       navigate('/');
       toast.error('Acesso restrito a parceiros');
       return;
@@ -142,11 +142,16 @@ const PartnerDashboard = () => {
       if (partnerError && partnerError.code !== 'PGRST116') throw partnerError;
       setPartnerInfo(partnerData);
 
-      // Buscar quadras do parceiro
-      const { data: courtsData, error: courtsError } = await supabase
+      // Buscar quadras do parceiro (ou todas se admin)
+      let courtsQuery = supabase
         .from('courts')
-        .select('*')
-        .eq('owner_id', user.id)
+        .select('*');
+      
+      if (!user.isAdmin) {
+        courtsQuery = courtsQuery.eq('owner_id', user.id);
+      }
+      
+      const { data: courtsData, error: courtsError } = await courtsQuery
         .order('created_at', { ascending: false });
 
       if (courtsError) throw courtsError;
@@ -193,7 +198,7 @@ const PartnerDashboard = () => {
     }
   };
 
-  if (!isAuthenticated || user?.role !== 'partner') {
+  if (!isAuthenticated || (!user?.isPartner && !user?.isAdmin)) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -236,6 +241,27 @@ const PartnerDashboard = () => {
   const pendingBookings = bookings.filter(booking => booking.status === 'pending');
   const totalRevenue = confirmedBookings.reduce((sum, booking) => sum + booking.total_price, 0);
   const activeCourts = courts.filter(court => court.available).length;
+
+  const handleDeleteCourt = async (courtId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta quadra? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('courts')
+        .delete()
+        .eq('id', courtId);
+
+      if (error) throw error;
+
+      toast.success('Quadra excluída com sucesso');
+      setCourts(courts.filter(c => c.id !== courtId));
+    } catch (error: any) {
+      console.error('Error deleting court:', error);
+      toast.error('Erro ao excluir quadra: ' + error.message);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -467,13 +493,13 @@ const PartnerDashboard = () => {
                     <div className="space-y-4">
                       {courts.map((court) => (
                         <div key={court.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-4 flex-1">
                             <img 
                               src={court.image_url || 'https://images.unsplash.com/photo-1569955914862-7d551e5516a1?q=80&w=100'} 
                               alt={court.name}
                               className="h-16 w-16 rounded object-cover"
                             />
-                            <div>
+                            <div className="flex-1">
                               <h3 className="font-semibold">{court.name}</h3>
                               <p className="text-sm text-gray-600 flex items-center">
                                 <MapPin className="h-3 w-3 mr-1" />
@@ -484,13 +510,23 @@ const PartnerDashboard = () => {
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">R$ {court.price_per_hour}/hora</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Badge variant={court.available ? "default" : "secondary"} className="text-xs">
-                                {court.available ? 'Ativa' : 'Inativa'}
-                              </Badge>
+                          <div className="flex items-center space-x-3">
+                            <div className="text-right">
+                              <p className="font-semibold">R$ {court.price_per_hour}/hora</p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Badge variant={court.available ? "default" : "secondary"} className="text-xs">
+                                  {court.available ? 'Ativa' : 'Inativa'}
+                                </Badge>
+                              </div>
                             </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteCourt(court.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       ))}

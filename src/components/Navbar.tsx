@@ -76,30 +76,28 @@ const Navbar = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem asChild>
-                      <Link to={user?.role === 'partner' ? '/partner/dashboard' : user?.role === 'instructor' ? '/instructor/dashboard' : '/player/dashboard'}>
-                        {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
+                      <Link to={user?.isAdmin ? '/admin/dashboard' : user?.isPartner ? '/partner/dashboard' : user?.isInstructor ? '/instructor/dashboard' : '/player/dashboard'}>
+                        {user?.isAdmin ? '📊 Admin' : user?.isPartner ? 'Dashboard Parceiro' : user?.isInstructor ? 'Dashboard Professor' : 'Minha Área'}
                       </Link>
                     </DropdownMenuItem>
-                    {user?.email === 'anders.assis1985@gmail.com' && (
+                    {(user?.isPartner || user?.isAdmin) && (
                       <DropdownMenuItem asChild>
-                        <Link to="/admin/dashboard" className="text-green-600 font-medium">
-                          📊 Painel Admin
-                        </Link>
+                        <Link to="/partner/dashboard">Dashboard Parceiro</Link>
                       </DropdownMenuItem>
                     )}
-                    {user?.role === 'partner' && (
+                    {(user?.isInstructor || user?.isAdmin) && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/instructor/dashboard">Dashboard Professor</Link>
+                      </DropdownMenuItem>
+                    )}
+                    {(user?.isPlayer || user?.isAdmin) && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/player/dashboard">Minha Área</Link>
+                      </DropdownMenuItem>
+                    )}
+                    {(user?.isPartner || user?.isAdmin) && (
                       <DropdownMenuItem asChild>
                         <Link to="/add-court">Cadastrar Quadra</Link>
-                      </DropdownMenuItem>
-                    )}
-                    {user?.role === 'instructor' && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/instructor/dashboard">Minhas Reservas</Link>
-                      </DropdownMenuItem>
-                    )}
-                    {(!user?.role || user?.role === 'player') && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/player/bookings">Minhas Reservas</Link>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem onClick={handleLogout} className="text-red-600">
@@ -151,23 +149,30 @@ const Navbar = () => {
               <div className="flex flex-col space-y-2 pt-2">
                 {isAuthenticated ? (
                   <>
-                    <Link to={user?.role === 'partner' ? '/partner/dashboard' : user?.role === 'instructor' ? '/instructor/dashboard' : '/player/dashboard'} onClick={toggleMenu}>
+                    <Link to={user?.isAdmin ? '/admin/dashboard' : user?.isPartner ? '/partner/dashboard' : user?.isInstructor ? '/instructor/dashboard' : '/player/dashboard'} onClick={toggleMenu}>
                       <Button variant="outline" className="w-full justify-start">
                         <User className="h-4 w-4 mr-2" />
-                        {user?.role === 'partner' ? 'Dashboard Parceiro' : 'Minha Área'}
+                        {user?.isAdmin ? '📊 Admin' : user?.isPartner ? 'Dashboard Parceiro' : user?.isInstructor ? 'Dashboard Professor' : 'Minha Área'}
                       </Button>
                     </Link>
-                    {user?.role === 'instructor' && (
-                      <Link to="/instructor/dashboard" onClick={toggleMenu}>
+                    {(user?.isPartner || user?.isAdmin) && (
+                      <Link to="/partner/dashboard" onClick={toggleMenu}>
                         <Button variant="outline" className="w-full justify-start">
-                          Minhas Reservas
+                          Dashboard Parceiro
                         </Button>
                       </Link>
                     )}
-                    {(!user?.role || user?.role === 'player') && (
-                      <Link to="/player/bookings" onClick={toggleMenu}>
+                    {(user?.isInstructor || user?.isAdmin) && (
+                      <Link to="/instructor/dashboard" onClick={toggleMenu}>
                         <Button variant="outline" className="w-full justify-start">
-                          Minhas Reservas
+                          Dashboard Professor
+                        </Button>
+                      </Link>
+                    )}
+                    {(user?.isPlayer || user?.isAdmin) && (
+                      <Link to="/player/dashboard" onClick={toggleMenu}>
+                        <Button variant="outline" className="w-full justify-start">
+                          Minha Área
                         </Button>
                       </Link>
                     )}

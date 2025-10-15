@@ -97,8 +97,8 @@ const InstructorDashboard = () => {
       return;
     }
 
-    // Só redirecionar se o user estiver carregado E não for instructor
-    if (user && user.role && user.role !== 'instructor') {
+    // Permitir acesso para instrutores e admins
+    if (user && user.role && !user.isInstructor && !user.isAdmin) {
       navigate('/');
       toast.error('Acesso restrito a professores');
       return;
@@ -207,7 +207,7 @@ const InstructorDashboard = () => {
     }
   };
 
-  if (!isAuthenticated || user?.role !== 'instructor') {
+  if (!isAuthenticated || (!user?.isInstructor && !user?.isAdmin)) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
