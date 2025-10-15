@@ -317,7 +317,7 @@ const InstructorBookingModal = ({
                         </SelectTrigger>
                         <SelectContent>
                           {availableSlots.map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem key={`start-${time}`} value={time}>
                               {time}
                             </SelectItem>
                           ))}
@@ -332,11 +332,13 @@ const InstructorBookingModal = ({
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableSlots.map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
-                            </SelectItem>
-                          ))}
+                          {availableSlots
+                            .filter(time => !startTime || time > startTime)
+                            .map((time) => (
+                              <SelectItem key={`end-${time}`} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>

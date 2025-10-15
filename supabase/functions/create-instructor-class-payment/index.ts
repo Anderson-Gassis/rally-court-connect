@@ -48,15 +48,23 @@ serve(async (req) => {
     // Buscar informações do instrutor
     const { data: instructorData, error: instructorError } = await supabaseClient
       .from("instructor_info")
-      .select("*, profiles!inner(*)")
+      .select("user_id")
       .eq("id", instructorId)
       .single();
 
     if (instructorError || !instructorData) {
+      console.error("[create-instructor-class-payment] Instructor query error:", instructorError);
       throw new Error("Instructor not found");
     }
 
-    const instructorName = instructorData.profiles?.full_name || "Professor";
+    // Buscar perfil do instrutor
+    const { data: profileData } = await supabaseClient
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", instructorData.user_id)
+      .single();
+
+    const instructorName = profileData?.full_name || "Professor";
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
