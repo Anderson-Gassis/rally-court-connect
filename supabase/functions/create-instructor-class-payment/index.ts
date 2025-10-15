@@ -13,14 +13,21 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    // Create clients: one for auth (anon) and one with service role for DB writes
+    const supabaseAuth = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
+    const { data } = await supabaseAuth.auth.getUser(token);
     const user = data.user;
 
     if (!user?.email) {
@@ -46,7 +53,7 @@ serve(async (req) => {
     });
 
     // Buscar informações do instrutor
-    const { data: instructorData, error: instructorError } = await supabaseClient
+    const { data: instructorData, error: instructorError } = await supabaseService
       .from("instructor_info")
       .select("user_id")
       .eq("id", instructorId)
@@ -58,7 +65,7 @@ serve(async (req) => {
     }
 
     // Buscar perfil do instrutor
-    const { data: profileData } = await supabaseClient
+    const { data: profileData } = await supabaseService
       .from("profiles")
       .select("full_name")
       .eq("user_id", instructorData.user_id)
@@ -76,6 +83,51 @@ serve(async (req) => {
 
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+    }
+
+    // Ensure booking exists (create using service role if missing)
+    let bookingIdToUse = bookingId as string | undefined;
+    if (!bookingIdToUse) {
+      const classTitle = isTrial ? 'Aula Experimental' : 'Aula Individual';
+      const { data: classData, error: classError } = await supabaseService
+        .from('classes')
+        .insert({
+          instructor_id: instructorId,
+          title: classTitle,
+          class_type: isTrial ? 'trial' : 'individual',
+          description: `Aula agendada para ${bookingDate} das ${startTime} às ${endTime}`,
+          duration_minutes: Math.round((totalHours || 1) * 60),
+          price: amount / 100,
+          max_students: 1
+        })
+        .select()
+        .single();
+      if (classError) throw new Error(`Failed to create class: ${classError.message}`);
+
+      const total = amount / 100;
+      const platformFee = total * 0.15;
+      const instructorAmount = total - platformFee;
+
+      const { data: bookingRow, error: bookingError } = await supabaseService
+        .from('class_bookings')
+        .insert({
+          class_id: classData.id,
+          student_id: user.id,
+          instructor_id: instructorId,
+          booking_date: bookingDate,
+          start_time: startTime,
+          end_time: endTime,
+          total_price: total,
+          is_trial: isTrial,
+          platform_fee: platformFee,
+          instructor_amount: instructorAmount,
+          status: 'pending',
+          payment_status: 'pending'
+        })
+        .select()
+        .single();
+      if (bookingError) throw new Error(`Failed to create booking: ${bookingError.message}`);
+      bookingIdToUse = bookingRow.id;
     }
 
     // Criar sessão de checkout
@@ -99,17 +151,17 @@ serve(async (req) => {
       success_url: `${req.headers.get("origin")}/player-dashboard?payment=success`,
       cancel_url: `${req.headers.get("origin")}/instructors`,
       metadata: {
-        booking_id: bookingId,
+        booking_id: bookingIdToUse,
         instructor_id: instructorId,
         booking_type: "class",
       },
     });
 
     // Atualizar booking com session_id
-    await supabaseClient
+    await supabaseService
       .from("class_bookings")
       .update({ payment_id: session.id })
-      .eq("id", bookingId);
+      .eq("id", bookingIdToUse as string);
 
     console.log("[create-instructor-class-payment] Session created:", session.id);
 
