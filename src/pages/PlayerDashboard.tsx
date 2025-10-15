@@ -147,6 +147,43 @@ const PlayerDashboard = () => {
     }
   }, [searchParams]);
 
+  // Confirmar pagamento de aula quando retornar do Stripe
+  useEffect(() => {
+    const confirmClassPayment = async () => {
+      const paymentParam = searchParams.get('payment');
+      const sessionId = searchParams.get('session_id');
+
+      if (paymentParam === 'success' && sessionId) {
+        try {
+          const { data, error } = await supabase.functions.invoke('confirm-instructor-class-payment', {
+            body: { sessionId }
+          });
+
+          if (error) throw error;
+
+          if (data.success) {
+            toast.success('Pagamento confirmado! Sua aula foi agendada com sucesso.');
+            // Recarregar os dados para mostrar a nova reserva
+            if (user) {
+              fetchPlayerData();
+            }
+          } else {
+            toast.error('Pagamento não foi confirmado. Entre em contato com o suporte.');
+          }
+        } catch (error) {
+          console.error('Error confirming class payment:', error);
+          toast.error('Erro ao confirmar pagamento da aula.');
+        } finally {
+          // Limpar parâmetros da URL
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        }
+      }
+    };
+
+    confirmClassPayment();
+  }, [searchParams, user]);
+
   const fetchPlayerData = async () => {
     if (!user) return;
 
