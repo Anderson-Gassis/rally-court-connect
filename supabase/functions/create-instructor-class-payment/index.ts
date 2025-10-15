@@ -52,6 +52,26 @@ serve(async (req) => {
       isTrial,
     });
 
+    // Verificar se já existe um booking para este horário (prevenir duplicação)
+    const { data: existingBooking, error: checkError } = await supabaseService
+      .from('class_bookings')
+      .select('id')
+      .eq('instructor_id', instructorId)
+      .eq('booking_date', bookingDate)
+      .eq('start_time', startTime)
+      .eq('end_time', endTime)
+      .in('status', ['pending', 'confirmed'])
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("[create-instructor-class-payment] Error checking existing booking:", checkError);
+    }
+
+    if (existingBooking) {
+      console.log("[create-instructor-class-payment] Booking already exists:", existingBooking.id);
+      throw new Error("Já existe um agendamento para este horário. Por favor, escolha outro horário.");
+    }
+
     // Buscar informações do instrutor
     const { data: instructorData, error: instructorError } = await supabaseService
       .from("instructor_info")

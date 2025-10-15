@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Award, DollarSign, Calendar, Clock, CheckCircle, Mail, Phone } from 'lucide-react';
+import { MapPin, Award, DollarSign, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import SafeLoading from '@/components/SafeLoading';
 import InstructorBookingModal from '@/components/InstructorBookingModal';
@@ -85,18 +85,15 @@ const InstructorPublicProfile = () => {
 
       if (profileData) {
         console.log('[InstructorPublicProfile] Profile encontrado:', profileData);
-        setProfile(profileData);
-      } else {
-        console.log('[InstructorPublicProfile] Profile não encontrado, usando dados do instructor_info');
-        // Create a minimal profile from instructor_info
+        // Remove dados sensíveis para perfil público
         setProfile({
-          user_id: instructorData.user_id,
-          full_name: 'Professor', // Default name
-          email: '',
-          phone: '',
-          avatar_url: undefined,
-          location: instructorData.location || undefined
+          ...profileData,
+          email: '', // Não exibir email publicamente
+          phone: '', // Não exibir telefone publicamente
         });
+      } else {
+        console.log('[InstructorPublicProfile] Profile não encontrado');
+        throw new Error('Perfil do professor não está completo');
       }
     } catch (error: any) {
       console.error('[InstructorPublicProfile] Erro:', error);
@@ -299,29 +296,40 @@ const InstructorPublicProfile = () => {
             </Card>
           )}
 
-          {/* Contact Info */}
+          {/* Como Funciona */}
           <Card>
             <CardHeader>
-              <CardTitle>Informações de Contato</CardTitle>
+              <CardTitle>Como Agendar</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {profile.email && (
-                  <div className="flex items-center text-gray-700">
-                    <Mail className="h-4 w-4 mr-3 text-tennis-blue" />
-                    <a href={`mailto:${profile.email}`} className="hover:text-tennis-blue">
-                      {profile.email}
-                    </a>
+              <div className="space-y-3 text-gray-700">
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-full bg-tennis-blue/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-tennis-blue font-semibold">1</span>
                   </div>
-                )}
-                {profile.phone && (
-                  <div className="flex items-center text-gray-700">
-                    <Phone className="h-4 w-4 mr-3 text-tennis-blue" />
-                    <a href={`tel:${profile.phone}`} className="hover:text-tennis-blue">
-                      {profile.phone}
-                    </a>
+                  <div>
+                    <p className="font-medium">Faça login na plataforma</p>
+                    <p className="text-sm text-gray-600">É necessário estar autenticado para agendar</p>
                   </div>
-                )}
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-full bg-tennis-blue/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-tennis-blue font-semibold">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Escolha data e horário</p>
+                    <p className="text-sm text-gray-600">Selecione um horário disponível na agenda</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-full bg-tennis-blue/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-tennis-blue font-semibold">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Confirme e pague</p>
+                    <p className="text-sm text-gray-600">Finalize o pagamento para garantir sua aula</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

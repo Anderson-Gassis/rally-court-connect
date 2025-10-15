@@ -82,8 +82,9 @@ const InstructorBookingModal = ({
         date.toISOString().split('T')[0]
       );
 
-      // Gerar slots de 30 em 30 minutos
-      const slots: string[] = [];
+      // Gerar slots de 30 em 30 minutos usando Set para evitar duplicações
+      const slotsSet = new Set<string>();
+      
       dayAvailability.forEach(avail => {
         const [startHour, startMin] = avail.start_time.split(':').map(Number);
         const [endHour, endMin] = avail.end_time.split(':').map(Number);
@@ -104,7 +105,7 @@ const InstructorBookingModal = ({
           });
           
           if (!isBlocked) {
-            slots.push(timeString);
+            slotsSet.add(timeString);
           }
           
           // Avançar 30 minutos
@@ -116,7 +117,9 @@ const InstructorBookingModal = ({
         }
       });
       
-      setAvailableSlots([...new Set(slots)]);
+      // Converter Set para array e ordenar
+      const sortedSlots = Array.from(slotsSet).sort();
+      setAvailableSlots(sortedSlots);
     } catch (error) {
       console.error('Error fetching available slots:', error);
       toast.error('Erro ao buscar horários disponíveis');
