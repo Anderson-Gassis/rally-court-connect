@@ -1982,6 +1982,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       instructor_class_bookings: {
@@ -2356,6 +2377,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       is_league_member: {
         Args: { _league_id: string; _user_id: string }
         Returns: boolean
@@ -2366,6 +2398,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "partner" | "instructor" | "player"
       user_role: "player" | "partner" | "admin" | "instructor"
     }
     CompositeTypes: {
@@ -2494,6 +2527,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "partner", "instructor", "player"],
       user_role: ["player", "partner", "admin", "instructor"],
     },
   },
