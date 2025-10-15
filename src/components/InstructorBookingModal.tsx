@@ -116,7 +116,7 @@ const InstructorBookingModal = ({
         }
       });
       
-      setAvailableSlots(slots);
+      setAvailableSlots([...new Set(slots)]);
     } catch (error) {
       console.error('Error fetching available slots:', error);
       toast.error('Erro ao buscar horários disponíveis');
@@ -156,85 +156,41 @@ const InstructorBookingModal = ({
 
     setLoading(true);
     try {
-      // Primeiro, criar a aula na tabela classes
-      const classTitle = isTrialClass ? 'Aula Experimental' : 'Aula Individual';
-      const { data: classData, error: classError } = await supabase
-        .from('classes')
-        .insert({
-          instructor_id: instructorId,
-          title: classTitle,
-          class_type: isTrialClass ? 'trial' : 'individual',
-          description: `Aula agendada para ${date!.toLocaleDateString('pt-BR')}`,
-          duration_minutes: totalHours * 60,
-          price: price,
-          max_students: 1
-        })
-        .select()
-        .single();
-
-      if (classError) throw classError;
-
-      // Agora criar o booking com o class_id correto
-      const { data: booking, error: bookingError } = await supabase
-        .from('class_bookings')
-        .insert({
-          class_id: classData.id,
-          student_id: user.id,
-          instructor_id: instructorId,
-          booking_date: date!.toISOString().split('T')[0],
-          start_time: startTime!,
-          end_time: endTime!,
-          total_price: price,
-          is_trial: isTrialClass,
-          platform_fee: platformFee,
-          instructor_amount: instructorAmount,
-          status: 'pending',
-          payment_status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (bookingError) throw bookingError;
-
-      // Criar sessão de pagamento Stripe
+      // Criar sessão de pagamento Stripe via Edge Function (server-side cria classe e booking)
       const { data, error } = await supabase.functions.invoke('create-instructor-class-payment', {
         body: {
-          bookingId: booking.id,
           instructorId,
           bookingDate: date!.toISOString().split('T')[0],
           startTime: startTime!,
           endTime: endTime!,
           totalHours,
           isTrial: isTrialClass,
-          amount: Math.round(price * 100)
-        }
+          amount: Math.round(price * 100),
+        },
       });
 
       if (error) throw error;
 
       // Log da atividade
       await supabase.rpc('log_user_activity', {
-        activity_type_param: 'class_booking_created',
+        activity_type_param: 'class_booking_payment_started',
         activity_data_param: {
           instructor_id: instructorId,
           booking_date: date!.toISOString().split('T')[0],
-          total_price: price
-        }
+          total_price: price,
+        },
       });
 
-      // Redirecionar para Stripe Checkout
       if (data?.url) {
         window.open(data.url, '_blank');
-        toast.success("Pagamento iniciado! Complete na nova aba.");
-        setTimeout(() => {
-          onOpenChange(false);
-        }, 1000);
+        toast.success('Pagamento iniciado! Complete na nova aba.');
+        setTimeout(() => onOpenChange(false), 1000);
       } else {
-        throw new Error("URL de pagamento não recebida");
+        throw new Error('URL de pagamento não recebida');
       }
-    } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("Erro ao processar pagamento. Tente novamente.");
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      toast.error(err?.message || 'Erro ao processar pagamento. Tente novamente.');
     } finally {
       setLoading(false);
     }
