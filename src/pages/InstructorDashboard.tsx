@@ -118,6 +118,38 @@ const InstructorDashboard = () => {
     }
   }, [searchParams]);
 
+  // Confirmar pagamento de plano quando retornar do Stripe
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+
+    if (paymentStatus === 'success' && sessionId) {
+      confirmInstructorAdPayment(sessionId);
+    }
+  }, [searchParams]);
+
+  const confirmInstructorAdPayment = async (sessionId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('confirm-instructor-ad-payment', {
+        body: { sessionId }
+      });
+
+      if (error) throw error;
+
+      toast.success('Pagamento confirmado! Seu plano está ativo.');
+      
+      // Limpar parâmetros da URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      
+      // Recarregar dados
+      fetchInstructorData();
+    } catch (error: any) {
+      console.error('Error confirming instructor ad payment:', error);
+      toast.error('Erro ao confirmar pagamento do plano');
+    }
+  };
+
   const fetchInstructorData = async () => {
     if (!user) return;
 
