@@ -18,18 +18,20 @@ const RoleBasedNavigation = () => {
     return null;
   }
 
-  const isPartner = user.role === 'partner';
-  const isPlayer = user.role === 'player';
-  const isInstructor = user.role === 'instructor';
+  // Admin users get all navigation options
+  const isAdmin = user.isAdmin || false;
+  const isPartner = user.isPartner || user.role === 'partner';
+  const isPlayer = user.isPlayer || user.role === 'player';
+  const isInstructor = user.isInstructor || user.role === 'instructor';
 
   return (
     <div className="flex items-center space-x-2">
-      {isPartner && (
+      {(isPartner || isAdmin) && (
         <>
           <Button asChild variant="outline" size="sm">
             <Link to="/partner/dashboard">
               <Building2 className="h-4 w-4 mr-1" />
-              Dashboard
+              Dashboard Parceiro
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm">
@@ -41,24 +43,24 @@ const RoleBasedNavigation = () => {
         </>
       )}
       
-      {isInstructor && (
+      {(isInstructor || isAdmin) && (
         <>
           <Button asChild variant="outline" size="sm">
             <Link to="/instructor/dashboard">
               <Trophy className="h-4 w-4 mr-1" />
-              Dashboard
+              Dashboard Professor
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/instructor/profile">
               <User className="h-4 w-4 mr-1" />
-              Meu Perfil
+              Perfil Professor
             </Link>
           </Button>
         </>
       )}
       
-      {isPlayer && (
+      {(isPlayer || isAdmin) && (
         <>
           <Button asChild variant="outline" size="sm">
             <Link to="/player/dashboard">

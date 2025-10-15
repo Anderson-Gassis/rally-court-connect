@@ -11,6 +11,11 @@ interface User {
   skillLevel?: string;
   location?: string;
   role?: 'player' | 'partner' | 'instructor' | 'admin';
+  roles?: string[]; // Array of roles from user_roles table
+  isAdmin?: boolean;
+  isPartner?: boolean;
+  isInstructor?: boolean;
+  isPlayer?: boolean;
 }
 
 interface AuthContextType {
@@ -76,6 +81,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('Error fetching profile:', error);
       }
 
+      // Fetch user roles from user_roles table
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', supabaseUser.id);
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+      }
+
+      const roles = userRoles?.map(r => r.role) || [];
+      const isAdmin = roles.includes('admin');
+      const isPartner = roles.includes('partner');
+      const isInstructor = roles.includes('instructor');
+      const isPlayer = roles.includes('player');
+
       if (profile) {
         setUser({
           id: supabaseUser.id,
@@ -85,7 +106,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           avatarUrl: profile.avatar_url,
           skillLevel: profile.skill_level,
           location: profile.location,
-          role: profile.role || 'player',
+          role: isAdmin ? 'admin' : isPartner ? 'partner' : isInstructor ? 'instructor' : 'player',
+          roles,
+          isAdmin,
+          isPartner,
+          isInstructor,
+          isPlayer,
         });
       } else {
         // Se o perfil não foi encontrado, criar um básico
@@ -93,7 +119,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id: supabaseUser.id,
           email: supabaseUser.email!,
           name: supabaseUser.email!,
-          role: 'player',
+          role: isAdmin ? 'admin' : isPartner ? 'partner' : isInstructor ? 'instructor' : 'player',
+          roles,
+          isAdmin,
+          isPartner,
+          isInstructor,
+          isPlayer,
         });
       }
     } catch (error) {
@@ -104,6 +135,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         email: supabaseUser.email!,
         name: supabaseUser.email!,
         role: 'player',
+        roles: [],
+        isAdmin: false,
+        isPartner: false,
+        isInstructor: false,
+        isPlayer: true,
       });
     }
   };
