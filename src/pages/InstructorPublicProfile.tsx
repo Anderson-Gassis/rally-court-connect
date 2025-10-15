@@ -77,23 +77,29 @@ const InstructorPublicProfile = () => {
       setInstructorInfo(instructorData);
 
       // Try to fetch profile data (optional, fallback to instructor_info)
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', id)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
+        .maybeSingle();
 
       if (profileData) {
         console.log('[InstructorPublicProfile] Profile encontrado:', profileData);
-        // Remove dados sensíveis para perfil público
         setProfile({
           ...profileData,
-          email: '', // Não exibir email publicamente
-          phone: '', // Não exibir telefone publicamente
+          email: '',
+          phone: '',
         });
       } else {
-        console.log('[InstructorPublicProfile] Profile não encontrado');
-        throw new Error('Perfil do professor não está completo');
+        console.log('[InstructorPublicProfile] Profile não encontrado, usando dados do instructor_info');
+        // Fallback: criar perfil básico com dados do instructor_info
+        setProfile({
+          user_id: instructorData.user_id,
+          full_name: 'Professor', // Placeholder, será usado o location se disponível
+          email: '',
+          phone: '',
+          location: instructorData.location,
+        });
       }
     } catch (error: any) {
       console.error('[InstructorPublicProfile] Erro:', error);
