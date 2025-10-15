@@ -168,7 +168,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/player-dashboard?payment=success`,
+      success_url: `${req.headers.get("origin")}/player/dashboard?payment=success`,
       cancel_url: `${req.headers.get("origin")}/instructors`,
       metadata: {
         booking_id: bookingIdToUse,
