@@ -132,6 +132,20 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "booking_credits_original_booking_id_fkey"
+            columns: ["original_booking_id"]
+            isOneToOne: false
+            referencedRelation: "partner_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_credits_original_booking_id_fkey"
+            columns: ["original_booking_id"]
+            isOneToOne: false
+            referencedRelation: "user_bookings"
+            referencedColumns: ["id"]
+          },
         ]
       }
       bookings: {
@@ -585,6 +599,13 @@ export type Database = {
             referencedRelation: "partner_info"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "courts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "public_partner_info"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       featured_listing_payments: {
@@ -640,6 +661,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partner_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "featured_listing_payments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "public_partner_info"
             referencedColumns: ["id"]
           },
         ]
@@ -1200,6 +1228,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "match_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       match_history: {
@@ -1257,10 +1292,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "match_history_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "match_history_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -1456,6 +1505,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "partner_search_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       player_achievements: {
@@ -1502,6 +1558,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "player_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -1683,10 +1746,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "tournament_brackets_player1_id_fkey"
+            columns: ["player1_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "tournament_brackets_player2_id_fkey"
             columns: ["player2_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tournament_brackets_player2_id_fkey"
+            columns: ["player2_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -1701,6 +1778,13 @@ export type Database = {
             columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tournament_brackets_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -1763,6 +1847,13 @@ export type Database = {
             columns: ["partner_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tournament_registrations_partner_user_id_fkey"
+            columns: ["partner_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -1893,7 +1984,349 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      instructor_class_bookings: {
+        Row: {
+          booking_date: string | null
+          class_id: string | null
+          created_at: string | null
+          end_time: string | null
+          id: string | null
+          instructor_amount: number | null
+          instructor_id: string | null
+          is_trial: boolean | null
+          notes: string | null
+          payment_status: string | null
+          start_time: string | null
+          status: string | null
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_date?: string | null
+          class_id?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string | null
+          instructor_amount?: number | null
+          instructor_id?: string | null
+          is_trial?: boolean | null
+          notes?: string | null
+          payment_status?: string | null
+          start_time?: string | null
+          status?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_date?: string | null
+          class_id?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string | null
+          instructor_amount?: number | null
+          instructor_id?: string | null
+          is_trial?: boolean | null
+          notes?: string | null
+          payment_status?: string | null
+          start_time?: string | null
+          status?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_bookings_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_bookings: {
+        Row: {
+          booking_date: string | null
+          court_id: string | null
+          created_at: string | null
+          end_time: string | null
+          id: string | null
+          partner_amount: number | null
+          payment_status: string | null
+          start_time: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_partner_info: {
+        Row: {
+          business_address: string | null
+          business_name: string | null
+          business_type: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          location: string | null
+          specialization: string | null
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+          website_url: string | null
+        }
+        Insert: {
+          business_address?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          location?: string | null
+          specialization?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          website_url?: string | null
+        }
+        Update: {
+          business_address?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          location?: string | null
+          specialization?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          dominant_hand: string | null
+          email: string | null
+          full_name: string | null
+          location: string | null
+          phone: string | null
+          playing_time: string | null
+          preferred_surface: string | null
+          ranking_points: number | null
+          ranking_position: number | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          skill_level: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          dominant_hand?: string | null
+          email?: never
+          full_name?: string | null
+          location?: string | null
+          phone?: never
+          playing_time?: string | null
+          preferred_surface?: string | null
+          ranking_points?: number | null
+          ranking_position?: number | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          skill_level?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          dominant_hand?: string | null
+          email?: never
+          full_name?: string | null
+          location?: string | null
+          phone?: never
+          playing_time?: string | null
+          preferred_surface?: string | null
+          ranking_points?: number | null
+          ranking_position?: number | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          skill_level?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      public_tournament_registrations: {
+        Row: {
+          id: string | null
+          payment_status: string | null
+          registration_date: string | null
+          tournament_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string | null
+          payment_status?: string | null
+          registration_date?: string | null
+          tournament_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string | null
+          payment_status?: string | null
+          registration_date?: string | null
+          tournament_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_registrations_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_class_bookings: {
+        Row: {
+          booking_date: string | null
+          class_id: string | null
+          created_at: string | null
+          end_time: string | null
+          id: string | null
+          instructor_id: string | null
+          is_trial: boolean | null
+          notes: string | null
+          payment_status: string | null
+          start_time: string | null
+          status: string | null
+          student_id: string | null
+          total_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_date?: string | null
+          class_id?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string | null
+          instructor_id?: string | null
+          is_trial?: boolean | null
+          notes?: string | null
+          payment_status?: string | null
+          start_time?: string | null
+          status?: string | null
+          student_id?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_date?: string | null
+          class_id?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string | null
+          instructor_id?: string | null
+          is_trial?: boolean | null
+          notes?: string | null
+          payment_status?: string | null
+          start_time?: string | null
+          status?: string | null
+          student_id?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_bookings_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "instructor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_bookings: {
+        Row: {
+          booking_date: string | null
+          booking_quantity: number | null
+          court_id: string | null
+          created_at: string | null
+          end_time: string | null
+          id: string | null
+          payment_status: string | null
+          start_time: string | null
+          status: string | null
+          total_price: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          booking_date?: string | null
+          booking_quantity?: number | null
+          court_id?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string | null
+          payment_status?: string | null
+          start_time?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          booking_date?: string | null
+          booking_quantity?: number | null
+          court_id?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string | null
+          payment_status?: string | null
+          start_time?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "courts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_email_exists: {
