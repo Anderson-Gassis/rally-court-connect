@@ -40,13 +40,17 @@ O botão "Continuar com Google" já foi adicionado ao sistema de login/registro.
   - **Name**: Kourtify Web Client
   - **Authorized JavaScript origins**:
     ```
+    https://kourtify.com
     https://kourtify.lovable.app
+    https://963a9c24-3cfc-4cee-a0a3-0d25482b6a7a.lovableproject.com
     https://otiqpklbednbytyvaoah.supabase.co
     ```
   - **Authorized redirect URIs**:
     ```
     https://otiqpklbednbytyvaoah.supabase.co/auth/v1/callback
     ```
+
+⚠️ **IMPORTANTE**: Adicione TODAS as URLs acima para que o login funcione tanto no preview quanto no domínio final.
 
 ### 1.6 Copiar Credenciais
 - Após criar, copie:
@@ -73,10 +77,12 @@ O botão "Continuar com Google" já foi adicionado ao sistema de login/registro.
 
 ### 2.4 Configurar URLs de Redirecionamento
 - Vá em "Authentication" > "URL Configuration"
-- **Site URL**: `https://kourtify.lovable.app`
+- **Site URL**: `https://kourtify.com`
 - **Redirect URLs**: 
   ```
+  https://kourtify.com/**
   https://kourtify.lovable.app/**
+  https://963a9c24-3cfc-4cee-a0a3-0d25482b6a7a.lovableproject.com/**
   https://localhost:3000/**
   ```
 
@@ -106,15 +112,20 @@ O botão "Continuar com Google" já foi adicionado ao sistema de login/registro.
 
 ### URLs para Google Console:
 - **Authorized JavaScript origins**:
-  - `https://kourtify.lovable.app`
-  - `https://otiqpklbednbytyvaoah.supabase.co`
+  - `https://kourtify.com` (Domínio principal)
+  - `https://kourtify.lovable.app` (Domínio Lovable)
+  - `https://963a9c24-3cfc-4cee-a0a3-0d25482b6a7a.lovableproject.com` (Preview)
+  - `https://otiqpklbednbytyvaoah.supabase.co` (Supabase)
 
 - **Authorized redirect URIs**:
   - `https://otiqpklbednbytyvaoah.supabase.co/auth/v1/callback`
 
 ### URLs para Supabase:
-- **Site URL**: `https://kourtify.lovable.app`
-- **Redirect URLs**: `https://kourtify.lovable.app/**`
+- **Site URL**: `https://kourtify.com`
+- **Redirect URLs**: 
+  - `https://kourtify.com/**`
+  - `https://kourtify.lovable.app/**`
+  - `https://963a9c24-3cfc-4cee-a0a3-0d25482b6a7a.lovableproject.com/**`
 
 ## 🎯 Resultado Final
 
