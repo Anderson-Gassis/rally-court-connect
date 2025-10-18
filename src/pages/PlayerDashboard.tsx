@@ -116,6 +116,8 @@ const PlayerDashboard = () => {
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
   const [bracketStats, setBracketStats] = useState<{ wins: number; losses: number; total: number }>({ wins: 0, losses: 0, total: 0 });
   const [activeTab, setActiveTab] = useState('games');
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [comingSoonFeature, setComingSoonFeature] = useState('');
 
   useEffect(() => {
     // Aguardar o loading terminar antes de verificar autenticação
@@ -511,17 +513,37 @@ const PlayerDashboard = () => {
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
               <TabsTrigger value="credits">Meus Créditos</TabsTrigger>
               <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
-              <TabsTrigger value="friends">
+              <TabsTrigger 
+                value="friends"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setComingSoonFeature('Amigos');
+                  setShowComingSoonModal(true);
+                }}
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Amigos
+                <Badge variant="outline" className="ml-2 text-xs bg-gray-100 text-gray-600 border-gray-300">
+                  Em Breve
+                </Badge>
               </TabsTrigger>
               <TabsTrigger value="leagues">
                 <Shield className="h-4 w-4 mr-2" />
                 Ligas
               </TabsTrigger>
-              <TabsTrigger value="messages">
+              <TabsTrigger 
+                value="messages"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setComingSoonFeature('Mensagens');
+                  setShowComingSoonModal(true);
+                }}
+              >
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Mensagens
+                <Badge variant="outline" className="ml-2 text-xs bg-gray-100 text-gray-600 border-gray-300">
+                  Em Breve
+                </Badge>
               </TabsTrigger>
               <TabsTrigger value="history">Histórico e Estatísticas</TabsTrigger>
               <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
@@ -744,11 +766,27 @@ const PlayerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="messages" className="space-y-6">
-              <ChatInterface />
+              <Card className="text-center py-12">
+                <CardContent>
+                  <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-semibold mb-2">🛠️ Esta funcionalidade estará disponível em breve!</h3>
+                  <p className="text-muted-foreground">
+                    A equipe Kourtify está trabalhando para liberar o sistema de <strong>Mensagens</strong> nas próximas atualizações.
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="friends" className="space-y-6">
-              <FriendsManager />
+              <Card className="text-center py-12">
+                <CardContent>
+                  <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-semibold mb-2">🛠️ Esta funcionalidade estará disponível em breve!</h3>
+                  <p className="text-muted-foreground">
+                    A equipe Kourtify está trabalhando para liberar o sistema de <strong>Amigos</strong> nas próximas atualizações.
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="leagues" className="space-y-6">
@@ -1001,6 +1039,27 @@ const PlayerDashboard = () => {
       </AlertDialog>
       
       <Footer />
+
+      {/* Modal Em Breve */}
+      <AlertDialog open={showComingSoonModal} onOpenChange={setShowComingSoonModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              🛠️ Funcionalidade em Desenvolvimento
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base pt-2">
+              A funcionalidade de <strong>{comingSoonFeature}</strong> estará disponível em breve!
+              <br /><br />
+              A equipe Kourtify está trabalhando para liberar este recurso nas próximas atualizações.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowComingSoonModal(false)}>
+              Voltar para Minha Área
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
