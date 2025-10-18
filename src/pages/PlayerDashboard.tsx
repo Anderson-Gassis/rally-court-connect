@@ -126,8 +126,8 @@ const PlayerDashboard = () => {
       return;
     }
 
-    // Só redirecionar se o user estiver carregado E não for player
-    if (user && user.role && user.role !== 'player') {
+    // Só redirecionar se o user estiver carregado E não for player OU admin
+    if (user && user.role && user.role !== 'player' && !user.isAdmin) {
       navigate('/');
       toast.error('Acesso restrito a jogadores');
       return;
