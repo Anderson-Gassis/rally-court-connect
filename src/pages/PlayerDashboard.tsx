@@ -197,7 +197,10 @@ const PlayerDashboard = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (profileError) throw profileError;
+      // Permitir que admins acessem mesmo sem perfil
+      if (profileError && profileError.code !== 'PGRST116' && !user.isAdmin) {
+        throw profileError;
+      }
       setProfile(profileData);
 
       // Buscar histórico de partidas
@@ -208,7 +211,7 @@ const PlayerDashboard = () => {
         .order('match_date', { ascending: false })
         .limit(10);
 
-      if (matchError) throw matchError;
+      if (matchError && !user.isAdmin) throw matchError;
       setMatchHistory(matchData || []);
 
       // Buscar reservas
@@ -222,13 +225,18 @@ const PlayerDashboard = () => {
         .order('booking_date', { ascending: false })
         .limit(10);
 
-      if (bookingError) throw bookingError;
+      if (bookingError && !user.isAdmin) throw bookingError;
       setBookings(bookingData || []);
 
       // Buscar desafios
       setChallengesLoading(true);
-      const challengesData = await challengesService.getChallengesWithProfiles();
-      setChallenges(challengesData || []);
+      try {
+        const challengesData = await challengesService.getChallengesWithProfiles();
+        setChallenges(challengesData || []);
+      } catch (error) {
+        if (!user.isAdmin) throw error;
+        setChallenges([]);
+      }
       setChallengesLoading(false);
 
       // Buscar torneios do usuário (inscrições)
@@ -252,7 +260,7 @@ const PlayerDashboard = () => {
         .eq('user_id', user.id)
         .order('registration_date', { ascending: false });
 
-      if (regError) throw regError;
+      if (regError && !user.isAdmin) throw regError;
 
       // Buscar torneios criados pelo usuário
       const { data: createdTournamentsData, error: createdError } = await supabase
@@ -261,7 +269,7 @@ const PlayerDashboard = () => {
         .eq('organizer_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (createdError) throw createdError;
+      if (createdError && !user.isAdmin) throw createdError;
 
       // Combinar os dois tipos de torneios
       const allTournaments = [
