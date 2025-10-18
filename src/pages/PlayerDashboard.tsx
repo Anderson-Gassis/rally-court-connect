@@ -521,19 +521,9 @@ const PlayerDashboard = () => {
               <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
               <TabsTrigger value="credits">Meus Créditos</TabsTrigger>
               <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
-              <TabsTrigger 
-                value="friends"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setComingSoonFeature('Amigos');
-                  setShowComingSoonModal(true);
-                }}
-              >
+              <TabsTrigger value="friends">
                 <Users className="h-4 w-4 mr-2" />
                 Amigos
-                <Badge variant="outline" className="ml-2 text-xs bg-gray-100 text-gray-600 border-gray-300">
-                  Em Breve
-                </Badge>
               </TabsTrigger>
               <TabsTrigger value="leagues">
                 <Shield className="h-4 w-4 mr-2" />
@@ -786,13 +776,18 @@ const PlayerDashboard = () => {
             </TabsContent>
 
             <TabsContent value="friends" className="space-y-6">
-              <Card className="text-center py-12">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Amigos
+                  </CardTitle>
+                  <CardDescription>
+                    Gerencie suas amizades e encontre novos parceiros de jogo
+                  </CardDescription>
+                </CardHeader>
                 <CardContent>
-                  <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-xl font-semibold mb-2">🛠️ Esta funcionalidade estará disponível em breve!</h3>
-                  <p className="text-muted-foreground">
-                    A equipe Kourtify está trabalhando para liberar o sistema de <strong>Amigos</strong> nas próximas atualizações.
-                  </p>
+                  <FriendsManager />
                 </CardContent>
               </Card>
             </TabsContent>
