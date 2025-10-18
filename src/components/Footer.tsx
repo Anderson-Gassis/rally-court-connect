@@ -33,49 +33,40 @@ const Footer = () => {
           
           {/* Links 1 */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Para Jogadores</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">🎾 Para Jogadores</h3>
             <ul className="space-y-3">
               <li>
                 <Link to="/como-funciona" className="text-gray-600 hover:text-tennis-blue">Como Funciona</Link>
               </li>
               <li>
-                <Link to="/buscar-quadras" className="text-gray-600 hover:text-tennis-blue">Buscar Quadras</Link>
+                <Link to="/courts" className="text-gray-600 hover:text-tennis-blue">Buscar Quadras</Link>
               </li>
               <li>
-                <Link to="/ranking" className="text-gray-600 hover:text-tennis-blue">Ranking de Jogadores</Link>
+                <Link to="/rankings" className="text-gray-600 hover:text-tennis-blue">Ranking de Jogadores</Link>
               </li>
               <li>
-                <Link to="/torneios" className="text-gray-600 hover:text-tennis-blue">Torneios</Link>
+                <Link to="/tournaments" className="text-gray-600 hover:text-tennis-blue">Torneios</Link>
               </li>
             </ul>
           </div>
           
           {/* Links 2 */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Para Proprietários</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">🧩 Para Proprietários</h3>
             <ul className="space-y-3">
               <li>
-                <Link to="/registrar-quadra" className="text-gray-600 hover:text-tennis-blue">Registrar Quadra</Link>
+                <Link to="/para-proprietarios" className="text-gray-600 hover:text-tennis-blue">Informações para Proprietários</Link>
               </li>
               <li>
-                <Link to="/painel" className="text-gray-600 hover:text-tennis-blue">Painel de Controle</Link>
-              </li>
-              <li>
-                <Link to="/pricing" className="text-gray-600 hover:text-tennis-blue">Preços e Planos</Link>
-              </li>
-              <li>
-                <Link to="/suporte-proprietarios" className="text-gray-600 hover:text-tennis-blue">Suporte</Link>
+                <Link to="/add-court" className="text-gray-600 hover:text-tennis-blue">Cadastrar Quadra</Link>
               </li>
             </ul>
           </div>
           
           {/* Links 3 */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Suporte</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">💬 Suporte</h3>
             <ul className="space-y-3">
-              <li>
-                <Link to="/ajuda" className="text-gray-600 hover:text-tennis-blue">Central de Ajuda</Link>
-              </li>
               <li>
                 <Link to="/contato" className="text-gray-600 hover:text-tennis-blue">Entre em Contato</Link>
               </li>

@@ -30,6 +30,11 @@ import AdminDashboard from "./pages/AdminDashboard";
 import LeagueDetails from "./pages/LeagueDetails";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
+import ComoFunciona from "./pages/ComoFunciona";
+import ParaProprietarios from "./pages/ParaProprietarios";
+import Contato from "./pages/Contato";
+import Termos from "./pages/Termos";
+import Privacidade from "./pages/Privacidade";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +72,11 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/leagues/:id" element={<LeagueDetails />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/como-funciona" element={<ComoFunciona />} />
+            <Route path="/para-proprietarios" element={<ParaProprietarios />} />
+            <Route path="/contato" element={<Contato />} />
+            <Route path="/termos" element={<Termos />} />
+            <Route path="/privacidade" element={<Privacidade />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
