@@ -11,7 +11,7 @@ const Analytics = () => {
     // Initialize Google Analytics if gtag is available
     if (typeof window !== 'undefined' && window.gtag) {
       // Track page view
-      window.gtag('config', 'GA_MEASUREMENT_ID', {
+      window.gtag('config', 'G-63DEP8ZKQ1', {
         page_title: document.title,
         page_location: window.location.href,
       });
