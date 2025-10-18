@@ -5,6 +5,19 @@ import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './hooks/useAuth';
 import ErrorBoundary from './components/ErrorBoundary';
+import { registerSW } from 'virtual:pwa-register';
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  registerSW({
+    onNeedRefresh() {
+      console.log('New content available, please refresh.');
+    },
+    onOfflineReady() {
+      console.log('App ready to work offline');
+    },
+  });
+}
 
 // Create a client with more conservative settings
 const queryClient = new QueryClient({

@@ -7,6 +7,7 @@ import CourtCard from '@/components/CourtCard';
 import MapView from '@/components/MapView';
 import Footer from '@/components/Footer';
 import Analytics from '@/components/Analytics';
+import { PWAInstallBanner } from '@/components/PWAInstallBanner';
 import { Button } from '@/components/ui/button';
 import { Activity, Clock, MapPin, Star } from 'lucide-react';
 import { useCourts } from '@/hooks/useCourts';
@@ -239,6 +240,7 @@ const Index = () => {
         </div>
       </main>
       
+      <PWAInstallBanner />
       <Footer />
       
       <LoginModal 
