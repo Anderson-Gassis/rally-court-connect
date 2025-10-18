@@ -68,6 +68,9 @@ const Footer = () => {
             <h3 className="font-semibold text-gray-900 mb-4">💬 Suporte</h3>
             <ul className="space-y-3">
               <li>
+                <Link to="/faq" className="text-gray-600 hover:text-tennis-blue">Perguntas Frequentes (FAQ)</Link>
+              </li>
+              <li>
                 <Link to="/contato" className="text-gray-600 hover:text-tennis-blue">Entre em Contato</Link>
               </li>
               <li>
