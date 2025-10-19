@@ -516,18 +516,30 @@ const PlayerDashboard = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="games">Próximos Jogos</TabsTrigger>
-              <TabsTrigger value="bookings">Próximas Reservas</TabsTrigger>
-              <TabsTrigger value="credits">Meus Créditos</TabsTrigger>
-              <TabsTrigger value="tournaments">Meus Torneios</TabsTrigger>
-              <TabsTrigger value="friends">
-                <Users className="h-4 w-4 mr-2" />
-                Amigos
+            <TabsList className="h-auto w-full grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap lg:justify-start p-2">
+              <TabsTrigger value="games" className="flex-1 min-w-0">
+                <Calendar className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Próximos Jogos</span>
               </TabsTrigger>
-              <TabsTrigger value="leagues">
-                <Shield className="h-4 w-4 mr-2" />
-                Ligas
+              <TabsTrigger value="bookings" className="flex-1 min-w-0">
+                <Clock className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Próximas Reservas</span>
+              </TabsTrigger>
+              <TabsTrigger value="credits" className="flex-1 min-w-0">
+                <Target className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Meus Créditos</span>
+              </TabsTrigger>
+              <TabsTrigger value="tournaments" className="flex-1 min-w-0">
+                <Trophy className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Meus Torneios</span>
+              </TabsTrigger>
+              <TabsTrigger value="friends" className="flex-1 min-w-0">
+                <Users className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Amigos</span>
+              </TabsTrigger>
+              <TabsTrigger value="leagues" className="flex-1 min-w-0">
+                <Shield className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Ligas</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="messages"
@@ -536,15 +548,22 @@ const PlayerDashboard = () => {
                   setComingSoonFeature('Mensagens');
                   setShowComingSoonModal(true);
                 }}
+                className="flex-1 min-w-0"
               >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Mensagens
-                <Badge variant="outline" className="ml-2 text-xs bg-gray-100 text-gray-600 border-gray-300">
+                <MessageSquare className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Mensagens</span>
+                <Badge variant="outline" className="hidden lg:inline-flex ml-2 text-xs bg-gray-100 text-gray-600 border-gray-300">
                   Em Breve
                 </Badge>
               </TabsTrigger>
-              <TabsTrigger value="history">Histórico e Estatísticas</TabsTrigger>
-              <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
+              <TabsTrigger value="history" className="flex-1 min-w-0">
+                <Activity className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Histórico</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex-1 min-w-0">
+                <User className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Meu Perfil</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="games" className="space-y-6">
