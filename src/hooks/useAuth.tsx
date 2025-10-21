@@ -301,41 +301,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
-      // Detectar se estamos dentro de um iframe (preview do Lovable)
-      const inIframe = (() => {
-        try { return window.self !== window.top; } catch { return true; }
-      })();
-
-      const doTopLevelAuth = async () => {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/`,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (error) throw error;
-        if (data?.url) {
-          // Tentar abrir nova aba (mais confiável em iframes)
-          const win = window.open(data.url, '_blank', 'noopener,noreferrer');
-          if (!win) {
-            // Fallback: tentar navegar o topo
-            try { (window.top || window).location.href = data.url; } catch { window.location.href = data.url; }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
           }
+        },
+      });
+      
+      if (error) throw error;
+      
+      // Registrar atividade de login (será executado após o redirect)
+      setTimeout(async () => {
+        try {
+          await supabase.rpc('log_user_activity', {
+            activity_type_param: 'login',
+            activity_data_param: { login_method: 'google' }
+          });
+        } catch (error) {
+          console.error('Error logging activity:', error);
         }
-      };
-
-      if (inIframe) {
-        await doTopLevelAuth();
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/`,
-          },
-        });
-        if (error) throw error;
-      }
+      }, 500);
     } catch (error) {
       console.error('Google login error:', error);
       throw error;
