@@ -165,10 +165,10 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-[95vw] sm:w-full max-w-[420px] max-h-[90vh] overflow-y-auto p-4 sm:p-6"  aria-describedby="login-description">
+        <DialogContent className="w-[95vw] sm:w-full max-w-[420px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 pointer-events-auto"  aria-describedby="login-description">
 
-          <DialogHeader>
-            <DialogTitle className="text-xl sm:text-2xl">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="text-lg sm:text-xl">
               {showForgotPassword ? 'Recuperar senha' : 'Acesse sua conta'}
             </DialogTitle>
             <p id="login-description" className="sr-only">
@@ -177,7 +177,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
           </DialogHeader>
           
           {showForgotPassword ? (
-            <form onSubmit={handleForgotPassword} className="space-y-4">
+            <form onSubmit={handleForgotPassword} className="space-y-3 sm:space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="reset-email">Email</Label>
                 <Input
@@ -203,13 +203,13 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
             </form>
           ) : (
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="register">Criar conta</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-3 sm:mb-4">
+                <TabsTrigger value="login" className="text-sm sm:text-base">Entrar</TabsTrigger>
+                <TabsTrigger value="register" className="text-sm sm:text-base">Criar conta</TabsTrigger>
               </TabsList>
             
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
+            <TabsContent value="login" className="mt-0">
+              <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input
@@ -280,8 +280,8 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               </form>
             </TabsContent>
             
-            <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4">
+            <TabsContent value="register" className="mt-0">
+              <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Nome completo</Label>
                   <Input

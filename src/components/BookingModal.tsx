@@ -106,18 +106,18 @@ const BookingModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto sm:w-full" aria-describedby="booking-description">
+      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto pointer-events-auto p-4 sm:p-6" aria-describedby="booking-description">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Reservar Quadra</DialogTitle>
+          <DialogTitle className="text-lg sm:text-2xl">Reservar Quadra</DialogTitle>
         </DialogHeader>
         <p id="booking-description" className="sr-only">
           Selecione data, horários e pacote para reservar a quadra
         </p>
 
-        <div className="space-y-6 pb-4">
+        <div className="space-y-4 sm:space-y-6 pb-4">
           {/* Court Info */}
-          <div className="p-4 bg-muted rounded-lg">
-            <h3 className="font-semibold text-lg">{courtName}</h3>
+          <div className="p-3 sm:p-4 bg-muted rounded-lg">
+            <h3 className="font-semibold text-base sm:text-lg">{courtName}</h3>
             <p className="text-sm text-muted-foreground">
               R$ {pricePerHour}/hora
             </p>
@@ -125,14 +125,14 @@ const BookingModal = ({
 
           {/* Date Selection */}
           <div className="space-y-2">
-            <Label>Selecione a Data</Label>
-            <div className="flex justify-center">
+            <Label className="text-sm sm:text-base">Selecione a Data</Label>
+            <div className="flex justify-center w-full">
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={setDate}
                 disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                className="rounded-md border pointer-events-auto w-full max-w-[22rem]"
+                className="rounded-md border pointer-events-auto w-full"
               />
             </div>
           </div>
@@ -141,22 +141,22 @@ const BookingModal = ({
           {date && (
             <>
               {loadingSlots ? (
-                <div className="flex items-center justify-center py-8">
-                  <Clock className="h-6 w-6 animate-spin text-primary" />
-                  <span className="ml-2">Carregando horários disponíveis...</span>
+                <div className="flex items-center justify-center py-6 sm:py-8">
+                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary" />
+                  <span className="ml-2 text-sm sm:text-base">Carregando horários...</span>
                 </div>
               ) : availableStartTimes.length === 0 ? (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
+                  <AlertDescription className="text-sm">
                     Nenhum horário disponível para esta data. Tente outra data ou entre em contato com o parceiro.
                   </AlertDescription>
                 </Alert>
               ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label>Horário Início</Label>
+                      <Label className="text-sm sm:text-base">Horário Início</Label>
                       <Select value={startTime} onValueChange={setStartTime}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione" />
@@ -172,7 +172,7 @@ const BookingModal = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Horário Fim</Label>
+                      <Label className="text-sm sm:text-base">Horário Fim</Label>
                       <Select value={endTime} onValueChange={setEndTime}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione" />
@@ -188,8 +188,8 @@ const BookingModal = ({
                     </div>
                   </div>
 
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
+                  <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs sm:text-sm text-blue-800">
                       <strong>Horários definidos pelo parceiro:</strong> Apenas os horários disponíveis são exibidos.
                     </p>
                   </div>
@@ -202,14 +202,14 @@ const BookingModal = ({
           {validationError && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{validationError}</AlertDescription>
+              <AlertDescription className="text-sm">{validationError}</AlertDescription>
             </Alert>
           )}
 
           {/* Duration Info */}
           {totalHours > 0 && !validationError && (
-            <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-              <p className="text-sm font-medium">
+            <div className="p-2 sm:p-3 bg-primary/10 rounded-lg border border-primary/20">
+              <p className="text-xs sm:text-sm font-medium">
                 Duração selecionada: <span className="text-primary">{totalHours}h</span>
               </p>
             </div>
@@ -217,8 +217,8 @@ const BookingModal = ({
 
           {/* Package Selection and Payment */}
           {canProceed && (
-            <div className="space-y-4 pt-2 border-t">
-              <h3 className="font-semibold text-lg">Escolha seu Pacote</h3>
+            <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t">
+              <h3 className="font-semibold text-base sm:text-lg">Escolha seu Pacote</h3>
               <BookingPaymentButton
                 courtId={courtId}
                 courtName={courtName}
