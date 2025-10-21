@@ -106,8 +106,8 @@ const BookingModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto pointer-events-auto p-4 sm:p-6" aria-describedby="booking-description">
-        <DialogHeader>
+      <DialogContent className="w-[95vw] max-w-md h-auto max-h-[100vh] overflow-y-auto pointer-events-auto p-4 sm:p-6" aria-describedby="booking-description">
+        <DialogHeader className="pb-2">
           <DialogTitle className="text-lg sm:text-2xl">Reservar Quadra</DialogTitle>
         </DialogHeader>
         <p id="booking-description" className="sr-only">
@@ -126,13 +126,13 @@ const BookingModal = ({
           {/* Date Selection */}
           <div className="space-y-2">
             <Label className="text-sm sm:text-base">Selecione a Data</Label>
-            <div className="flex justify-center w-full">
+            <div className="flex justify-center w-full overflow-hidden">
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={setDate}
                 disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                className="rounded-md border pointer-events-auto w-full"
+                className="rounded-md border w-full h-auto mx-auto pointer-events-auto"
               />
             </div>
           </div>
