@@ -70,20 +70,6 @@ const Courts = () => {
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link to="/help">
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                      Central de Ajuda
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link to="/contact">
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                      Fale Conosco
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
           </div>
