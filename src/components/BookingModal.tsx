@@ -131,8 +131,8 @@ const BookingModal = ({
                 mode="single"
                 selected={date}
                 onSelect={setDate}
-                disabled={(date) => date < new Date()}
-                className="rounded-md border pointer-events-auto scale-90 sm:scale-100"
+                disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                className="rounded-md border pointer-events-auto w-full max-w-[22rem]"
               />
             </div>
           </div>
@@ -154,11 +154,11 @@ const BookingModal = ({
                 </Alert>
               ) : (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Horário Início</Label>
                       <Select value={startTime} onValueChange={setStartTime}>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
@@ -174,7 +174,7 @@ const BookingModal = ({
                     <div className="space-y-2">
                       <Label>Horário Fim</Label>
                       <Select value={endTime} onValueChange={setEndTime}>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
