@@ -106,18 +106,18 @@ const BookingModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md h-auto max-h-[100vh] overflow-y-auto pointer-events-auto p-4 sm:p-6" aria-describedby="booking-description">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="text-lg sm:text-2xl">Reservar Quadra</DialogTitle>
+      <DialogContent className="w-[95vw] sm:w-full max-w-[420px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 pointer-events-auto" aria-describedby="booking-description">
+        <DialogHeader className="mb-2">
+          <DialogTitle className="text-lg sm:text-xl">Reservar Quadra</DialogTitle>
+          <p id="booking-description" className="sr-only">
+            Selecione data, horários e pacote para reservar a quadra
+          </p>
         </DialogHeader>
-        <p id="booking-description" className="sr-only">
-          Selecione data, horários e pacote para reservar a quadra
-        </p>
 
-        <div className="space-y-4 sm:space-y-6 pb-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Court Info */}
-          <div className="p-3 sm:p-4 bg-muted rounded-lg">
-            <h3 className="font-semibold text-base sm:text-lg">{courtName}</h3>
+          <div className="p-3 bg-muted rounded-lg">
+            <h3 className="font-semibold text-base">{courtName}</h3>
             <p className="text-sm text-muted-foreground">
               R$ {pricePerHour}/hora
             </p>
@@ -125,7 +125,7 @@ const BookingModal = ({
 
           {/* Date Selection */}
           <div className="space-y-2">
-            <Label className="text-sm sm:text-base">Selecione a Data</Label>
+            <Label>Selecione a Data</Label>
             <div className="flex justify-center w-full overflow-hidden">
               <Calendar
                 mode="single"
@@ -141,9 +141,9 @@ const BookingModal = ({
           {date && (
             <>
               {loadingSlots ? (
-                <div className="flex items-center justify-center py-6 sm:py-8">
-                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary" />
-                  <span className="ml-2 text-sm sm:text-base">Carregando horários...</span>
+                <div className="flex items-center justify-center py-4">
+                  <Clock className="h-5 w-5 animate-spin text-primary" />
+                  <span className="ml-2 text-sm">Carregando horários...</span>
                 </div>
               ) : availableStartTimes.length === 0 ? (
                 <Alert>
@@ -153,10 +153,10 @@ const BookingModal = ({
                   </AlertDescription>
                 </Alert>
               ) : (
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label className="text-sm sm:text-base">Horário Início</Label>
+                      <Label>Horário Início</Label>
                       <Select value={startTime} onValueChange={setStartTime}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione" />
@@ -172,7 +172,7 @@ const BookingModal = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-sm sm:text-base">Horário Fim</Label>
+                      <Label>Horário Fim</Label>
                       <Select value={endTime} onValueChange={setEndTime}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Selecione" />
@@ -188,8 +188,8 @@ const BookingModal = ({
                     </div>
                   </div>
 
-                  <div className="p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs sm:text-sm text-blue-800">
+                  <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-800">
                       <strong>Horários definidos pelo parceiro:</strong> Apenas os horários disponíveis são exibidos.
                     </p>
                   </div>
@@ -208,8 +208,8 @@ const BookingModal = ({
 
           {/* Duration Info */}
           {totalHours > 0 && !validationError && (
-            <div className="p-2 sm:p-3 bg-primary/10 rounded-lg border border-primary/20">
-              <p className="text-xs sm:text-sm font-medium">
+            <div className="p-2 bg-primary/10 rounded-lg border border-primary/20">
+              <p className="text-xs font-medium">
                 Duração selecionada: <span className="text-primary">{totalHours}h</span>
               </p>
             </div>
@@ -217,8 +217,8 @@ const BookingModal = ({
 
           {/* Package Selection and Payment */}
           {canProceed && (
-            <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t">
-              <h3 className="font-semibold text-base sm:text-lg">Escolha seu Pacote</h3>
+            <div className="space-y-3 pt-3 border-t">
+              <h3 className="font-semibold text-base">Escolha seu Pacote</h3>
               <BookingPaymentButton
                 courtId={courtId}
                 courtName={courtName}
