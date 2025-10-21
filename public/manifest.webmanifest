@@ -1,13 +1,51 @@
 {
+  "id": "/?source=pwa",
   "name": "Kourtify - Reserve Quadras de Tênis Online",
   "short_name": "Kourtify",
   "description": "Plataforma completa para reservar quadras de tênis, padel e beach tennis. Encontre parceiros, participe de torneios e agende aulas.",
   "theme_color": "#10b981",
   "background_color": "#ffffff",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait",
   "scope": "/",
   "start_url": "/",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "shortcuts": [
+    {
+      "name": "Buscar Quadras",
+      "short_name": "Quadras",
+      "description": "Encontre quadras próximas",
+      "url": "/courts",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Minhas Reservas",
+      "short_name": "Reservas",
+      "description": "Ver minhas reservas",
+      "url": "/player-dashboard",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Torneios",
+      "short_name": "Torneios",
+      "description": "Ver torneios disponíveis",
+      "url": "/tournaments",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     {
       "src": "/icon-192x192.png",
