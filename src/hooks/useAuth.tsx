@@ -301,14 +301,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        },
-      });
+      // Detectar se estamos dentro de um iframe (preview do Lovable)
+      const inIframe = (() => {
+        try { return window.self !== window.top; } catch { return true; }
+      })();
 
-      if (error) throw error;
+      const doTopLevelAuth = async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/`,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          // Tentar abrir nova aba (mais confiável em iframes)
+          const win = window.open(data.url, '_blank', 'noopener,noreferrer');
+          if (!win) {
+            // Fallback: tentar navegar o topo
+            try { (window.top || window).location.href = data.url; } catch { window.location.href = data.url; }
+          }
+        }
+      };
+
+      if (inIframe) {
+        await doTopLevelAuth();
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/`,
+          },
+        });
+        if (error) throw error;
+      }
     } catch (error) {
       console.error('Google login error:', error);
       throw error;
