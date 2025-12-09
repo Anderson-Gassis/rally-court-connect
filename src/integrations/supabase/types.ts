@@ -2350,10 +2350,7 @@ export type Database = {
       }
     }
     Functions: {
-      check_email_exists: {
-        Args: { email_to_check: string }
-        Returns: boolean
-      }
+      check_email_exists: { Args: { email_to_check: string }; Returns: boolean }
       create_instructor_profile: {
         Args: {
           p_bio: string
@@ -2365,18 +2362,9 @@ export type Database = {
         }
         Returns: undefined
       }
-      generate_tournament_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_user_role: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      get_user_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      generate_tournament_code: { Args: never; Returns: string }
+      get_user_role: { Args: { user_id: string }; Returns: string }
+      get_user_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2384,10 +2372,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_league_member: {
         Args: { _league_id: string; _user_id: string }
         Returns: boolean
