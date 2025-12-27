@@ -86,6 +86,17 @@ const Footer = () => {
           <p className="text-gray-500 text-center text-sm">
             © {new Date().getFullYear()} Kourtify.com. Todos os direitos reservados.
           </p>
+          <p className="text-gray-400 text-center text-xs mt-2">
+            Desenvolvido e produzido por{' '}
+            <a 
+              href="https://www.pulsarbrands.com.br" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-tennis-blue transition-colors"
+            >
+              www.Pulsarbrands.com.br
+            </a>
+          </p>
         </div>
       </div>
     </footer>
