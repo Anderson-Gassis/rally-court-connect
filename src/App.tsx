@@ -36,6 +36,8 @@ import Contato from "./pages/Contato";
 import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import FAQ from "./pages/FAQ";
+import AuthCallback from "./pages/AuthCallback";
+import Groups from "./pages/Groups";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +81,8 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/grupos" element={<Groups />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

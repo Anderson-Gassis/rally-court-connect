@@ -99,15 +99,25 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     fetchComments(match.id);
   };
 
-  const advanceWinnerToNextRound = async (currentMatch: any, winnerId: string) => {
+  /**
+   * Robust round parser — handles both integer (1) and string ('round_1') formats.
+   */
+  const parseRound = (round: string | number): number => {
+    if (typeof round === 'number') return round;
+    const match = String(round).match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 1;
+  };
+
+  const advanceWinnerToNextRound = async (currentMatch: any, winnerId: string, loserPlayerId: string) => {
     try {
-      const roundNumber = parseInt(String(currentMatch.round).split('_')[1]);
-      const nextRound = `round_${roundNumber + 1}`;
+      const roundNumber = parseRound(currentMatch.round);
+      // Support both 'round_N' string format and plain integer format
+      const nextRound = typeof currentMatch.round === 'number'
+        ? roundNumber + 1
+        : `round_${roundNumber + 1}`;
       const nextMatchNumber = Math.ceil(currentMatch.match_number / 2);
       const isPlayer1Position = currentMatch.match_number % 2 === 1;
-      
-      console.log('Advancing winner:', { roundNumber, nextRound, nextMatchNumber, isPlayer1Position, winnerId });
-      
+
       // Check if next round exists
       const { data: nextRoundMatch, error: fetchError } = await supabase
         .from('tournament_brackets')
@@ -117,13 +127,9 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
         .eq('match_number', nextMatchNumber)
         .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
       if (nextRoundMatch) {
-        console.log('Found next round match:', nextRoundMatch);
-        // Update next round match with the winner
         const { error } = await supabase
           .from('tournament_brackets')
           .update({
@@ -132,26 +138,36 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
           .eq('id', nextRoundMatch.id);
 
         if (error) throw error;
-
-        console.log('Winner advanced successfully');
-        toast.success('Vencedor avançou para a próxima rodada!');
-        
-        // Refresh matches to show updated bracket
+        toast.success('Vencedor avançou para a próxima rodada! 🏅');
         await fetchMatches();
       } else {
-        // This was the final match
-        console.log('This was the final match');
+        // Final match completed — record champion & runner-up
+        const winnerName = currentMatch.player1_id === winnerId
+          ? currentMatch.player1?.full_name
+          : currentMatch.player2?.full_name;
+        const runnerUpName = currentMatch.player1_id === loserPlayerId
+          ? currentMatch.player1?.full_name
+          : currentMatch.player2?.full_name;
+
         await supabase
           .from('tournaments')
-          .update({ status: 'completed' })
+          .update({
+            status: 'completed',
+            winner_id: winnerId,
+          })
           .eq('id', tournamentId);
-        toast.success('🏆 Torneio finalizado! Campeão definido!');
+
+        toast.success(
+          `🏆 Torneio finalizado! Campeão: ${winnerName || 'Vencedor'}!${runnerUpName ? ` Vice: ${runnerUpName}` : ''}`,
+          { duration: 8000 }
+        );
       }
     } catch (error) {
       console.error('Error advancing winner:', error);
       toast.error('Erro ao avançar vencedor');
     }
   };
+
 
   const submitScore = async () => {
     if (!selectedMatch || !user) return;
@@ -162,8 +178,25 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
     }
 
     try {
-      // Determine winner
-      const winnerId = player1Score > player2Score ? selectedMatch.player1_id : selectedMatch.player2_id;
+      /**
+       * Tennis/beach tennis score parsing.
+       * Score format: "6-4, 6-3" — we count total games won per player.
+       * Falls back to lexicographic comparison for other formats.
+       */
+      const parseTennisScore = (score: string): number => {
+        return score
+          .split(',')
+          .map(s => s.trim())
+          .reduce((acc, set) => {
+            const parts = set.split('-').map(n => parseInt(n.trim(), 10));
+            return acc + (parts[0] || 0);
+          }, 0);
+      };
+
+      const p1Games = parseTennisScore(player1Score);
+      const p2Games = parseTennisScore(player2Score);
+      const winnerId = p1Games >= p2Games ? selectedMatch.player1_id : selectedMatch.player2_id;
+      const loserId = p1Games >= p2Games ? selectedMatch.player2_id : selectedMatch.player1_id;
 
       const { error } = await supabase
         .from('tournament_brackets')
@@ -177,8 +210,8 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
 
       if (error) throw error;
 
-      // Advance winner to next round
-      await advanceWinnerToNextRound(selectedMatch, winnerId);
+      // Advance winner to next round (and check for champion)
+      await advanceWinnerToNextRound(selectedMatch, winnerId, loserId);
 
       toast.success('Resultado registrado com sucesso!');
       setSelectedMatch(null);
@@ -188,6 +221,7 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
       toast.error('Erro ao enviar resultado');
     }
   };
+
 
   const submitComment = async () => {
     if (!selectedMatch || !user || !newComment.trim()) return;
