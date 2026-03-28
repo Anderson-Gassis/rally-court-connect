@@ -123,7 +123,7 @@ const TournamentBracket = ({ tournamentId }: TournamentBracketProps) => {
         .from('tournament_brackets')
         .select('*')
         .eq('tournament_id', tournamentId)
-        .eq('round', nextRound)
+        .eq('round', String(nextRound))
         .eq('match_number', nextMatchNumber)
         .single();
 

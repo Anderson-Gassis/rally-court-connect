@@ -92,9 +92,9 @@ serve(async (req) => {
                 }
               });
           }
-        } catch (error) {
+      } catch (error: any) {
           console.error(`Failed to refund registration ${reg.id}:`, error);
-          refundResults.push({ success: false, registrationId: reg.id, error: error.message });
+          refundResults.push({ success: false, registrationId: reg.id, error: error?.message ?? String(error) });
         }
       }
     }
@@ -123,10 +123,10 @@ serve(async (req) => {
         status: 200,
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error cancelling tournament:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error?.message ?? String(error) }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

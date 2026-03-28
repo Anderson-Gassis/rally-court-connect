@@ -39,7 +39,7 @@ export const groupsService = {
 
     const { data, error } = await query;
     if (error) throw new Error(`Failed to fetch groups: ${error.message}`);
-    return (data || []) as Group[];
+    return (data || []) as unknown as Group[];
   },
 
   async getMyGroups(userId: string): Promise<Group[]> {
@@ -49,7 +49,7 @@ export const groupsService = {
       .eq('user_id', userId);
 
     if (error) throw new Error(`Failed to fetch my groups: ${error.message}`);
-    return (data || []).map((row: any) => row.groups).filter(Boolean) as Group[];
+    return (data || []).map((row: any) => row.groups).filter(Boolean) as unknown as Group[];
   },
 
   async createGroup(data: {
@@ -83,7 +83,7 @@ export const groupsService = {
         role: 'owner',
       });
 
-    return group as Group;
+    return group as unknown as Group;
   },
 
   async joinGroup(groupId: string, userId: string): Promise<void> {
@@ -115,7 +115,7 @@ export const groupsService = {
       .order('joined_at', { ascending: true });
 
     if (error) throw new Error(`Failed to fetch group members: ${error.message}`);
-    return (data || []) as GroupMember[];
+    return (data || []) as unknown as GroupMember[];
   },
 
   async isMember(groupId: string, userId: string): Promise<boolean> {
