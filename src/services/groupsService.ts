@@ -39,7 +39,7 @@ export const groupsService = {
 
     const { data, error } = await query;
     if (error) throw new Error(`Failed to fetch groups: ${error.message}`);
-    return (data || []) as Group[];
+    return (data || []) as unknown as Group[];
   },
 
   async getMyGroups(userId: string): Promise<Group[]> {
