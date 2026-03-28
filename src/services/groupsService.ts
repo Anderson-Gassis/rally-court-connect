@@ -49,7 +49,7 @@ export const groupsService = {
       .eq('user_id', userId);
 
     if (error) throw new Error(`Failed to fetch my groups: ${error.message}`);
-    return (data || []).map((row: any) => row.groups).filter(Boolean) as Group[];
+    return (data || []).map((row: any) => row.groups).filter(Boolean) as unknown as Group[];
   },
 
   async createGroup(data: {
