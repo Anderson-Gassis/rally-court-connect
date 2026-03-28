@@ -92,9 +92,9 @@ serve(async (req) => {
                 }
               });
           }
-        } catch (error) {
+      } catch (error: any) {
           console.error(`Failed to refund registration ${reg.id}:`, error);
-          refundResults.push({ success: false, registrationId: reg.id, error: error.message });
+          refundResults.push({ success: false, registrationId: reg.id, error: error?.message ?? String(error) });
         }
       }
     }
