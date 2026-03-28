@@ -115,7 +115,7 @@ export const groupsService = {
       .order('joined_at', { ascending: true });
 
     if (error) throw new Error(`Failed to fetch group members: ${error.message}`);
-    return (data || []) as GroupMember[];
+    return (data || []) as unknown as GroupMember[];
   },
 
   async isMember(groupId: string, userId: string): Promise<boolean> {
