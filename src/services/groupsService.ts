@@ -83,7 +83,7 @@ export const groupsService = {
         role: 'owner',
       });
 
-    return group as Group;
+    return group as unknown as Group;
   },
 
   async joinGroup(groupId: string, userId: string): Promise<void> {
